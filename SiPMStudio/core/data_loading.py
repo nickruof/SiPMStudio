@@ -13,17 +13,30 @@ class DataLoader(ABC):
             self.df_data = None
 
     def load_data(self, df_data):
-
         if isinstance(df_data, pd.core.frame.DataFrame):
             self.df_data = df_data
         elif isinstance(df_data, str):
-            self.df_data = pd.read_csv(df_data, delimiter=";", header=None, skiprows=1)
+            self.df_data = pd.read_csv(df_data, delimiter=";", header=None)
         else:
             raise TypeError("DataType not recognized!")
 
-    @classMethod
     def format_data(self, columns):
         self.df_data.columns = columns
 
     def clear_data(self):
         self.df_data = None
+
+
+class Keithley2450(DataLoader):
+
+    def __init__(self, *args, **kwargs):
+        self.model_name = "Keithley2450"
+        super()__init__(*args, **kwargs)
+
+    def load_data(self, df_data):
+        if isinstance(df_data, pd.core.frame.DataFrame):
+            self.df_data = df_data
+        elif isinstance(df_data, str):
+            self.df_data = pd.read_csv(df_data, delimiter=",", skiprows=7)
+        else:
+            raise TypeError("DataType not recognized!")

@@ -24,11 +24,13 @@ class Digitizer(DataLoader):
 class CAENDT5730(Digitizer):
 
     def __init__(self, *args, **kwargs):
-
         self.id = None
         self.model_name = "CAENDT5730"
         self.adc_bitcount = 14
-        self.sample_time = None
+        self.sample_rate = 500e6
+
+        self.e_cal = None
+        self.int_window = None
         self.waves = False
 
         self.parameters = ["Timestamp", "E_short", "E_long"]
@@ -47,5 +49,5 @@ class CAENDT5730(Digitizer):
             self.params_frame = pd.DataFrame(params, columns=["timetag", "E_short", "E_long"])
             return params
 
-    def parse_xml(self, xmlfile):
-        
+    def parse_xml(self, xmlfile)
+
