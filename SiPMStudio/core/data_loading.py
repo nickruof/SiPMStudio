@@ -6,7 +6,6 @@ from abc import ABC
 class DataLoader(ABC):
 
     def __init__(self, df_data=None):
-
         if df_data is not None:
             self.load_data(df_data)
         else:
@@ -19,9 +18,6 @@ class DataLoader(ABC):
             self.df_data = pd.read_csv(df_data, delimiter=";", header=None)
         else:
             raise TypeError("DataType not recognized!")
-
-    def format_data(self, columns):
-        self.df_data.columns = columns
 
     def clear_data(self):
         self.df_data = None

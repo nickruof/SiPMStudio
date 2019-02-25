@@ -5,7 +5,6 @@ import pandas as pd
 class sipm:
 
     def __init__(self, name, area):
-        
         self.brand = name
         self.area = area
         self.bias = []
@@ -21,7 +20,6 @@ class sipm:
 class photodiode:
 
     def __init__(self, name, area):
-
         self.brand = name
         self.area = area
         self.bias = None
