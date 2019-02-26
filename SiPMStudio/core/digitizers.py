@@ -7,15 +7,6 @@ from .data_loading import DataLoader
 class Digitizer(DataLoader):
 
     def __init__(self, *args, **kwargs):
-        self.id = None
-        self.model_name = "CAENDT5730"
-        self.adc_bitcount = 14
-        self.sample_rate = 500e6
-        self.v_range = 0.0
-
-        self.e_cal = None
-        self.int_window = None
-        self.waves = False
         super().__init__(*args, **kwargs):
 
     def apply_settings(self, settings):
@@ -36,6 +27,15 @@ class Digitizer(DataLoader):
 class CAENDT5730(Digitizer):
 
     def __init__(self, *args, **kwargs):
+        self.id = None
+        self.model_name = "CAENDT5730"
+        self.adc_bitcount = 14
+        self.sample_rate = 500e6
+        self.v_range = 0.0
+
+        self.e_cal = None
+        self.int_window = None
+        self.waves = False
         self.parameters = ["timetag", "E_short", "E_long"]
         super().__init__(*args, **kwargs):
 

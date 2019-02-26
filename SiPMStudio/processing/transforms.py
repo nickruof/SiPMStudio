@@ -44,5 +44,5 @@ def wavelet_denoise(waveforms, wavelet="db2", levels=1, mode="soft"):
     coeffs[1:] = (pywt.threshold(coeffs[i], value=uthresh, mode=mode)  for i in range(1, len(coeffs)))
     filtered_data = pywt.waverec(coeffs, wavelet, axis=0)
     processed_waveforms = pd.DataFrame(data=filtered_data, index=self.waveforms.index, columns=self.waveforms.columns)
-
+    return processed_waveforms
 

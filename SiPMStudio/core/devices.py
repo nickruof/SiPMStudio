@@ -12,6 +12,7 @@ class sipm:
         self.dark_rate = []
         self.cross_talk = []
         self.after_pulse = []
+        self.pde = []
 
         self.current = []
         self.I_current = []
@@ -24,3 +25,4 @@ class photodiode:
         self.area = area
         self.bias = None
         self.current = []
+        self.responsivity = 0.0
