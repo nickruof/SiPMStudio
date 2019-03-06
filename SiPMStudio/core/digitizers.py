@@ -21,6 +21,7 @@ class Digitizer(DataLoader):
                 self.n_blsamp = settings["n_blsamp"]
 
     def format_data(self, waves=False):
+        pass
 
 
 
@@ -49,8 +50,8 @@ class CAENDT5730(Digitizer):
             return waveforms
         else:
             params = self.df_data.iloc[:, :3]
-            self.params_frame = pd.DataFrame(params, columns=self.parameters)
-            return params
+            params_frame = pd.DataFrame(params, columns=self.parameters)
+            return params_frame
 
     def parse_xml(self, xmlfile):
 
