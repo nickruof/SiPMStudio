@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 from abc import ABC
-from multiprocessing import cpu_count, Parallel
+#from multiprocessing import cpu_count, parallel
 import sys
 
 import SiPMStudio.processing.calculators as pc
@@ -66,7 +66,7 @@ class Processor(ABC):
             sys.exit()
 
 class ProcessorBase(ABC):
-    def __init__(self, function, fun_args={});
+    def __init__(self, function, fun_args={}):
         self.function = function
         self.fun_args = fun_args
 

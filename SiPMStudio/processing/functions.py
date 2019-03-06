@@ -1,8 +1,8 @@
 import numpy as np
 import pandas as pd
 
-from .core import digitizers
-from .calculations import detect_peaks
+from SiPMStudio.core import digitizers
+from SiPMStudio.calculations.helpers import detect_peaks
 
 def gaussian(x, mu, sigma, A):
     return A * np.exp(-(x-mu)**2/(2*sigma**2))

@@ -5,9 +5,9 @@ import pywt
 from scipy.signal import savgol_filter
 from scipy.signal import filtfilt
 
-from .core import digitizers
-from .core import data_loading
-from .processing import butter_bandpass
+from SiPMStudio.core import digitizers
+from SiPMStudio.core import data_loading
+from SiPMStudio.processing.functions import butter_bandpass
 
 def adc_to_volts(digitizer, waveforms):
     V_pp = digitizer.v_range
