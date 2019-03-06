@@ -45,9 +45,9 @@ class CAENDT5730(Digitizer):
         if waves:
             params_frame = self.df_data.iloc[:, :3]
             params_frame.columns = self.parameters
-            waveforms = self.df_data.iloc[:, 4:].copy()
-            waveforms = waveforms.transpose().set_index(keys=np.array(range(0, 2*self.waveforms.shape[1], 2)))
-            return waveforms
+            waves_frame = self.df_data.iloc[:, 4:].copy()
+            waves_frame = waves_frame.transpose().set_index(keys=np.array(range(0, 2*waves_frame.shape[1], 2)))
+            return waves_frame
         else:
             params = self.df_data.iloc[:, :3]
             params_frame = pd.DataFrame(params, columns=self.parameters)
