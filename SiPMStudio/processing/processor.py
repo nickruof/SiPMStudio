@@ -28,9 +28,7 @@ class Processor(ABC):
         self.calcs = digitizer.format_data(waves=False)
         self.waves = digitizer.format_data(waves=True)
 
-    def process(self, df_data):
-        self.set_processor(digitizer)
-
+    def process(self, df_data, num_blocks):
         for processor in self.proc_list:
             if isinstance(processor, Calculator):
                 p_result = processor.process_block(self.waves, self.calcs)

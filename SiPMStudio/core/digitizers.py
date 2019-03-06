@@ -53,6 +53,12 @@ class CAENDT5730(Digitizer):
             params_frame = pd.DataFrame(params, columns=self.parameters)
             return params_frame
 
+    def input_settingd(self, settings):
+        self.id = settings["id"]
+        self.v_range = settings["v_range"]
+        self.e_cal = settings["e_cal"]
+        self.int_window = ["int_window"]
+
     def parse_xml(self, xmlfile):
         pass
 
