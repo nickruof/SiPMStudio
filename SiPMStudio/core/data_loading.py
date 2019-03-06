@@ -27,7 +27,7 @@ class Keithley2450(DataLoader):
 
     def __init__(self, *args, **kwargs):
         self.model_name = "Keithley2450"
-        super()__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
     def load_data(self, df_data):
         if isinstance(df_data, pd.core.frame.DataFrame):

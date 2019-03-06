@@ -1,7 +1,7 @@
 
-__version__ = "0.0.0"
-
 from __future__ import division, print_function, absolute_import 
+
+__version__ = "0.0.0"
 
 #from . import calculations
 #from . import core

@@ -7,7 +7,7 @@ from .data_loading import DataLoader
 class Digitizer(DataLoader):
 
     def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs):
+        super().__init__(*args, **kwargs)
 
     def apply_settings(self, settings):
         if settings["digitizer"] == self.decoder_name:
@@ -38,7 +38,7 @@ class CAENDT5730(Digitizer):
         self.int_window = None
         self.waves = False
         self.parameters = ["timetag", "E_short", "E_long"]
-        super().__init__(*args, **kwargs):
+        super().__init__(*args, **kwargs)
 
 
     def format_data(self, waves=False):
@@ -54,4 +54,5 @@ class CAENDT5730(Digitizer):
             return params_frame
 
     def parse_xml(self, xmlfile):
+        pass
 
