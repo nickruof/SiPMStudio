@@ -3,6 +3,7 @@ import pandas as pd
 import os
 
 from scipy.sparse import diags
+from scipy.stats import expon
 
 from SiPMStudio.core import data_loading
 from SiPMStudio.core import digitizers
@@ -76,6 +77,13 @@ def dark_count_rate(df_data, params, sipm):
     #elif units == "mhz":
     #    dark_rate.ito(ureg.megahertz)
     return dark_rate
+
+def dcr_exp_fit(params_data, wave_data, min_height, min_dist, sipm):
+    dts = delay_times(params_data, wave_data, min_height, min_dist)
+    exp_fit = expon.fit(dts)
+    sipm.dark_rate.append(1/exp_fit[1])
+    return 1/exp_fit[1]
+
 
 def cross_talk(df_data, params, sipm):
     index1 = int(params[0] - sipm.gain[-1]/2)

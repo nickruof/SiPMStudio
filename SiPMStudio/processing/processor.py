@@ -16,6 +16,7 @@ class Processor(ABC):
         self.digitizer = None
         self.calcs = []
         self.waves = []
+        self.settings = {}
 
         if settings is not None:
             self.settings = settings
@@ -28,12 +29,13 @@ class Processor(ABC):
         self.calcs = digitizer.format_data(waves=False)
         self.waves = digitizer.format_data(waves=True)
 
-    def process(self, df_data, num_blocks):
+    def process(self, num_blocks):
         for processor in self.proc_list:
             if isinstance(processor, Calculator):
                 p_result = processor.process_block(self.waves, self.calcs)
             elif isinstance(processor, Transformer):
                 p_result = processor.process_block(self.waves)
+                self.waves = p_result
             else:
                 pass
         return p_result
