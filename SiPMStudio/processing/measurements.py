@@ -130,11 +130,15 @@ def delay_time_vs_height(params_data, wave_data, min_height, min_dist):
         heights = wave_data.iloc[peaks, i].values
         all_times = np.append(all_times, [times])
         all_heights = np.append(all_heights, [heights])
-    M_diag = diags([-1, 1], [0, 1], shape=(len(all_times), len(all_times)))
-    all_dts = M_diag @ all_times
-    all_dts = np.delete(all_dts, -1)
-    all_heights = np.delete(all_heights, -1)
-    return all_dts, all_heights
+    if len(all_dts) == 0 or len(all_heights) == 0:
+        print("No peaks found!")
+        return all_dts, all_heights
+    else:
+        M_diag = diags([-1, 1], [0, 1], shape=(len(all_times), len(all_times)))
+        all_dts = M_diag @ all_times
+        all_dts = np.delete(all_dts, -1)
+        all_heights = np.delete(all_heights, -1)
+        return all_dts, all_heights
 
 
 
