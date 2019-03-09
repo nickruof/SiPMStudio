@@ -140,6 +140,21 @@ def delay_time_vs_height(params_data, wave_data, min_height, min_dist):
         all_heights = np.delete(all_heights, -1)
         return all_dts, all_heights
 
+def average_currents(dataloader, files):
+    currents = []
+    for file_name in files:
+        dataloader.load_data(file_name)
+        currents.append(dataloader.current.mean())
+        dataloader.clear_data()
+    return currents
+
+
+
+
+
+
+
+
 
 
 

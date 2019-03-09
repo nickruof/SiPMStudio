@@ -27,6 +27,9 @@ class Keithley2450(DataLoader):
 
     def __init__(self, *args, **kwargs):
         self.model_name = "Keithley2450"
+        if self.df_data is not None:
+            self.current = self.df_data["Reading"]
+            self.voltage = self.df_data["Value"]
         super().__init__(*args, **kwargs)
 
     def load_data(self, df_data):
@@ -36,3 +39,6 @@ class Keithley2450(DataLoader):
             self.df_data = pd.read_csv(df_data, delimiter=",", skiprows=7)
         else:
             raise TypeError("DataType not recognized!")
+        if self.df_data is not None:
+            self.current = self.df_data["Reading"]
+            self.voltage = self.df_data["Value"]
