@@ -25,4 +25,14 @@ class photodiode:
         self.area = area
         self.bias = None
         self.current = []
-        self.responsivity = 0.0
+        self.responsivity = pd.DataFrame()
+
+    def load_response(self, file_path):
+        self.responsivity = pd.read_csv(file_path, delimiter=", ")
+        self.responsivity.rename(columns={0:"wavelength", 1:"responsivity"})
+
+    def get_response(self, wavelength):
+        if not responsivity:
+            print("Load Responsivity Data!")
+        else:
+            return np.interp(x=wavelength, xp=self.responsivity["wavelength"], fp=self.responsivity["responsivity"])

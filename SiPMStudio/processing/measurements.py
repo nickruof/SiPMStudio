@@ -148,6 +148,18 @@ def average_currents(dataloader, files):
         dataloader.clear_data()
     return currents
 
+def to_photons(dataloader, diode, wavelength, dark_files, light_files):
+    dark_currents = average_currents(dataloader, dark_files)
+    light_currents = average_currents(dataloader, light_files)
+    h = 6.626e-34
+    c = 3.0e8
+    eta = diode.get_response(wavelength)
+    scale_factor = wavelength / (h * c * eta)
+    diff = np.subtract(light_currents, dark_currents)
+    return diff * scale_factor
+    
+
+
 
 
 
