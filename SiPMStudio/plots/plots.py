@@ -9,6 +9,7 @@ from SiPMStudio.calculations.helpers import detect_peaks
 
 from scipy import fftpack
 from scipy.signal import freqz
+from scipy.stats import linregress
 
 sns.set_style("whitegrid")
 
@@ -51,18 +52,61 @@ def plot_waveforms(waveforms):
     ax = self.waveforms.plot()
     ax.set_xlabel("Time (ns)")
     ax.set_ylabel("Voltage (V)")
+    ax.set_xlim([0, 1000])
 
 def pc_spectrum(hist_array, bins, params, log=False):
     sns.set_style("white")
+    plt.figure()
     if not bins:
-        bins = [i for i in range(int(max(hist_array)))]
-    plt.hist(hist_array, bins=bins, edgecolor="none")
+        bins = np.arange(start=0, stop=max(hist_array), step=1)
+    [n, bins, patches] = plt.hist(hist_array, bins=bins, edgecolor="none")
     plt.xlabel("ADC")
     plt.ylabel("Counts")
     if log:
         plt.yscale("log")
     if params:
-        
+        plt.plot(multi_gauss(bins, params), "r")
+
+def plot_gain(sipm, lin_fit=False):
+    plt.figure()
+    plt.plot(sipm.bias, sipm.gain, '.')
+    plt.xlabel("Bias Voltage (V)")
+    plt.ylabel("Gain")
+
+    if lin_fit:
+        (slope, intercept) = linregress(x=sipm.bias, y=sipm.gain)
+        x = np.linspace(sipm.bias[0], sipm.bias[-1], 100)
+        y = np.multiply(slope, x)
+        y = np.add(y, intercept)
+        plt.plot(x, y, "r")
+        plt.legend(["Breakdown Voltage: "+str(intercept)+" V"])
+    plt.show()
+
+def plot_dcr(sipm):
+    plt.figure()
+    plt.plot(sipm.bias, sipm.dark_rate)
+    plt.xlabel("Bias Voltage (V)")
+    plt.ylabel("Dark Count Rate")
+    plt.show()
+
+def plot_cross_talk(sipm):
+    plt.figure()
+    plt.plot(sipm.bias, sipm.cross_talk, ".")
+    plt.xlabel("Bias Voltage (V)")
+    plt.ylabel("Cross Talk Probability (%)")
+    plt.show()
+
+def plot_pde(sipm):
+    plt.figure()
+    plt.plot(sipm.bias, sipm.pde)
+    plt.xlabel("Bias Voltage (V)")
+    plt.ylabel("Photon Detection Efficiency (%)")
+    plt.show()
+
+
+
+
+
 
 
 
