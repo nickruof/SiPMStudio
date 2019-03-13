@@ -79,15 +79,30 @@ def average_leakage(dataloader, sipm, bias, files):
     leakage_currents = np.subtract(total_currents, sipm_currents)
     return leakage_currents
 
-def ecf(sipm):
+def excess_charge_factor(sipm):
     return np.divide(sipm.dark_rate, sipm.dcr_fit)
 
-def to_photons(dataloader, diode, wavelength, dark_files, light_files):
+def to_photons(dataloader, diode, led, dark_files, light_files):
     dark_currents = average_currents(dataloader, dark_files)
     light_currents = average_currents(dataloader, light_files)
     h = 6.626e-34
     c = 3.0e8
-    eta = diode.get_response(wavelength)
-    scale_factor = wavelength / (h * c * eta)
+    eta = diode.get_response(led.wavelength)
+    scale_factor = led.wavelength / (h * c * eta)
     diff = np.subtract(light_currents, dark_currents)
     return diff * scale_factor
+
+def continous_pde(dataloader, sipm, diode, led, bias, dark_files, light_files):
+    dark_sipm_currents = average_currents(dark_files)
+    light_sipm_currents = average_currents(light_files)
+    incident_photons = to_photons(dataloader, diode, led, dark_files[0], light_files[0])
+    ecf = excess_charge_factor(sipm)
+    q = 1.60217662e-19
+    pde = np.subtract(light_sipm_currents, dark_sipm_currents)
+    pde = np.divide(pde, ecf)
+    pde = np.divide(pde, incident_photons)
+    pde = np.divide(pde, sipm.gain)
+    pde = np.divide(pde, q)
+    sipm.pde = pde
+    return pde
+

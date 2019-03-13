@@ -37,3 +37,8 @@ class photodiode:
             print("Load Responsivity Data!")
         else:
             return np.interp(x=wavelength, xp=self.responsivity["wavelength"], fp=self.responsivity["responsivity"])
+
+class led:
+    def __init__(self, name, wavelength):
+        self.name = name
+        self.wavelength = wavelength
