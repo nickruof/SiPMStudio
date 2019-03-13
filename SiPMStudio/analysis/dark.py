@@ -51,8 +51,8 @@ def collect_files(path, data_dir="UNFILTERED"):
 
     return runs, waves
 
-def time_interval(df_data):
-    interval = df_data["timetag"].iloc[-1] - df_data["timetag"].iloc[0]
+def time_interval(params_data):
+    interval = params_data["timetag"].iloc[-1] - params_data["timetag"].iloc[0]
     interval = interval * 1.0e-12
     return interval
 
@@ -66,10 +66,10 @@ def gain(params, digitizer, sipm, convert=False, sum_len=1):
         gain_average = gain_average * digitizer.e_cal/1.6e-19
     sipm.gain.append(gain_average)    
 
-def dark_count_rate(df_data, params, sipm):
+def dark_count_rate(params_data, params, sipm):
     index = int(params[0] - (sipm.gain[-1]/2))
-    bins = list(range(int(max(df_data["E_short"]))))
-    bin_vals, _bin_edges = np.histogram(df_data["E_short"], bins=bins)
+    bins = list(range(int(max(params_data["E_short"]))))
+    bin_vals, _bin_edges = np.histogram(params_data["E_short"], bins=bins)
     dark_rate = (bin_vals.sum()/self.time_interval())
     sipm.dark_rate.append(dark_rate)
     #if units == "khz":
@@ -85,11 +85,11 @@ def dcr_exp_fit(params_data, wave_data, min_height, min_dist, sipm):
     return 1/exp_fit[1]
 
 
-def cross_talk(df_data, params, sipm):
+def cross_talk(params_data, params, sipm):
     index1 = int(params[0] - sipm.gain[-1]/2)
     index2 = int(params[3] - sipm.gain[-1]/2)
-    bins = list(range(int(max(df_data["E_short"]))))
-    bin_vals, _bin_edges = np.histogram(df_data["E_short"], bins=bins)
+    bins = list(range(int(max(params_data["E_short"]))))
+    bin_vals, _bin_edges = np.histogram(params_data["E_short"], bins=bins)
     total_counts1 = sum(bin_vals[index1:])
     total_counts2 = sum(bin_vals[index2:])
     prob = total_counts2 / total_counts1
