@@ -81,7 +81,7 @@ def dark_count_rate(df_data, params, sipm):
 def dcr_exp_fit(params_data, wave_data, min_height, min_dist, sipm):
     dts = delay_times(params_data, wave_data, min_height, min_dist)
     exp_fit = expon.fit(dts)
-    sipm.dark_rate.append(1/exp_fit[1])
+    sipm.dcr_fit.append(1/exp_fit[1])
     return 1/exp_fit[1]
 
 
@@ -139,34 +139,3 @@ def delay_time_vs_height(params_data, wave_data, min_height, min_dist):
         all_dts = np.delete(all_dts, -1)
         all_heights = np.delete(all_heights, -1)
         return all_dts, all_heights
-
-def average_currents(dataloader, files):
-    currents = []
-    for file_name in files:
-        dataloader.load_data(file_name)
-        currents.append(dataloader.current.mean())
-        dataloader.clear_data()
-    return currents
-
-def to_photons(dataloader, diode, wavelength, dark_files, light_files):
-    dark_currents = average_currents(dataloader, dark_files)
-    light_currents = average_currents(dataloader, light_files)
-    h = 6.626e-34
-    c = 3.0e8
-    eta = diode.get_response(wavelength)
-    scale_factor = wavelength / (h * c * eta)
-    diff = np.subtract(light_currents, dark_currents)
-    return diff * scale_factor
-    
-
-
-
-
-
-
-
-
-
-
-
-

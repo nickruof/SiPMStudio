@@ -10,6 +10,7 @@ class sipm:
         self.bias = []
         self.gain = []
         self.dark_rate = []
+        self.dcr_fit = []
         self.cross_talk = []
         self.after_pulse = []
         self.pde = []
