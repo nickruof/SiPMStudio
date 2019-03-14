@@ -36,17 +36,20 @@ def plot_FFT(digitizer, waveform):
     plt.ylabel("Power (%)")
     plt.show()
 
-def plot_waveform(waveform, find_peaks=False, min_dist, min_height):
+def plot_waveform(waveform, find_peaks, min_dist, min_height):
+    time = np.linspace(0, 2*len(waveform)-1, len(waveform))
     plt.figure()
-    plt.plot(waveform.index.values, waveform)
+    plt.plot(time, waveform)
     plt.xlabel("Time (ns)")
     plt.ylabel("Voltage (V)")
 
     if find_peaks:
         peaks = detect_peaks(waveform, mph=min_height, mpd=min_dist)
-        peak_heights = waveform[peaks]
-        peak_times = waveform.index.values[peaks]
+        print(peaks)
+        peak_heights = waveform.values[peaks]
+        peak_times = time[peaks]
         plt.plot(peak_times, peak_heights, "r.")
+    plt.show()
 
 def plot_waveforms(waveforms):
     ax = self.waveforms.plot()

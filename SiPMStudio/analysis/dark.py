@@ -114,7 +114,7 @@ def heights(params_data, wave_data, min_height, min_dist):
 
     for i, wave in enumerate(wave_data):
         peaks = detect_peaks(wave, mph=min_height, mpd=min_dist)
-        heights = wave_data.iloc[peaks, i].values
+        heights = wave_data[i].values[peaks]
         all_heights = np.append(all_heights, [heights])
     all_heights = np.delete(all_heights, -1)
     return all_heights
@@ -127,7 +127,7 @@ def delay_time_vs_height(params_data, wave_data, min_height, min_dist):
     for i, wave in enumerate(wave_data):
         peaks = detect_peaks(wave, mph=min_height, mpd=min_dist)
         times = np.add(params_data.iloc[i, 0]*10**-3, 2*peaks)
-        heights = wave_data.iloc[peaks, i].values
+        heights = wave_data[i].values[peaks]
         all_times = np.append(all_times, [times])
         all_heights = np.append(all_heights, [heights])
     if len(all_dts) == 0 or len(all_heights) == 0:
