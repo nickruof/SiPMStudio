@@ -1,7 +1,6 @@
 import numpy as np
 import pandas as pd
 from abc import ABC
-#from multiprocessing import cpu_count, parallel
 import sys
 
 import SiPMStudio.processing.calculators as pc
@@ -39,14 +38,6 @@ class Processor(ABC):
             else:
                 pass
         return p_result
-
-    #def process_parallel(self, df_data):
-    #    self.set_processor(digitizer)
-    #    cores = cpu_count()
-    #    partitions = cores
-    #    data_split = np.array_split(data, partitions)
-    #    pool = Pool(cores)
-    #    data = pd.concat(pool.map(func, datasplit))
 
 
     def add(self, fun_name, settings={}):
