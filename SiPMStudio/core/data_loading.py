@@ -11,11 +11,11 @@ class DataLoader(ABC):
         else:
             self.df_data = None
 
-    def load_data(self, df_data):
+    def load_data(self, df_data, chunksize=3000):
         if isinstance(df_data, pd.core.frame.DataFrame):
             self.df_data = df_data
         elif isinstance(df_data, str):
-            self.df_data = pd.read_csv(df_data, delimiter=";", header=None)
+            self.df_data = pd.read_csv(df_data, delimiter=";", header=None, chunksize=chunksize)
         else:
             raise TypeError("DataType not recognized!")
 

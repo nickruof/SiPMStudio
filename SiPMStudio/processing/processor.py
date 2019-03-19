@@ -11,7 +11,6 @@ class Processor(ABC):
 
     def __init__(self, settings=None):
         self.proc_list = []
-        self.device_list = []
         self.digitizer = None
         self.calcs = []
         self.waves = []
@@ -37,7 +36,6 @@ class Processor(ABC):
                 self.waves = p_result
             else:
                 pass
-        return p_result
 
 
     def add(self, fun_name, settings={}):

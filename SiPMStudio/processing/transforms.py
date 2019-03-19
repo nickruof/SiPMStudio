@@ -16,28 +16,28 @@ def adc_to_volts(waveforms, digitizer):
     return processed_waveforms
 
 def baseline_subtract(waveforms):
-    processed_waveforms = waveforms - waveforms.mean()
+    processed_waveforms = waveforms - waveforms.mean(axis=1)
     return processed_waveforms
 
 def savgol(waveforms, window=15, order=2):
-    filtered_data = savgol_filter(waveforms.values, window, order, axis=0)
+    filtered_data = savgol_filter(waveforms.values, window, order, axis=1)
     processed_waveforms = pd.DataFrame(data=filtered_data, index=waveforms.index, columns=waveforms.columns)
     return processed_waveforms
 
 def butter_bandpass_filter(waveforms, digitizer, lowcut, highcut, order=5):
     sample_rate = digitizer.sample_rate
     (b, a) = butter_bandpass(lowcut, highcut, sample_rate, order=order)
-    filtered_data = filtfilt(b, a, waveforms.values, axis=0)
+    filtered_data = filtfilt(b, a, waveforms.values, axis=1)
     processed_waveforms = pd.DataFrame(data=filtered_data, index=waveforms.index, columns=waveforms.columns)
     return processed_waveforms
 
 def wavelet_denoise(waveforms, wavelet="db2", levels=1, mode="soft"):
     data = waveforms.values
-    coeffs = pywt.wavedec(data=data, wavelet=wavelet, level=levels, axis=0)
-    sigma = mad(coeffs[-levels], axis=0)
+    coeffs = pywt.wavedec(data=data, wavelet=wavelet, level=levels, axis=1)
+    sigma = mad(coeffs[-levels], axis=1)
     uthresh = sigma * np.sqrt(2 * np.log(data.shape[0]))
     coeffs[1:] = (pywt.threshold(coeffs[i], value=uthresh, mode=mode)  for i in range(1, len(coeffs)))
-    filtered_data = pywt.waverec(coeffs, wavelet, axis=0)
+    filtered_data = pywt.waverec(coeffs, wavelet, axis=1)
     processed_waveforms = pd.DataFrame(data=filtered_data, index=self.waveforms.index, columns=self.waveforms.columns)
     return processed_waveforms
 
