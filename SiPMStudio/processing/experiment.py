@@ -1,11 +1,10 @@
 import numpy as np
 import pandas as pd
 from abc import ABC
-#from multiprocessing import cpu_count, parallel
 import sys
 
-import SiPMStudio.analysis.dark as yin
-import SiPMStudio.analysis.light as yang
+import SiPMStudio.analysis.dark as sith
+import SiPMStudio.analysis.light as jedi
 
 class Experiment(ABC):
 
@@ -14,15 +13,15 @@ class Experiment(ABC):
         self.settings = {}
 
         if settings is not None:
-        self.settings = settings
+            self.settings = settings
         for key in settings:
             self.add(key, settings[key])
 
 
-    def process(self, num_blocks):
+    def process(self):
         for measurment in self.measurement_list:
             if isinstance(measurement, Measurement):
-                p_result = processor.process_block()
+                p_result = measurement.process_block()
             else:
                 print("Unknown Measurment type!")
 
@@ -32,12 +31,12 @@ class Experiment(ABC):
         else:
             self.settings[fun_name] = settings
 
-        if fun_name in dir(yin):
+        if fun_name in dir(sith):
             self.measurement_list.append(
-                Measurement(getattr(yin, fun_name), self.settings[fun_name]))
-        elif fun_name in dir(yang)
+                Measurement(getattr(sith, fun_name), self.settings[fun_name]))
+        elif fun_name in dir(jedi)
             self.measurement_list.append(
-                Measurement(getattr(yang, fun_name), self.settings[fun_name]))
+                Measurement(getattr(jedi, fun_name), self.settings[fun_name]))
         else:
             print("ERROR! unknown function: ", fun_name)
             sys.exit()
