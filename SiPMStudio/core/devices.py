@@ -19,6 +19,17 @@ class sipm:
         self.I_current = []
         self.V_voltage = []
 
+    def dump_data(self):
+        data = pd.DataFrame()
+        data["bias"] = self.bias
+        data["gain"] = self.gain
+        data["dark_rate"] = self.dark_rate
+        data["dcr_fit"] = self.dcr_fit
+        data["cross_talk"] = self.cross_talk
+        data["after_pulse"] = self.after_pulse
+        data["pde"] = self.pde
+        return data
+
 class photodiode:
 
     def __init__(self, name, area):

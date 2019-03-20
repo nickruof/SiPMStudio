@@ -17,6 +17,9 @@ def ProcessData(data_file,
                 multiprocess=True,
                 chunk=3000):
 
+    print("Starting SiPMStudio processing ... ")
+    print("Input file: "+data_file)
+
     start = time.time()
     in_dir = os.path.dirname(data_file)
     output_dir = os.getcwd() if output_dir is None else output_dir
@@ -26,19 +29,23 @@ def ProcessData(data_file,
 
     #Declare an output file and overwriting options here
 
-    for d in tqdm(digitizers):
+    for d in digitizers:
         processor.digitizer = d
         d.load_data(df_data=data_file, chuncksize=chunk)
-        result_list = pd.DataFrame()
+        output_df = pd.DataFrame()
         for block in tqdm(d.df_data):
             if multiprocess:
                 with mp.Pool(NCPU) as p:
                     new_chunk = p.map(partial(process_chunk, block, processor))
-                result_list = pd.concat([result_list, new_chunk])
+                output_df = pd.concat([output_df, new_chunk])
             else:
                 new_chunk = process_chunk(block, processor)
-                result_list = pd.concat([result_list, new_chunk])
+                output_df = pd.concat([output_df, new_chunk])
 
+    elapsed = time.time() - start
+    print("Time elapsed: "+str(elapsed))
+
+    return output_df
 
 
 def process_chunk(df_data, processor):
