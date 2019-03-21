@@ -100,7 +100,7 @@ def delay_times(params_data, wave_data, min_height, min_dist):
     all_dts = []
     all_times = []
 
-    for i, wave in enumerate(wave_data):
+    for i, wave in wave_data.iterrows():
         peaks = detect_peaks(wave, mph=min_height, mpd=min_dist)
         times = np.add(params_data.iloc[i, 0]*10**-3, 2*peaks)
         all_times = np.append(all_times, [times])
@@ -112,7 +112,7 @@ def delay_times(params_data, wave_data, min_height, min_dist):
 def heights(params_data, wave_data, min_height, min_dist):
     all_heights = []
 
-    for i, wave in enumerate(wave_data):
+    for i, wave in wave_data.iterrows():
         peaks = detect_peaks(wave, mph=min_height, mpd=min_dist)
         heights = wave_data[i].values[peaks]
         all_heights = np.append(all_heights, [heights])
@@ -124,13 +124,13 @@ def delay_time_vs_height(params_data, wave_data, min_height, min_dist):
     all_heights = []
     all_times = []
 
-    for i, wave in enumerate(wave_data):
+    for i, wave in wave_data.iterrows():
         peaks = detect_peaks(wave, mph=min_height, mpd=min_dist)
         times = np.add(params_data.iloc[i, 0]*10**-3, 2*peaks)
-        heights = wave_data[i].values[peaks]
+        heights = wave_data.iloc[i, :].values[peaks]
         all_times = np.append(all_times, [times])
         all_heights = np.append(all_heights, [heights])
-    if len(all_dts) == 0 or len(all_heights) == 0:
+    if len(all_times) == 0 or len(all_heights) == 0:
         print("No peaks found!")
         return all_dts, all_heights
     else:

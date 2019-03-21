@@ -106,6 +106,13 @@ def plot_pde(sipm):
     plt.ylabel("Photon Detection Efficiency (%)")
     plt.show()
 
+def plot_delay_height(dts, heights):
+    plt.figure()
+    plt.scatter(dts, heights, c="b", s=1)
+    plt.xscale("log")
+    plt.xlabel("Delay Time (ns)")
+    plt.ylabel("Pulse Heights (V)")
+
 
 
 

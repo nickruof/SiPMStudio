@@ -4,6 +4,7 @@ import pywt
 
 from scipy.signal import savgol_filter
 from scipy.signal import filtfilt
+from statsmodels.robust import mad
 
 from SiPMStudio.core import digitizers
 from SiPMStudio.core import data_loading
@@ -31,13 +32,13 @@ def butter_bandpass_filter(waveforms, digitizer, lowcut, highcut, order=5):
     processed_waveforms = pd.DataFrame(data=filtered_data, index=waveforms.index, columns=waveforms.columns)
     return processed_waveforms
 
-def wavelet_denoise(waveforms, wavelet="db2", levels=1, mode="soft"):
+def wavelet_denoise(waveforms, wavelet="db2", levels=3, mode="soft"):
     data = waveforms.values
-    coeffs = pywt.wavedec(data=data, wavelet=wavelet, level=levels, axis=1)
-    sigma = mad(coeffs[-levels], axis=1)
+    coeffs = pywt.wavedec(data=data, wavelet=wavelet, level=levels, axis=0)
+    sigma = mad(coeffs[-levels], axis=0)
     uthresh = sigma * np.sqrt(2 * np.log(data.shape[0]))
     coeffs[1:] = (pywt.threshold(coeffs[i], value=uthresh, mode=mode)  for i in range(1, len(coeffs)))
-    filtered_data = pywt.waverec(coeffs, wavelet, axis=1)
-    processed_waveforms = pd.DataFrame(data=filtered_data, index=self.waveforms.index, columns=self.waveforms.columns)
+    filtered_data = pywt.waverec(coeffs, wavelet, axis=0)
+    processed_waveforms = pd.DataFrame(data=filtered_data, index=waveforms.index, columns=waveforms.columns)
     return processed_waveforms
 
