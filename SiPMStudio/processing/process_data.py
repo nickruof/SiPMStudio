@@ -51,9 +51,7 @@ def ProcessData(data_file,
 def process_chunk(df_data, processor):
     df_data = df_data.drop(["FLAGS"], axis=1)
     [processor.calcs, processor.waves] = np.split(blocks, [3])
-    #processor.waves = processor.waves.transpose().set_index(keys=np.array(range(0, self.processor.waves.shape[1])))
     processor.process()
-    #processor.waves = processor.waves.transpose().set_index(keys=np.array(range(0, self.processor.waves.shape[1])))
     return pd.concat([processor.calcs, processor.waves], axis=1)
 
     
