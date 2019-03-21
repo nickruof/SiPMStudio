@@ -11,8 +11,6 @@ from SiPMStudio.core import devices
 from SiPMStudio.calculations.helpers import detect_peaks
 from SiPMStudio import functions
 
-
-
 def collect_files(path, data_dir="UNFILTERED"):
     dirs_array = []
     file_array = []
@@ -81,7 +79,6 @@ def dcr_exp_fit(dts, sipm, bounds=[0, 1e5]):
     exp_fit = expon.fit(dts_fit)
     sipm.dcr_fit.append(1/(exp_fit[1]*1e-9))
     return 1/(exp_fit[1]*1e-9)
-
 
 def cross_talk(params_data, params, sipm):
     index1 = int(params[0] - sipm.gain[-1]/2)
