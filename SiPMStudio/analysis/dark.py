@@ -66,13 +66,13 @@ def gain(params, digitizer, sipm, convert=False, sum_len=1):
         gain_average = gain_average * digitizer.e_cal/1.6e-19
     sipm.gain.append(gain_average)    
 
-def dark_count_rate(wave_data, sipm, min_height, min_dist):
+def pulse_rate(wave_data, sipm, min_height, min_dist):
     pulse_rate = []
     for i, wave in wave_data.iterrows():
         peaks = detect_peaks(wave, mph=min_height, mpd=min_dist)
         pulse_rate.append(len(peaks) / (len(wave)*2e-9))
     average_pulse_rate = sum(pulse_rate) / len(pulse_rate)
-    sipm.dark_rate.append(average_pulse_rate)
+    sipm.pulse_rate.append(average_pulse_rate)
     return average_pulse_rate
 
 def dcr_exp_fit(dts, sipm, bounds=[0, 1e5]):
