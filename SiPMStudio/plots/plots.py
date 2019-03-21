@@ -57,11 +57,10 @@ def plot_waveforms(waveforms):
     ax.set_ylabel("Voltage (V)")
     ax.set_xlim([0, 1000])
 
-def pc_spectrum(hist_array, bins, params, log=False):
+def pc_spectrum(hist_array, params=None, log=False):
     sns.set_style("white")
     plt.figure()
-    if not bins:
-        bins = np.arange(start=0, stop=max(hist_array), step=1)
+    bins = np.linspace(start=0, stop=max(hist_array), num=int(max(hist_array)))
     [n, bins, patches] = plt.hist(hist_array, bins=bins, edgecolor="none")
     plt.xlabel("ADC")
     plt.ylabel("Counts")

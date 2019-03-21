@@ -79,6 +79,7 @@ def dark_count_rate(params_data, params, sipm):
     return dark_rate
 
 def dcr_exp_fit(dts, sipm):
+    dts = delay_times(params_data, wave_data, min_height, min_dist)
     exp_fit = expon.fit(dts)
     sipm.dcr_fit.append(1/exp_fit[1])
     return 1/exp_fit[1]

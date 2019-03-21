@@ -36,19 +36,20 @@ class CAENDT5730(Digitizer):
 
         self.e_cal = None
         self.int_window = None
-        self.parameters = ["timetag", "E_short", "E_long"]
+        self.parameters = ["TIMETAG", "E_SHORT", "E_LONG"]
         super().__init__(*args, **kwargs)
 
 
-    def format_data(self, block=self.df_data, waves=False):
+    def format_data(self, waves=False):
         if waves:
-            params_frame = block.iloc[:, :3]
+            params_frame = self.df_data.iloc[:, :3]
             params_frame.columns = self.parameters
-            waves_frame = block.iloc[:, 4:].copy()
+            waves_frame = self.df_data.iloc[:, 4:].copy()
+            #waves_frame = waves_frame.transpose().set_index(keys=np.array(range(0, self.wave_frame.shape[1])))
             return waves_frame
         else:
-            params = block.iloc[:, :3]
-            params_frame = pd.DataFrame(params, columns=self.parameters)
+            params_frame = self.df_data.iloc[:, :3]
+            #params_frame = pd.DataFrame(params, columns=self.parameters)
             return params_frame
 
     def input_settings(self, settings={}):

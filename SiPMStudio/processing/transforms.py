@@ -16,11 +16,11 @@ def adc_to_volts(waveforms, digitizer):
     return processed_waveforms
 
 def baseline_subtract(waveforms):
-    processed_waveforms = waveforms - waveforms.mean(axis=1)
+    processed_waveforms = waveforms.sub(waveforms.mean(axis=1), axis=0)
     return processed_waveforms
 
 def savgol(waveforms, window=15, order=2):
-    filtered_data = savgol_filter(waveforms.values, window, order, axis=1)
+    filtered_data = savgol_filter(waveforms.values, window, order, axis=0)
     processed_waveforms = pd.DataFrame(data=filtered_data, index=waveforms.index, columns=waveforms.columns)
     return processed_waveforms
 

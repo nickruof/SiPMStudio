@@ -11,7 +11,7 @@ class DataLoader(ABC):
         else:
             self.df_data = None
 
-    def load_data(self, df_data, chunksize=3000):
+    def load_data(self, df_data, chunksize=None):
         if isinstance(df_data, pd.core.frame.DataFrame):
             self.df_data = df_data
         elif isinstance(df_data, str):
