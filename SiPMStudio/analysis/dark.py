@@ -52,7 +52,7 @@ def collect_files(path, data_dir="UNFILTERED"):
     return runs, waves
 
 def time_interval(params_data):
-    interval = params_data["timetag"].iloc[-1] - params_data["timetag"].iloc[0]
+    interval = params_data["TIMETAG"].iloc[-1] - params_data["TIMETAG"].iloc[0]
     interval = interval * 1.0e-12
     return interval
 
@@ -66,17 +66,14 @@ def gain(params, digitizer, sipm, convert=False, sum_len=1):
         gain_average = gain_average * digitizer.e_cal/1.6e-19
     sipm.gain.append(gain_average)    
 
-def dark_count_rate(params_data, params, sipm):
-    index = int(params[0] - (sipm.gain[-1]/2))
-    bins = list(range(int(max(params_data["E_short"]))))
-    bin_vals, _bin_edges = np.histogram(params_data["E_short"], bins=bins)
-    dark_rate = (bin_vals.sum()/self.time_interval())
-    sipm.dark_rate.append(dark_rate)
-    #if units == "khz":
-    #    dark_rate.ito(ureg.kilohertz)
-    #elif units == "mhz":
-    #    dark_rate.ito(ureg.megahertz)
-    return dark_rate
+def dark_count_rate(wave_data, sipm, min_height, min_dist):
+    pulse_rate = []
+    for i, wave in wave_data.iterrows():
+        peaks = detect_peaks(wave, mph=min_height, mpd=min_dist)
+        pulse_rate.append(len(peaks) / (len(wave)*2e-9))
+    average_pulse_rate = sum(pulse_rate) / len(pulse_rate)
+    sipm.dark_rate.append(average_pulse_rate)
+    return average_pulse_rate
 
 def dcr_exp_fit(dts, sipm, bounds=[0, 1e5]):
     dts_fit = dts[(dts > bounds[0]) & (dts < bounds[1])]
