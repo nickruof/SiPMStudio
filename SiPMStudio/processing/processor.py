@@ -22,8 +22,7 @@ class Processor(ABC):
                 self.add(key, settings[key])
 
     def set_processor(self, digitizer):
-        if digitizer:
-            self.digitizer = digitizer
+        self.digitizer = digitizer
         self.calcs = digitizer.format_data(waves=False)
         self.waves = digitizer.format_data(waves=True)
 

@@ -4,6 +4,8 @@ import pandas as pd
 from SiPMStudio.core import digitizers
 from SiPMStudio.calculations.helpers import detect_peaks
 
+from scipy.optimize import curve_fit
+
 def gaussian(x, mu, sigma, A):
     return A * np.exp(-(x-mu)**2/(2*sigma**2))
 

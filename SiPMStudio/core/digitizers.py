@@ -49,6 +49,7 @@ class CAENDT5730(Digitizer):
             return waves_frame
         else:
             params_frame = self.df_data.iloc[:, :3]
+            params_frame.columns = self.parameters
             #params_frame = pd.DataFrame(params, columns=self.parameters)
             return params_frame
 

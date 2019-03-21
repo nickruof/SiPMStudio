@@ -66,8 +66,9 @@ def pc_spectrum(hist_array, params=None, log=False):
     plt.ylabel("Counts")
     if log:
         plt.yscale("log")
-    if params:
-        plt.plot(multi_gauss(bins, params), "r")
+    if params is not None:
+        plt.plot(multi_gauss(bins, *params), "r")
+    plt.show()
 
 def plot_gain(sipm, lin_fit=False):
     plt.figure()

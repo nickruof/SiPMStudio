@@ -59,7 +59,7 @@ def time_interval(params_data):
 def gain(params, digitizer, sipm, convert=False, sum_len=1):
     diffs = []
     gain_average = 1
-    for i in range(0, len(self.params)-3, 3):
+    for i in range(0, len(params)-3, 3):
         diffs.append(params[i+3] - params[i])
     gain_average = sum(diffs[0:sum_len]) / float(len(diffs[0:sum_len]))
     if convert:
@@ -88,8 +88,8 @@ def dcr_exp_fit(dts, sipm):
 def cross_talk(params_data, params, sipm):
     index1 = int(params[0] - sipm.gain[-1]/2)
     index2 = int(params[3] - sipm.gain[-1]/2)
-    bins = list(range(int(max(params_data["E_short"]))))
-    bin_vals, _bin_edges = np.histogram(params_data["E_short"], bins=bins)
+    bins = list(range(int(max(params_data["E_SHORT"]))))
+    bin_vals, _bin_edges = np.histogram(params_data["E_SHORT"], bins=bins)
     total_counts1 = sum(bin_vals[index1:])
     total_counts2 = sum(bin_vals[index2:])
     prob = total_counts2 / total_counts1
