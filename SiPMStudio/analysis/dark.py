@@ -78,11 +78,11 @@ def dark_count_rate(params_data, params, sipm):
     #    dark_rate.ito(ureg.megahertz)
     return dark_rate
 
-def dcr_exp_fit(dts, sipm):
-    dts = delay_times(params_data, wave_data, min_height, min_dist)
-    exp_fit = expon.fit(dts)
-    sipm.dcr_fit.append(1/exp_fit[1])
-    return 1/exp_fit[1]
+def dcr_exp_fit(dts, sipm, bounds=[0, 1e5]):
+    dts_fit = dts[(dts > bounds[0]) & (dts < bounds[1])]
+    exp_fit = expon.fit(dts_fit)
+    sipm.dcr_fit.append(1/(exp_fit[1]*1e-9))
+    return 1/(exp_fit[1]*1e-9)
 
 
 def cross_talk(params_data, params, sipm):

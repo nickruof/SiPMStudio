@@ -11,6 +11,7 @@ from scipy import fftpack
 from scipy.signal import freqz
 from scipy.stats import linregress
 from scipy.stats import kde
+from scipy.stats import expon
 
 from matplotlib import colors
 
@@ -107,6 +108,18 @@ def plot_pde(sipm):
     plt.plot(sipm.bias, sipm.pde)
     plt.xlabel("Bias Voltage (V)")
     plt.ylabel("Photon Detection Efficiency (%)")
+    plt.show()
+
+def plot_delay_times(dts, bins=500, bounds=[0, 1e5], fit=False):
+    plt.figure()
+    [n, bins, _patches] = plt.hist(dts, bins=bins, range=bounds, density=True, edgecolor="none")
+    if fit:
+        loc, scale = expon.fit(dts[(dts > bounds[0]) & (dts < bounds[1])])
+        plt.plot(bins[:-1], expon.pdf(bins[:-1], loc=loc, scale=scale), color="r")
+    plt.xlabel("Delay Times (ns)")
+    plt.ylabel("Normalized Counts")
+    plt.xscale("log")
+    plt.yscale("log")
     plt.show()
 
 def plot_delay_height(dts, heights, density=False):

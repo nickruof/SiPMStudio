@@ -14,6 +14,8 @@ from SiPMStudio.analysis import dark
 from SiPMStudio.plots import plots
 from SiPMStudio.processing.functions import fit_multi_gauss
 
+from scipy.stats import expon
+
 path = "/Users/nickruof/Documents/LEGEND/SiPM/ketek_data/waves_32/UNFILTERED/0_waves_32.csv"
 Digitizer = digitizers.CAENDT5730(df_data=path)
 Digitizer.v_range = 2.0
@@ -25,7 +27,7 @@ proc.add(fun_name="baseline_subtract", settings={})
 proc.add(fun_name="moving_average", settings={"box_size":19})
 proc.add(fun_name="savgol", settings={"window":27, "order":2})
 result = proc.process()
-plots.plot_waveform(proc.waves.iloc[20, :], find_peaks=True, min_height=0.002, min_dist=70)
+#plots.plot_waveform(proc.waves.iloc[20, :], find_peaks=True, min_height=0.002, min_dist=70)
 
 #Dark Analysis
 ketek_30 = devices.sipm(name="ketek", area=9)
@@ -35,13 +37,11 @@ params = fit_multi_gauss(bins=bins, bin_vals=bin_vals, min_height=30, min_dist=3
 #plots.pc_spectrum(hist_array=proc.calcs["E_SHORT"], params=params)
 dark.gain(params=params, digitizer=Digitizer, sipm=ketek_30)
 dark.cross_talk(params_data=proc.calcs, params=params, sipm=ketek_30)
-[dts, heights] = dark.delay_time_vs_height(params_data=proc.calcs, wave_data=proc.waves, min_height=0.002, min_dist=50)
-plots.plot_delay_height(dts, heights, density=True)
-#plt.figure()
-#plt.hist(heights, bins=200, edgecolor="none")
-#plt.xlabel("Heights")
-#plt.ylabel("Counts")
-#plt.show()
+(dts, heights) = dark.delay_time_vs_height(params_data=proc.calcs, wave_data=proc.waves, min_height=0.002, min_dist=50)
+dark.dcr_exp_fit(dts=dts, sipm=ketek_30, bounds=[0, 1e5])
+#plots.plot_delay_height(dts, heights, density=True)
+#plots.plot_delay_times(dts, fit=True)
 print(params)
 print(ketek_30.gain)
 print(ketek_30.cross_talk)
+print(ketek_30.dcr_fit)
