@@ -10,6 +10,9 @@ from SiPMStudio.calculations.helpers import detect_peaks
 from scipy import fftpack
 from scipy.signal import freqz
 from scipy.stats import linregress
+from scipy.stats import kde
+
+from matplotlib import colors
 
 sns.set_style("whitegrid")
 
@@ -106,12 +109,20 @@ def plot_pde(sipm):
     plt.ylabel("Photon Detection Efficiency (%)")
     plt.show()
 
-def plot_delay_height(dts, heights):
-    plt.figure()
-    plt.scatter(dts, heights, c="b", s=1)
+def plot_delay_height(dts, heights, density=False):
+    if density:
+        xy = np.vstack([dts, heights])
+        z = kde.gaussian_kde(xy)(xy)
+        plt.figure()
+        plt.scatter(dts, heights, c=z, s=1)
+        plt.colorbar()
+    else:
+        plt.figure()
+        plt.scatter(dts, heights, c="b", s=1)
     plt.xscale("log")
     plt.xlabel("Delay Time (ns)")
     plt.ylabel("Pulse Heights (V)")
+    plt.show()
 
 
 

@@ -5,6 +5,7 @@ import pywt
 from scipy.signal import savgol_filter
 from scipy.signal import filtfilt
 from statsmodels.robust import mad
+from functools import partial
 
 from SiPMStudio.core import digitizers
 from SiPMStudio.core import data_loading
@@ -41,4 +42,14 @@ def wavelet_denoise(waveforms, wavelet="db1", levels=3, mode="soft"):
     filtered_data = pywt.waverec(coeffs, wavelet, axis=0)
     processed_waveforms = pd.DataFrame(data=filtered_data, index=waveforms.index, columns=waveforms.columns)
     return processed_waveforms
+
+def moving_average(waveforms, box_size=20):
+    smooth_waves = []
+    box = np.ones(box_size) / box_size
+    for wave in waveforms.values:
+        smooth_wave = np.convolve(wave, box, mode="same")
+        smooth_waves.append(smooth_wave)
+    processed_waveforms = pd.DataFrame(data=smooth_waves, index=waveforms.index, columns=waveforms.columns)
+    return processed_waveforms
+
 
