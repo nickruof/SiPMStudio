@@ -9,6 +9,7 @@ class sipm:
         self.area = area
         self.bias = []
         self.gain = []
+        self.gain_magnitude = []
         self.pulse_rate = []
         self.dcr_fit = []
         self.cross_talk = []

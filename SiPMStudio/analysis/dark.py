@@ -56,15 +56,16 @@ def time_interval(params_data):
     interval = interval * 1.0e-12
     return interval
 
-def gain(params, digitizer, sipm, convert=False, sum_len=1):
+def gain(params, digitizer, sipm, sum_len=1):
     diffs = []
     gain_average = 1
     for i in range(0, len(params)-3, 3):
         diffs.append(params[i+3] - params[i])
     gain_average = sum(diffs[0:sum_len]) / float(len(diffs[0:sum_len]))
-    if convert:
-        gain_average = gain_average * digitizer.e_cal/1.6e-19
-    sipm.gain.append(gain_average)    
+    sipm.gain.append(gain_average)
+    gain_magnitude = gain_average * digitizer.e_cal/1.6e-19
+    sipm.gain_magnitude.append(gain_magnitude)    
+    return gain_average, gain_magnitude
 
 def pulse_rate(wave_data, sipm, min_height, min_dist):
     pulse_rate = []
