@@ -24,7 +24,7 @@ class sipm:
         data = pd.DataFrame()
         data["bias"] = self.bias
         data["gain"] = self.gain
-        data["dark_rate"] = self.dark_rate
+        data["pulse_rate"] = self.pulse_rate
         data["dcr_fit"] = self.dcr_fit
         data["cross_talk"] = self.cross_talk
         data["after_pulse"] = self.after_pulse
@@ -41,11 +41,13 @@ class photodiode:
         self.responsivity = pd.DataFrame()
 
     def load_response(self, file_path):
-        self.responsivity = pd.read_csv(file_path, delimiter=", ")
-        self.responsivity.rename(columns={0:"wavelength", 1:"responsivity"})
+        response_data = pd.read_csv(file_path, delimiter=", ", header=None, engine="python")
+        self.responsivity["wavelength"] = response_data[0]
+        self.responsivity["responsivity"] = response_data[1]
+
 
     def get_response(self, wavelength):
-        if not responsivity:
+        if self.responsivity.empty:
             print("Load Responsivity Data!")
         else:
             return np.interp(x=wavelength, xp=self.responsivity["wavelength"], fp=self.responsivity["responsivity"])

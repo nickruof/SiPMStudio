@@ -80,6 +80,9 @@ def dcr_exp_fit(dts, sipm, bounds=[0, 1e5]):
     sipm.dcr_fit.append(1/(exp_fit[1]*1e-9))
     return 1/(exp_fit[1]*1e-9)
 
+def excess_charge_factor(sipm):
+    return np.divide(sipm.pulse_rate, sipm.dcr_fit)
+
 def cross_talk(params_data, params, sipm):
     index1 = int(params[0] - sipm.gain[-1]/2)
     index2 = int(params[3] - sipm.gain[-1]/2)
