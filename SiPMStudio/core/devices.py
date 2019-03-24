@@ -42,7 +42,7 @@ class photodiode:
 
     def load_response(self, file_path):
         response_data = pd.read_csv(file_path, delimiter=", ", header=None, engine="python")
-        self.responsivity["wavelength"] = response_data[0]
+        self.responsivity["wavelength"] = np.multiply(response_data[0], 1e-9)
         self.responsivity["responsivity"] = response_data[1]
 
 

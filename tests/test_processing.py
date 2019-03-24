@@ -33,7 +33,7 @@ result = proc.process()
 #plots.plot_waveform(proc.waves.iloc[20, :], find_peaks=True, min_height=0.002, min_dist=70)
 
 #Dark Analysis
-ketek_32 = devices.sipm(name="ketek", area=9)
+ketek_32 = devices.sipm(name="ketek", area=9e-6)
 ketek_32.bias = [32]
 bins = np.linspace(start=0, stop=max(Digitizer2.format_data()["E_SHORT"]), num=int(max(Digitizer2.format_data()["E_SHORT"])))
 bin_vals, _bin_edges = np.histogram(Digitizer2.format_data()["E_SHORT"], bins=bins)
@@ -60,7 +60,7 @@ dark_file = "dark32.csv"
 light_file = "lit32.csv"
 scope = data_loading.Keithley2450()
 leak = light.average_leakage(dataloader=scope, sipm=ketek_32, bias=[32], files=[pde_path+dark_file])
-ref_diode = devices.photodiode("ref_diode", area=9)
+ref_diode = devices.photodiode("ref_diode", area=1.296e-5)
 ref_diode.load_response(pde_path+"responsivity.csv")
 green_led = devices.led("green", wavelength=5.75e-7)
 dark_files = [pde_path+"diodedark.csv", pde_path+dark_file]

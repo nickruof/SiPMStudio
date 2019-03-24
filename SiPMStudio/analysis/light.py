@@ -91,10 +91,9 @@ def to_photons(dataloader, diode, led, dark_files, light_files):
     light_currents = average_currents(dataloader=dataloader, device=diode, bias=None, files=light_files)
     h = 6.626e-34
     c = 3.0e8
-    eta = diode.get_response(led.wavelength)
+    eta = diode.get_response(wavelength=led.wavelength)
     scale_factor = led.wavelength / (h * c * eta)
     diff = np.subtract(light_currents, dark_currents)
-    print(diff * scale_factor)
     return diff * scale_factor
 
 def continuous_pde(dataloader, sipm, diode, led, bias, dark_files, light_files):
@@ -108,6 +107,8 @@ def continuous_pde(dataloader, sipm, diode, led, bias, dark_files, light_files):
     pde = np.divide(pde, incident_photons)
     pde = np.divide(pde, sipm.gain_magnitude)
     pde = np.divide(pde, q)
+    print(incident_photons)
+    print(light_sipm_currents)
     sipm.pde = pde
     return pde
 
