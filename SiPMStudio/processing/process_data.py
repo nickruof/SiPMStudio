@@ -3,7 +3,6 @@ import math
 import tqdm
 import numpy as np
 import pandas as pd
-import multiprocessing as mp
 
 from SiPMStudio.core import data_loading
 from SiPMStudio.core import digitizers
