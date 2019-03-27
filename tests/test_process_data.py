@@ -24,6 +24,6 @@ proc.add(fun_name="moving_average", settings={"box_size":19})
 proc.add(fun_name="savgol", settings={"window":27, "order":2})
 
 output_directory = "/Users/nickruof/Documents/LEGEND/SiPM/software_drafts/SiPMStudio/tests/"
-process_data.ProcessData(data_file=path, processor=proc, output_dir=output_directory, digitizers=[Digitizer], multiprocess=True)
+process_data.ProcessData(data_files=[path], processor=proc, output_dir=output_directory, digitizer=Digitizer, chunk=2000)
 
 
