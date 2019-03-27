@@ -1,4 +1,5 @@
 import os, re, sys, time
+import math
 import tqdm
 import numpy as np
 import pandas as pd
@@ -7,6 +8,8 @@ import multiprocessing as mp
 from SiPMStudio.core import data_loading
 from SiPMStudio.core import digitizers
 from SiPMStudio.core import devices
+
+from functools import partial
 
 def ProcessData(data_file, 
                 processor, 
@@ -32,29 +35,44 @@ def ProcessData(data_file,
     for d in digitizers:
         processor.digitizer = d
         d.load_data(df_data=data_file, chunksize=chunk)
+        df_size = os.path.getsize(data_file)
+        num_rows = sum(1 for line in open(data_file))
+        num_chunks = math.ceil(num_rows / chunk)
+
         output_df = pd.DataFrame()
-        for block in tqdm(d.df_data):
+        for block in tqdm.tqdm(d.df_data, total=num_chunks):
+            print(type(block))
             if multiprocess:
+                async_list = []
                 with mp.Pool(NCPU) as p:
-                    new_chunk = p.map(partial(process_chunk, block, processor))
-                output_df = pd.concat([output_df, new_chunk])
+                    async_proc = p.apply_async(partial(process_chunk, processor=processor), [block])
+                    async_list.append(async_proc)
+
+                #output_df = pd.concat([output_df, new_chunk], ignore_index=True)
             else:
-                new_chunk = process_chunk(block, processor)
-                output_df = pd.concat([output_df, new_chunk])
+                new_chunk = process_chunk(df_data=block, processor=processor)
+                output_df = pd.concat([output_df, new_chunk], ignore_index=True)
 
-    elapsed = time.time() - start
-    print("Time elapsed: "+str(elapsed))
+    elapsed = round(time.time() - start, 1)
+    print("Time elapsed: "+str(elapsed)+" s")
+    #output_df.to_csv(output_dir+"t1_"+data_file)
 
-    output_df.to_csv(output_dir+"t1_"+data_file)
-
-    return output_df
+    #return output_df
 
 
 def process_chunk(df_data, processor):
-    df_data = df_data.drop(["FLAGS"], axis=1)
-    [processor.calcs, processor.waves] = np.split(blocks, [3])
+    df_data = df_data.drop([3], axis=1)
+    df_data = df_data.reindex(axis=1)
+    [processor.calcs, processor.waves] = np.split(df_data, [3], axis=1)
     processor.process()
     return pd.concat([processor.calcs, processor.waves], axis=1)
+
+def retrieve_dataframe(asyncs):
+    output_frame = pd.DataFrame()
+    for proc in asyncs:
+        new_chunk = proc.get()
+        output_frame = pd.concat([output_frame, new_chunk], ignore_index=True)
+    return output_frame
 
     
 
