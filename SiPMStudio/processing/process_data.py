@@ -45,6 +45,8 @@ def ProcessData(data_file,
     elapsed = time.time() - start
     print("Time elapsed: "+str(elapsed))
 
+    output_df.to_csv(output_dir+"t1_"+data_file)
+
     return output_df
 
 
