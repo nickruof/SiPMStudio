@@ -29,6 +29,7 @@ def ProcessData(data_files,
     processor.digitizer = digitizer
 
     for file in data_files:
+        print("Processing: " + str(file))
         num_chunks = 1
         if chunk is not None:
             num_rows = sum(1 for line in open(file))
@@ -43,6 +44,7 @@ def ProcessData(data_files,
             new_chunk = process_chunk(df_data=block, processor=processor)
             output_df = pd.concat([output_df, new_chunk], ignore_index=True)
 
+        print("Writing Output file ...")
         write_output(data_file=file, output_frame=output_df, output_dir=output_dir, chunk=chunk)
 
     elapsed = time.time() - start
