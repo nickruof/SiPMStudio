@@ -38,9 +38,9 @@ def ProcessData(data_files,
             data_list = []
             for i, file in enumerate(data_files):
                 data_list.append([file, i])
-            result = p.imap(
+            result = p.map(
                 partial(process_files, digitizer=digitizer, processor=processor, chunk=chunk), data_list)
-            result_list = list(result)
+            #result_list = list(result)
 
     else:
         for i, file in enumerate(data_files):
