@@ -21,10 +21,10 @@ class Processor(ABC):
             for key in settings:
                 self.add(key, settings[key])
 
-    def set_processor(self, digitizer):
+    def set_processor(self, digitizer, rows=None):
         self.digitizer = digitizer
-        self.calcs = digitizer.format_data(waves=False)
-        self.waves = digitizer.format_data(waves=True)
+        self.calcs = digitizer.format_data(waves=False, rows=rows)
+        self.waves = digitizer.format_data(waves=True, rows=rows)
 
     def process(self):
         for processor in self.proc_list:

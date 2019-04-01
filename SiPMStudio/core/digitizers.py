@@ -20,7 +20,7 @@ class Digitizer(DataLoader):
             if "n_blsamp" in sk:
                 self.n_blsamp = settings["n_blsamp"]
 
-    def format_data(self, waves=False):
+    def format_data(self, waves=False, rows):
         pass
 
 
@@ -40,18 +40,39 @@ class CAENDT5730(Digitizer):
         super().__init__(*args, **kwargs)
 
 
-    def format_data(self, waves=False):
-        if waves:
-            params_frame = self.df_data.iloc[:, :3]
-            params_frame.columns = self.parameters
-            waves_frame = self.df_data.iloc[:, 4:].copy()
-            #waves_frame = waves_frame.transpose().set_index(keys=np.array(range(0, self.wave_frame.shape[1])))
-            return waves_frame
+    def format_data(self, waves=False, rows=None):
+        if len(rows) == 2:
+            if waves:
+                params_frame = self.df_data.iloc[rows[0]:rows[1], :3]
+                params_frame.columns = self.parameters
+                waves_frame = self.df_data.iloc[rows[0]:rows[1], 4:]
+                return waves_frame
+            else:
+                params_frame = self.df_data.iloc[rows[0]:rows[1], :3]
+                params_frame.columns = self.parameters
+                return params_frame
+        elif len(rows) == 1:
+            if waves:
+                params_frame = self.df_data.iloc[rows[0]:, :3]
+                params_frame.columns = self.parameters
+                waves_frame = self.df_data.iloc[rows[0]:, 4:]
+                return waves_frame
+            else:
+                params_frame = self.df_data.iloc[rows[0]:, :3]
+                params_frame.columns = self.parameters
+                return params_frame
         else:
-            params_frame = self.df_data.iloc[:, :3]
-            params_frame.columns = self.parameters
-            #params_frame = pd.DataFrame(params, columns=self.parameters)
-            return params_frame
+            if waves:
+                params_frame = self.df_data.iloc[:, :3]
+                params_frame.columns = self.parameters
+                waves_frame = self.df_data.iloc[:, 4:]
+                return waves_frame
+            else:
+                params_frame = self.df_data.iloc[:, :3]
+                params_frame.columns = self.parameters
+                return params_frame
+
+
 
     def input_settings(self, settings={}):
         self.id = settings["id"]
