@@ -38,7 +38,7 @@ def ProcessData(data_files,
         digitizer.load_data(df_data=file)
         chunk_idx = _get_chunks(file=file, digitizer=digitizer, chunksize=chunk)
         if multiprocess:
-            wait = animation.Wait("spinner")
+            wait = animation.Wait(animation="elipses", text="Multiprocessing")
             with ThreadPool(NCPU) as p:
                 wait.start()
                 p.map(partial(_process_chunk, digitizer=digitizer, processor=processor), chunk_idx)
