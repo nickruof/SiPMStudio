@@ -36,7 +36,6 @@ class Processor(ABC):
             else:
                 pass
 
-
     def add(self, fun_name, settings={}):
         if fun_name in self.settings:
             self.settings[fun_name] = {**self.settings[fun_name], **settings}

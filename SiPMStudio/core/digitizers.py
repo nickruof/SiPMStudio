@@ -20,7 +20,7 @@ class Digitizer(DataLoader):
             if "n_blsamp" in sk:
                 self.n_blsamp = settings["n_blsamp"]
 
-    def format_data(self, waves=False, rows):
+    def format_data(self, waves=False, rows=None):
         pass
 
 
@@ -41,6 +41,8 @@ class CAENDT5730(Digitizer):
 
 
     def format_data(self, waves=False, rows=None):
+        if rows is None:
+            rows = []
         if len(rows) == 2:
             if waves:
                 params_frame = self.df_data.iloc[rows[0]:rows[1], :3]
