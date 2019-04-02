@@ -3,6 +3,7 @@ import pandas as pd
 from abc import ABC
 import sys
 
+import SiPMStudio.core.devices as gadget
 import SiPMStudio.analysis.dark as sith
 import SiPMStudio.analysis.light as jedi
 
@@ -49,3 +50,14 @@ class Measurment:
 
     def process_block(self):
         return self.function(**self.fun_args)
+
+class UtilityBelt:
+
+    def __init__(self, gadgets={}):
+        self.gadgets = gadgets
+
+    def add(self, gadget_name, gadget_object):
+        self.gadgets[gadget_name] = gadget_object
+        
+
+
