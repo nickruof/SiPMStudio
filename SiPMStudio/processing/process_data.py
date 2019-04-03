@@ -30,7 +30,7 @@ def ProcessData(data_files,
     start = time.time()
     output_dir = os.getcwd() if output_dir is None else output_dir
 
-    #Declare an output file and overwriting options here
+    # Declare an output file and overwriting options here
 
     processor.digitizer = digitizer
 
@@ -52,14 +52,14 @@ def ProcessData(data_files,
 
     _output_time(time.time() - start)
 
+
 def _get_chunks(file, digitizer, chunksize):
     num_chunks = 1
     if chunksize is not None:
         num_rows = sum(1 for line in open(file))
         num_chunks = math.ceil(num_rows / chunksize)
     else:
-        chunk = sum(1 for line in open(file))
-    df_size = os.path.getsize(file)
+        num_chunks = sum(1 for line in open(file))
 
     row_list = []
     for i in range(num_chunks):
@@ -69,9 +69,11 @@ def _get_chunks(file, digitizer, chunksize):
             row_list.append([i*chunksize])
     return row_list
 
+
 def _process_chunk(rows, digitizer, processor):
     processor.set_processor(digitizer, rows=rows)
     processor.process()
+
 
 def _write_output(data_file, output_frame, output_dir):
     print("")
@@ -80,11 +82,11 @@ def _write_output(data_file, output_frame, output_dir):
     file_name = data_file[indices[-1]+1:]
     output_frame.to_csv(output_dir+"t1_"+file_name)
 
+
 def _output_time(delta_seconds):
     temp_seconds = delta_seconds
     hours = 0
     minutes = 0
-    seconds = 0
 
     while temp_seconds >= 3600:
         temp_seconds = temp_seconds - 3600

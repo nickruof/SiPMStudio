@@ -5,11 +5,9 @@ import pywt
 from scipy.signal import savgol_filter
 from scipy.signal import filtfilt
 from statsmodels.robust import mad
-from functools import partial
 
-from SiPMStudio.core import digitizers
-from SiPMStudio.core import data_loading
 from SiPMStudio.processing.functions import butter_bandpass
+
 
 def adc_to_volts(waveforms, digitizer):
     V_pp = digitizer.v_range
@@ -17,14 +15,17 @@ def adc_to_volts(waveforms, digitizer):
     processed_waveforms = np.multiply((V_pp/2**n_bits), waveforms)
     return processed_waveforms
 
+
 def baseline_subtract(waveforms):
     processed_waveforms = waveforms.sub(waveforms.mean(axis=1), axis=0)
     return processed_waveforms
+
 
 def savgol(waveforms, window=15, order=2):
     filtered_data = savgol_filter(waveforms.values, window, order, axis=1)
     processed_waveforms = pd.DataFrame(data=filtered_data, index=waveforms.index, columns=waveforms.columns)
     return processed_waveforms
+
 
 def butter_bandpass_filter(waveforms, digitizer, lowcut, highcut, order=5):
     sample_rate = digitizer.sample_rate
@@ -32,6 +33,7 @@ def butter_bandpass_filter(waveforms, digitizer, lowcut, highcut, order=5):
     filtered_data = filtfilt(b, a, waveforms.values, axis=1)
     processed_waveforms = pd.DataFrame(data=filtered_data, index=waveforms.index, columns=waveforms.columns)
     return processed_waveforms
+
 
 def wavelet_denoise(waveforms, wavelet="db1", levels=3, mode="soft"):
     data = waveforms.values
@@ -42,6 +44,7 @@ def wavelet_denoise(waveforms, wavelet="db1", levels=3, mode="soft"):
     filtered_data = pywt.waverec(coeffs, wavelet, axis=0)
     processed_waveforms = pd.DataFrame(data=filtered_data, index=waveforms.index, columns=waveforms.columns)
     return processed_waveforms
+
 
 def moving_average(waveforms, box_size=20):
     smooth_waves = []

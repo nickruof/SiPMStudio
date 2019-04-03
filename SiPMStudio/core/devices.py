@@ -31,6 +31,7 @@ class sipm:
         data["pde"] = self.pde
         return data
 
+
 class photodiode:
 
     def __init__(self, name, area):
@@ -45,12 +46,12 @@ class photodiode:
         self.responsivity["wavelength"] = np.multiply(response_data[0], 1e-9)
         self.responsivity["responsivity"] = response_data[1]
 
-
     def get_response(self, wavelength):
         if self.responsivity.empty:
             print("Load Responsivity Data!")
         else:
             return np.interp(x=wavelength, xp=self.responsivity["wavelength"], fp=self.responsivity["responsivity"])
+
 
 class led:
     def __init__(self, name, wavelength):

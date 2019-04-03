@@ -1,5 +1,4 @@
 import numpy as np
-import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 
@@ -13,9 +12,8 @@ from scipy.stats import linregress
 from scipy.stats import kde
 from scipy.stats import expon
 
-from matplotlib import colors
-
 sns.set_style("whitegrid")
+
 
 def plot_butter_response(digitizer, lowcut, highcut, order=5):
     (b, a) = butter_bandpass(lowcut, highcut, digitizer.sample_rate, order=order)
@@ -25,6 +23,7 @@ def plot_butter_response(digitizer, lowcut, highcut, order=5):
     plt.xlabel("Frequency (Hz)")
     plt.ylabel("Gain")
     plt.show()
+
 
 def plot_FFT(digitizer, waveform):
     wave_fft = fftpack.fft(waveform)
@@ -39,6 +38,7 @@ def plot_FFT(digitizer, waveform):
     plt.xlabel("Frequency (Hz)")
     plt.ylabel("Power (%)")
     plt.show()
+
 
 def plot_waveform(waveform, find_peaks, min_dist, min_height):
     time = np.linspace(0, 2*len(waveform)-1, len(waveform))
@@ -55,11 +55,13 @@ def plot_waveform(waveform, find_peaks, min_dist, min_height):
         plt.plot(peak_times, peak_heights, "r.")
     plt.show()
 
+
 def plot_waveforms(waveforms):
     ax = self.waveforms.plot()
     ax.set_xlabel("Time (ns)")
     ax.set_ylabel("Voltage (V)")
     ax.set_xlim([0, 1000])
+
 
 def pc_spectrum(hist_array, params=None, log=False):
     sns.set_style("white")
@@ -73,6 +75,7 @@ def pc_spectrum(hist_array, params=None, log=False):
     if params is not None:
         plt.plot(multi_gauss(bins, *params), "r")
     plt.show()
+
 
 def plot_gain(sipm, lin_fit=False):
     plt.figure()
@@ -89,12 +92,14 @@ def plot_gain(sipm, lin_fit=False):
         plt.legend(["Breakdown Voltage: "+str(intercept)+" V"])
     plt.show()
 
+
 def plot_dcr(sipm):
     plt.figure()
     plt.plot(sipm.bias, sipm.dark_rate)
     plt.xlabel("Bias Voltage (V)")
     plt.ylabel("Dark Count Rate")
     plt.show()
+
 
 def plot_cross_talk(sipm):
     plt.figure()
@@ -103,12 +108,14 @@ def plot_cross_talk(sipm):
     plt.ylabel("Cross Talk Probability (%)")
     plt.show()
 
+
 def plot_pde(sipm):
     plt.figure()
     plt.plot(sipm.bias, sipm.pde)
     plt.xlabel("Bias Voltage (V)")
     plt.ylabel("Photon Detection Efficiency (%)")
     plt.show()
+
 
 def plot_delay_times(dts, bins=500, bounds=[0, 1e5], fit=False):
     plt.figure()
@@ -121,6 +128,7 @@ def plot_delay_times(dts, bins=500, bounds=[0, 1e5], fit=False):
     plt.xscale("log")
     plt.yscale("log")
     plt.show()
+
 
 def plot_delay_height(dts, heights, density=False):
     if density:

@@ -1,6 +1,3 @@
-import numpy as np
-import pandas as pd
-
 from .data_loading import DataLoader
 
 
@@ -24,7 +21,6 @@ class Digitizer(DataLoader):
         pass
 
 
-
 class CAENDT5730(Digitizer):
 
     def __init__(self, *args, **kwargs):
@@ -38,7 +34,6 @@ class CAENDT5730(Digitizer):
         self.int_window = None
         self.parameters = ["TIMETAG", "E_SHORT", "E_LONG"]
         super().__init__(*args, **kwargs)
-
 
     def format_data(self, waves=False, rows=None):
         if rows is None:
@@ -74,9 +69,7 @@ class CAENDT5730(Digitizer):
                 params_frame.columns = self.parameters
                 return params_frame
 
-
-
-    def input_settings(self, settings={}):
+    def input_settings(self, settings):
         self.id = settings["id"]
         self.v_range = settings["v_range"]
         self.e_cal = settings["e_cal"]

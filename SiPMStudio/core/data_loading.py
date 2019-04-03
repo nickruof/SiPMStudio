@@ -1,7 +1,6 @@
-import numpy as np
 import pandas as pd
-
 from abc import ABC
+
 
 class DataLoader(ABC):
 
@@ -29,7 +28,7 @@ class Keithley2450(DataLoader):
         self.model_name = "Keithley2450"
         super().__init__(*args, **kwargs)
 
-    def load_data(self, df_data):
+    def load_data(self, df_data, chunksize=None):
         if isinstance(df_data, pd.core.frame.DataFrame):
             self.df_data = df_data
         elif isinstance(df_data, str):
