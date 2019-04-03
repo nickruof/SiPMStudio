@@ -1,5 +1,3 @@
-import numpy as np
-import pandas as pd
 from abc import ABC
 import sys
 
@@ -36,7 +34,9 @@ class Processor(ABC):
             else:
                 pass
 
-    def add(self, fun_name, settings={}):
+    def add(self, fun_name, settings):
+        if settings is None:
+            settings = {}
         if fun_name in self.settings:
             self.settings[fun_name] = {**self.settings[fun_name], **settings}
         else:
@@ -52,6 +52,7 @@ class Processor(ABC):
             print("ERROR! unknown function: ", fun_name)
             sys.exit()
 
+
 class ProcessorBase(ABC):
     def __init__(self, function, fun_args={}):
         self.function = function
@@ -60,18 +61,19 @@ class ProcessorBase(ABC):
     def process_block(self, waves, calcs):
         return self.function(waves, calcs, **self.fun_args)
 
+
 class Calculator(ProcessorBase):
     def __init__(self, function, fun_args={}):
         super().__init__(function, fun_args)
 
-    def process_block(self, calcs):
+    def process_block(self, waves, calcs):
         return self.function(waves, calcs, **self.fun_args)
+
 
 class Transformer(ProcessorBase):
     def __init__(self, function, fun_args={}):
         super().__init__(function, fun_args)
 
-    def process_block(self, waves):
+    def process_block(self, waves, calcs=None):
         return self.function(waves, **self.fun_args)
 
-    

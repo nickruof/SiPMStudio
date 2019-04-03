@@ -5,4 +5,4 @@ seaborn
 sklearn
 pandas
 pywt
-statsmodel
+statsmodels
