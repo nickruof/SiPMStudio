@@ -13,8 +13,10 @@ from SiPMStudio.core import devices
 from functools import partial
 from pathos.threading import ThreadPool
 
-def Experiment(data_files, 
-                measurement_array, 
+def Experiment(param_files,
+                wave_files, 
+                measurement_array,
+                utility_belt, 
                 digitizer, 
                 output_dir=None, 
                 overwrite=True,
