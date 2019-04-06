@@ -13,7 +13,7 @@ from SiPMStudio.core import devices
 from functools import partial
 from pathos.threading import ThreadPool
 
-def ProcessData(data_files, 
+def ProcessData(data_files,
                 processor, 
                 digitizer, 
                 output_dir=None, 

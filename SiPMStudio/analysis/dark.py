@@ -11,6 +11,7 @@ from SiPMStudio.core import devices
 from SiPMStudio.calculations.helpers import detect_peaks
 from SiPMStudio import functions
 
+
 def collect_files(path, data_dir="UNFILTERED"):
     dirs_array = []
     file_array = []
@@ -49,10 +50,12 @@ def collect_files(path, data_dir="UNFILTERED"):
 
     return runs, waves
 
+
 def time_interval(params_data):
     interval = params_data["TIMETAG"].iloc[-1] - params_data["TIMETAG"].iloc[0]
     interval = interval * 1.0e-12
     return interval
+
 
 def gain(params, digitizer, sipm, sum_len=1):
     diffs = []
@@ -65,6 +68,7 @@ def gain(params, digitizer, sipm, sum_len=1):
     sipm.gain_magnitude.append(gain_magnitude)    
     return gain_average, gain_magnitude
 
+
 def pulse_rate(wave_data, sipm, min_height, min_dist):
     pulse_rate = []
     for i, wave in wave_data.iterrows():
@@ -74,14 +78,19 @@ def pulse_rate(wave_data, sipm, min_height, min_dist):
     sipm.pulse_rate.append(average_pulse_rate)
     return average_pulse_rate
 
-def dcr_exp_fit(dts, sipm, bounds=[0, 1e5]):
+
+def dcr_exp_fit(dts, sipm, bounds):
+    if bounds is None:
+        bounds=[0, 1e5]
     dts_fit = dts[(dts > bounds[0]) & (dts < bounds[1])]
     exp_fit = expon.fit(dts_fit)
     sipm.dcr_fit.append(1/(exp_fit[1]*1e-9))
     return 1/(exp_fit[1]*1e-9)
 
+
 def excess_charge_factor(sipm):
     return np.divide(sipm.pulse_rate, sipm.dcr_fit)
+
 
 def cross_talk(params_data, params, sipm):
     index1 = int(params[0] - sipm.gain[-1]/2)
@@ -94,8 +103,8 @@ def cross_talk(params_data, params, sipm):
     sipm.cross_talk.append(prob)
     return prob
 
+
 def delay_times(params_data, wave_data, min_height, min_dist):
-    all_dts = []
     all_times = []
 
     for i, wave in wave_data.iterrows():
@@ -107,15 +116,17 @@ def delay_times(params_data, wave_data, min_height, min_dist):
     all_dts = np.delete(all_dts, -1)
     return all_dts
 
-def heights(params_data, wave_data, min_height, min_dist):
+
+def heights(wave_data, min_height, min_dist):
     all_heights = []
 
     for i, wave in wave_data.iterrows():
         peaks = detect_peaks(wave, mph=min_height, mpd=min_dist)
-        heights = wave_data[i].values[peaks]
-        all_heights = np.append(all_heights, [heights])
+        peak_heights = wave_data[i].values[peaks]
+        all_heights = np.append(all_heights, [peak_heights])
     all_heights = np.delete(all_heights, -1)
     return all_heights
+
 
 def delay_time_vs_height(params_data, wave_data, min_height, min_dist):
     all_dts = []
@@ -125,9 +136,9 @@ def delay_time_vs_height(params_data, wave_data, min_height, min_dist):
     for i, wave in wave_data.iterrows():
         peaks = detect_peaks(wave, mph=min_height, mpd=min_dist)
         times = np.add(params_data.iloc[i, 0]*10**-3, 2*peaks)
-        heights = wave_data.iloc[i, :].values[peaks]
+        peak_heights = wave_data.iloc[i, :].values[peaks]
         all_times = np.append(all_times, [times])
-        all_heights = np.append(all_heights, [heights])
+        all_heights = np.append(all_heights, [peak_heights])
     if len(all_times) == 0 or len(all_heights) == 0:
         print("No peaks found!")
         return all_dts, all_heights

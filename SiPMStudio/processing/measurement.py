@@ -7,20 +7,21 @@ import SiPMStudio.core.devices as gadget
 import SiPMStudio.analysis.dark as sith
 import SiPMStudio.analysis.light as jedi
 
-class Measurement_Array(ABC):
+
+class MeasurementArray(ABC):
 
     def __init__(self, settings=None):
         self.measurement_list = []
         self.settings = {}
+        self.digitizer = None
 
         if settings is not None:
             self.settings = settings
         for key in settings:
             self.add(key, settings[key])
 
-
     def process(self):
-        for measurment in self.measurement_list:
+        for measurement in self.measurement_list:
             if isinstance(measurement, Measurement):
                 p_result = measurement.process_block()
             else:
@@ -39,10 +40,11 @@ class Measurement_Array(ABC):
             self.measurement_list.append(
                 Measurement(getattr(jedi, fun_name), self.settings[fun_name]))
         else:
-            print("ERROR! unknown function: ", fun_name)
+            print("ERROR! unknown measurement function: ", fun_name)
             sys.exit()
 
-class Measurment:
+
+class Measurement:
 
     def __init__(self, function, fun_args={}):
         self.function = function
@@ -51,13 +53,17 @@ class Measurment:
     def process_block(self):
         return self.function(**self.fun_args)
 
+
 class UtilityBelt:
 
-    def __init__(self, gadgets={}):
+    def __init__(self, gadgets={}, data={}):
         self.gadgets = gadgets
+        self.data = data
 
-    def add(self, gadget_name, gadget_object):
+    def add_gadget(self, gadget_name, gadget_object):
         self.gadgets[gadget_name] = gadget_object
 
+    def add_data(self, data_name, data_object):
+        self.data[data_name] = data_object
 
 

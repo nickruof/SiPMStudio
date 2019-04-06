@@ -1,14 +1,8 @@
 import numpy as np
-import pandas as pd
-import os
 
 from scipy.sparse import diags
-
-from SiPMStudio.core import data_loading
-from SiPMStudio.core import digitizers
 from SiPMStudio.core import devices
 from SiPMStudio.calculations.helpers import detect_peaks
-from SiPMStudio import functions
 from SiPMStudio.analysis.dark import excess_charge_factor
 
 
@@ -16,6 +10,7 @@ def time_interval(params_data):
     interval = params_data["TIMETAG"].iloc[-1] - params_data["TIMETAG"].iloc[0]
     interval = interval * 1.0e-12
     return interval
+
 
 def delay_times(params_data, wave_data, min_height, min_dist):
     all_dts = []
@@ -30,6 +25,7 @@ def delay_times(params_data, wave_data, min_height, min_dist):
     all_dts = np.delete(all_dts, -1)
     return all_dts
 
+
 def heights(params_data, wave_data, min_height, min_dist):
     all_heights = []
 
@@ -39,6 +35,7 @@ def heights(params_data, wave_data, min_height, min_dist):
         all_heights = np.append(all_heights, [heights])
     all_heights = np.delete(all_heights, -1)
     return all_heights
+
 
 def delay_time_vs_height(params_data, wave_data, min_height, min_dist):
     all_dts = []
@@ -61,6 +58,7 @@ def delay_time_vs_height(params_data, wave_data, min_height, min_dist):
         all_heights = np.delete(all_heights, -1)
         return all_dts, all_heights
 
+
 def average_currents(dataloader, device, bias, files):
     if isinstance(device, devices.sipm):
         currents = [None]*len(bias)
@@ -75,6 +73,7 @@ def average_currents(dataloader, device, bias, files):
         dataloader.clear_data()
         return current
 
+
 def average_leakage(dataloader, sipm, bias, files):
     total_currents = average_currents(dataloader=dataloader, device=sipm, bias=bias, files=files)
     N = [sipm.pulse_rate[sipm.bias.index(voltage)] for voltage in bias]
@@ -86,6 +85,7 @@ def average_leakage(dataloader, sipm, bias, files):
     leakage_currents = np.subtract(total_currents, sipm_currents)
     return leakage_currents
 
+
 def to_photons(dataloader, diode, led, dark_files, light_files):
     dark_currents = average_currents(dataloader=dataloader, device=diode, bias=None, files=dark_files)
     light_currents = average_currents(dataloader=dataloader, device=diode, bias=None, files=light_files)
@@ -95,6 +95,7 @@ def to_photons(dataloader, diode, led, dark_files, light_files):
     scale_factor = led.wavelength / (h * c * eta)
     diff = np.subtract(light_currents, dark_currents)
     return diff * scale_factor
+
 
 def continuous_pde(dataloader, sipm, diode, led, bias, dark_files, light_files):
     dark_sipm_currents = average_currents(dataloader=dataloader, device=sipm, bias=bias, files=dark_files[1:])
@@ -111,4 +112,3 @@ def continuous_pde(dataloader, sipm, diode, led, bias, dark_files, light_files):
     print(light_sipm_currents)
     sipm.pde = pde
     return pde
-
