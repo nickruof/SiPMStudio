@@ -34,7 +34,7 @@ def ProcessData(data_files,
 
     processor.digitizer = digitizer
 
-    for i, file in enumerate(data_files):
+    for file in data_files:
         digitizer.load_data(df_data=file)
         chunk_idx = _get_chunks(file=file, digitizer=digitizer, chunksize=chunk)
         if multiprocess:

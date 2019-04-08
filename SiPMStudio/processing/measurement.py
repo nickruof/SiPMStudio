@@ -13,12 +13,18 @@ class MeasurementArray(ABC):
     def __init__(self, settings=None):
         self.measurement_list = []
         self.settings = {}
-        self.digitizer = None
+        self.params_digitizer = None
+        self.waves_digitizer = None
 
         if settings is not None:
             self.settings = settings
         for key in settings:
             self.add(key, settings[key])
+
+    def set_array(self, p_digitizer, w_digitizer):
+        self.params_digitizer = p_digitizer
+        self.waves_digitizer = w_digitizer
+
 
     def process(self):
         for measurement in self.measurement_list:

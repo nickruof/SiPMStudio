@@ -15,6 +15,8 @@ class DataLoader(ABC):
             self.df_data = df_data
         elif isinstance(df_data, str):
             self.df_data = pd.read_csv(df_data, delimiter=";", header=None, chunksize=chunksize)
+        elif df_data is None:
+            pass
         else:
             raise TypeError("DataType not recognized!")
 

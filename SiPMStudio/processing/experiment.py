@@ -10,6 +10,7 @@ from SiPMStudio.core import data_loading
 from SiPMStudio.core import digitizers
 from SiPMStudio.core import devices
 from SiPMStudio.processing import measurement
+from SiPMStudio.processing.process_data import _output_time
 
 from functools import partial
 from pathos.threading import ThreadPool
@@ -29,7 +30,20 @@ def Experiment(param_files,
     print("Wave files: ", wave_files)
 
     start = time.time()
-    measurement.digitizer = digitizer
+    measurement.params_digitizer = digitizer
+    measurement.waves_digitizer = digitizer
+
+    if param_files is None:
+        param_files = [None]*len(wave_files)
+    elif wave_files is None:
+        wave_files = [None]*len(param_files)
+    else:
+        pass
+
+    for params, waves in zip(param_files, wave_files):
 
 
 
+
+
+    _output_time(time.time()-start)
