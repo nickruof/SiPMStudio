@@ -13,18 +13,29 @@ class MeasurementArray(ABC):
     def __init__(self, settings=None):
         self.measurement_list = []
         self.settings = {}
-        self.params_digitizer = None
-        self.waves_digitizer = None
+        self.digitizer1 = None
+        self.digitizer2 = None
+        self.calcs1 = []
+        self.waves1 = []
+        self.calcs2 = []
+        self.waves2 = []
 
         if settings is not None:
             self.settings = settings
         for key in settings:
             self.add(key, settings[key])
 
-    def set_array(self, p_digitizer, w_digitizer):
-        self.params_digitizer = p_digitizer
-        self.waves_digitizer = w_digitizer
-
+    def set_array(self, digitizer1=None, digitizer2=None, num_loc):
+        self.digitizer1 = digitizer1
+        self.digitizer2 = digitizer2
+        if num_loc == 1:
+            self.calcs1 = digitizer1.format_data(waves=False)
+            self.waves1 = digitizer1.format_data(waves=True)
+        elif num_loc == 2:
+            self.calcs2 = digitizer2.format_data(waves=False)
+            self.waves2 = digitizer2.format_data(waves=True)
+        else:
+            TypeError raise("Input valid number corresponding to the calcs and waves to use!")
 
     def process(self):
         for measurement in self.measurement_list:

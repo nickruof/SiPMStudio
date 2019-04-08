@@ -36,6 +36,8 @@ class CAENDT5730(Digitizer):
         super().__init__(*args, **kwargs)
 
     def format_data(self, waves=False, rows=None):
+        if self.df_data is None:
+            return None
         if rows is None:
             rows = []
         if len(rows) == 2:
