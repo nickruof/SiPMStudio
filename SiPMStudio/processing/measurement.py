@@ -25,15 +25,20 @@ class MeasurementArray(ABC):
         for key in settings:
             self.add(key, settings[key])
 
-    def set_array(self, digitizer1=None, digitizer2=None, num_loc):
+    def set_array(self, digitizer1=None, digitizer2=None):
         self.digitizer1 = digitizer1
         self.digitizer2 = digitizer2
-        if num_loc == 1:
+        if digitizer1 is not None and digitizer2 is not None:
             self.calcs1 = digitizer1.format_data(waves=False)
             self.waves1 = digitizer1.format_data(waves=True)
-        elif num_loc == 2:
             self.calcs2 = digitizer2.format_data(waves=False)
             self.waves2 = digitizer2.format_data(waves=True)
+        elif digitizer1 is None:
+            self.calcs2 = digitizer2.format_data(waves=False)
+            self.waves2 = digitizer2.format_data(waves=True)
+        elif digitizer2 is None:
+            self.calcs1 = digitizer1.format_data(waves=False)
+            self.waves1 = digitizer1.format_data(waves=True)
         else:
             TypeError raise("Input valid number corresponding to the calcs and waves to use!")
 
