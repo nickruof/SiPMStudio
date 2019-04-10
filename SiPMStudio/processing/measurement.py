@@ -13,34 +13,19 @@ class MeasurementArray(ABC):
     def __init__(self, settings=None):
         self.measurement_list = []
         self.settings = {}
-        self.digitizer1 = None
-        self.digitizer2 = None
-        self.calcs1 = []
-        self.waves1 = []
-        self.calcs2 = []
-        self.waves2 = []
+        self.digitizer = None
+        self.calcs = []
+        self.waves = []
 
         if settings is not None:
             self.settings = settings
         for key in settings:
             self.add(key, settings[key])
 
-    def set_array(self, digitizer1=None, digitizer2=None):
-        self.digitizer1 = digitizer1
-        self.digitizer2 = digitizer2
-        if digitizer1 is not None and digitizer2 is not None:
-            self.calcs1 = digitizer1.format_data(waves=False)
-            self.waves1 = digitizer1.format_data(waves=True)
-            self.calcs2 = digitizer2.format_data(waves=False)
-            self.waves2 = digitizer2.format_data(waves=True)
-        elif digitizer1 is None:
-            self.calcs2 = digitizer2.format_data(waves=False)
-            self.waves2 = digitizer2.format_data(waves=True)
-        elif digitizer2 is None:
-            self.calcs1 = digitizer1.format_data(waves=False)
-            self.waves1 = digitizer1.format_data(waves=True)
-        else:
-            TypeError raise("Input valid number corresponding to the calcs and waves to use!")
+    def set_array(self, digitizer):
+        self.digitizer = digitizer
+        self.calcs = digitizer.format_data(waves=False, rows=rows)
+        self.waves = digitizer.format_data(waves=True, rows=rows)
 
     def process(self):
         for measurement in self.measurement_list:
