@@ -19,13 +19,13 @@ class MeasurementArray(ABC):
 
         if settings is not None:
             self.settings = settings
-        for key in settings:
-            self.add(key, settings[key])
+            for key in settings:
+                self.add(key, settings[key])
 
     def set_array(self, digitizer):
         self.digitizer = digitizer
-        self.calcs = digitizer.format_data(waves=False, rows=rows)
-        self.waves = digitizer.format_data(waves=True, rows=rows)
+        self.calcs = digitizer.format_data(waves=False)
+        self.waves = digitizer.format_data(waves=True)
 
     def process(self):
         for measurement in self.measurement_list:
@@ -43,7 +43,7 @@ class MeasurementArray(ABC):
         if fun_name in dir(sith):
             self.measurement_list.append(
                 Measurement(getattr(sith, fun_name), self.settings[fun_name]))
-        elif fun_name in dir(jedi)
+        elif fun_name in dir(jedi):
             self.measurement_list.append(
                 Measurement(getattr(jedi, fun_name), self.settings[fun_name]))
         else:

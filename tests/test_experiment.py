@@ -25,14 +25,11 @@ Digitizer2.e_cal = 2.0e-15
 
 ketek_32 = devices.sipm(name="ketek", area=9e-6)
 
-measures = measurement.measurement_array()
-measures.set_array(digitizer1=Digitizer1)
-measures.add(fun_name="fit_multi_gauss", settings={})
-proc.add(fun_name="adc_to_volts", settings={"digitizer":Digitizer})
-proc.add(fun_name="baseline_subtract", settings={})
-proc.add(fun_name="moving_average", settings={"box_size":19})
-proc.add(fun_name="savgol", settings={"window":27, "order":2})
+apparatus = measurement.MeasurementArray()
+apparatus.set_array(digitizer=Digitizer1)
+fit_settings = {"params_data":apparatus.calcs, "min_distance":100, "min_height":0.2}
+apparatus.add(fun_name="fit_multi_gauss", settings=fit_settings)
 
-process_data.ProcessData(data_files=[path, path2], processor=proc, output_dir=output_directory, multiprocess=True, digitizer=Digitizer, chunk=2000)
+
 
 

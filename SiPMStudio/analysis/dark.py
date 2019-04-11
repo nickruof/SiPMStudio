@@ -58,9 +58,9 @@ def time_interval(params_data):
 
 
 def fit_multi_gauss(params_data, min_dist, min_height, display=False):
-    bins = np.linspace(start=0, stop=max(calcs),
-                       num=int(max(calcs))
-    bin_vals, _bin_edges = np.histogram(calcs, bins=bins, density=True)
+    bins = np.linspace(start=0, stop=max(params_data),
+                       num=int(max(params_data)))
+    bin_vals, _bin_edges = np.histogram(params_data, bins=bins, density=True)
     peaks = detect_peaks(bin_vals, mpd=min_dist, mph=min_height)
     amplitudes = bin_vals[peaks]
     sigmas = [17]*len(peaks) #method needed to avoid hard coded sigma guess
