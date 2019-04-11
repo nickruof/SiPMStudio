@@ -9,7 +9,7 @@ from SiPMStudio.core import data_loading
 from SiPMStudio.core import digitizers
 from SiPMStudio.core import devices
 from SiPMStudio.calculations.helpers import detect_peaks
-from SiPMStudio import functions
+from SiPMStudio.functions import multi_gauss
 
 
 def collect_files(path, data_dir="UNFILTERED"):
@@ -57,20 +57,24 @@ def time_interval(params_data):
     return interval
 
 
-def fit_multi_gauss(params_data, min_dist, min_height, display=False):
+def fit_multi_gauss(params_data, min_dist, min_height, params=None, display=False):
     bins = np.linspace(start=0, stop=max(params_data),
                        num=int(max(params_data)))
     bin_vals, _bin_edges = np.histogram(params_data, bins=bins, density=True)
-    peaks = detect_peaks(bin_vals, mpd=min_dist, mph=min_height)
-    amplitudes = bin_vals[peaks]
-    sigmas = [17]*len(peaks) #method needed to avoid hard coded sigma guess
-    guess = []
-    for i, peak in enumerate(peaks):
-        guess.append(peak)
-        guess.append(amplitudes[i])
-        guess.append(sigmas[i])
-    popt, pcov = curve_fit(multi_gauss, xdata=bins[:-1], ydata=bin_vals, p0=guess)
-    fit = multi_gauss(bins[:-1], *popt)
+    fit = []
+    if params is None:
+        peaks = detect_peaks(bin_vals, mpd=min_dist, mph=min_height)
+        amplitudes = bin_vals[peaks]
+        sigmas = [17]*len(peaks) #method needed to avoid hard coded sigma guess
+        guess = []
+        for i, peak in enumerate(peaks):
+            guess.append(peak)
+            guess.append(amplitudes[i])
+            guess.append(sigmas[i])
+        popt, pcov = curve_fit(multi_gauss, xdata=bins[:-1], ydata=bin_vals, p0=guess)
+        fit = multi_gauss(bins[:-1], *popt)
+    else:
+        fit = multi_gauss(bins[:-1], *params)
     if display:
         plt.figure()
         plt.plot(bins[:-1], fit, color="red")

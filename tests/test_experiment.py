@@ -28,7 +28,9 @@ ketek_32 = devices.sipm(name="ketek", area=9e-6)
 apparatus = measurement.MeasurementArray()
 apparatus.set_array(digitizer=Digitizer1)
 fit_settings = {"params_data":apparatus.calcs, "min_distance":100, "min_height":0.2}
+gain_settings = {"params"}
 apparatus.add(fun_name="fit_multi_gauss", settings=fit_settings)
+apparatus.add(fun_name="gain", settings= )
 
 
 

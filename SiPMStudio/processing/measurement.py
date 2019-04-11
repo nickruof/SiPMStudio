@@ -63,7 +63,11 @@ class Measurement:
 
 class UtilityBelt:
 
-    def __init__(self, gadgets={}, data={}):
+    def __init__(self, gadgets, data):
+        if self.gadgets is None:
+            self.gadgets = {}
+        if self.data is None:
+            self.data = {}
         self.gadgets = gadgets
         self.data = data
 
