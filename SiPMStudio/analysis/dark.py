@@ -9,7 +9,7 @@ from SiPMStudio.core import data_loading
 from SiPMStudio.core import digitizers
 from SiPMStudio.core import devices
 from SiPMStudio.calculations.helpers import detect_peaks
-from SiPMStudio.functions import multi_gauss
+from SiPMStudio.processing.functions import multi_gauss
 
 
 def collect_files(path, data_dir="UNFILTERED"):
@@ -81,7 +81,7 @@ def fit_multi_gauss(params_data, min_dist, min_height, params=None, display=Fals
     return popt
 
 
-def gain(params, digitizer, sipm, sum_len=1):
+def gain(digitizer, sipm, sum_len=1, params=None):
     diffs = []
     gain_average = 1
     for i in range(0, len(params)-3, 3):
@@ -116,7 +116,7 @@ def excess_charge_factor(sipm):
     return np.divide(sipm.pulse_rate, sipm.dcr_fit)
 
 
-def cross_talk(params_data, params, sipm):
+def cross_talk(params_data, sipm, params=None):
     index1 = int(params[0] - sipm.gain[-1]/2)
     index2 = int(params[3] - sipm.gain[-1]/2)
     bins = list(range(int(max(params_data["E_SHORT"]))))

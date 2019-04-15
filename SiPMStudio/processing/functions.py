@@ -16,6 +16,10 @@ def multi_gauss(x, *params):
         y = y + gaussian(x, ctr, wid, amp)
     return y
 
+def moyal(x, loc, scale):
+    y = (x - loc)/scale
+    return np.exp(-(y+np.exp(-y)) / 2) / np.sqrt(2*np.pi)
+
 
 def butter_bandpass(digitizer, lowcut, highcut, order=5):
     nyq = 0.5 * digitizer.sample_rate
