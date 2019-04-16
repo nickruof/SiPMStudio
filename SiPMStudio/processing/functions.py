@@ -16,9 +16,14 @@ def multi_gauss(x, *params):
         y = y + gaussian(x, ctr, wid, amp)
     return y
 
-def moyal(x, loc, scale):
-    y = (x - loc)/scale
-    return np.exp(-(y+np.exp(-y)) / 2) / np.sqrt(2*np.pi)
+
+def moyal(x, A, loc, scale):
+    y = (x - loc) / scale
+    return A*np.exp(-(y + np.exp(-y)) / 2)
+
+
+def multi_gauss_moyal(x, A, loc, scale, *params):
+    return multi_gauss(x, *params) + moyal(x, loc, scale)
 
 
 def butter_bandpass(digitizer, lowcut, highcut, order=5):
@@ -26,4 +31,4 @@ def butter_bandpass(digitizer, lowcut, highcut, order=5):
     low = lowcut / nyq
     high = highcut / nyq
     (b, a) = butter(order, [low, high], btype="bandpass")
-    return (b, a)
+    return b, a
