@@ -56,9 +56,13 @@ class Measurement:
     def __init__(self, function, fun_args={}, post=False):
         self.function = function
         self.fun_args = fun_args
+        self.post = post
 
-    def process_block(self):
-        return self.function(**self.fun_args)
+    def process_block(self, name=None, utility_belt=None, data=None, type="data"):
+        result = self.function(**self.fun_args)
+        if self.post:
+            add_to_belt(name, utility_belt, result, type)
+        return result
 
     def add_to_belt(self, name, utility_belt, data, type="data"):
         if type == "data":

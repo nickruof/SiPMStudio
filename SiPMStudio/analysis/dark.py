@@ -74,7 +74,7 @@ def spectrum_peaks(params_data, min_dist=0.0, min_height=0.0, display=False):
     if display:
         plt.figure()
         plt.bar(bin_edges[:-1], bin_vals, edgecolor="none")
-        plt.plot(peaks, bin_vals[peaks], ".r")
+        plt.plot(peak_locs, bin_vals[peak_locs], ".r")
         plt.yscale("log")
         plt.show()
     return peak_locs
