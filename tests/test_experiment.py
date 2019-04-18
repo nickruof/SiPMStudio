@@ -26,11 +26,12 @@ Digitizer2.e_cal = 2.0e-15
 ketek_32 = devices.sipm(name="ketek", area=9e-6)
 
 apparatus = measurement.MeasurementArray()
+belt = measurement.UtilityBelt()
 apparatus.set_array(digitizer=Digitizer1)
-fit_settings = {"params_data":apparatus.calcs["E_SHORT"], "min_dist":80, "min_height":1.0e-5, "display":True}
-gain_settings = {"params"}
+fit_settings = {"params_data": apparatus.calcs["E_SHORT"], "min_dist": 80, "min_height": 1.0e-5, "display": True}
+gain_settings = {"digitizer": Digitizer1, "sipm": ketek_32, "peaks": belt.data["peaks"]}
 apparatus.add(fun_name="spectrum_peaks", settings=fit_settings)
-#apparatus.add(fun_name="gain", settings= )
+apparatus.add(fun_name="gain", settings= )
 apparatus.run()
 
 

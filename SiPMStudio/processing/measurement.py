@@ -32,9 +32,9 @@ class MeasurementArray(ABC):
             if isinstance(measurement, Measurement):
                 p_result = measurement.process_block()
             else:
-                print("Unknown Measurment type!")
+                raise TypeError("Unknown Measurment type!")
 
-    def add(self, fun_name, settings={}):
+    def add(self, fun_name, settings={}, post_settings={}):
         if fun_name in self.settings:
             self.settings[fun_name] = {**self.settings[fun_name], **settings}
         else:
@@ -42,29 +42,31 @@ class MeasurementArray(ABC):
 
         if fun_name in dir(sith):
             self.measurement_list.append(
-                Measurement(getattr(sith, fun_name), self.settings[fun_name]))
+                Measurement(getattr(sith, fun_name), self.settings[fun_name], post_settings))
         elif fun_name in dir(jedi):
             self.measurement_list.append(
-                Measurement(getattr(jedi, fun_name), self.settings[fun_name]))
+                Measurement(getattr(jedi, fun_name), self.settings[fun_name], post_settings))
         else:
-            print("ERROR! unknown measurement function: ", fun_name)
-            sys.exit()
+            raise TypeError("ERROR! unknown measurement function: ", fun_name)
 
 
 class Measurement:
 
-    def __init__(self, function, fun_args={}, post=False):
+    def __init__(self, function, fun_args=None, post_args=None):
         self.function = function
         self.fun_args = fun_args
-        self.post = post
+        self.post_args = post_args
+        if post_args is not None:
+            self.post_name = post_args["name"]
+            self.utility_belt = post_args["belt"]
 
-    def process_block(self, name=None, utility_belt=None, data=None, type="data"):
+    def process_block(self):
         result = self.function(**self.fun_args)
-        if self.post:
-            add_to_belt(name, utility_belt, result, type)
+        if self.post_args is not None:
+            add_to_belt(self.post_name, self.utility_belt, result, "data")
         return result
 
-    def add_to_belt(self, name, utility_belt, data, type="data"):
+    def add_to_belt(self, name, utility_belt, data, data_type="data"):
         if type == "data":
             utility_belt.add_data(data_name=name, data_object=data)
         elif type == "gadget":
@@ -75,7 +77,7 @@ class Measurement:
 
 class UtilityBelt:
 
-    def __init__(self, gadgets, data):
+    def __init__(self, gadgets=None, data=None):
         if self.gadgets is None:
             self.gadgets = {}
         if self.data is None:
