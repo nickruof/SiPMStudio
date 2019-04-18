@@ -53,12 +53,20 @@ class MeasurementArray(ABC):
 
 class Measurement:
 
-    def __init__(self, function, fun_args={}):
+    def __init__(self, function, fun_args={}, post=False):
         self.function = function
         self.fun_args = fun_args
 
     def process_block(self):
         return self.function(**self.fun_args)
+
+    def add_to_belt(self, name, utility_belt, data, type="data"):
+        if type == "data":
+            utility_belt.add_data(data_name=name, data_object=data)
+        elif type == "gadget"
+            utility_belt.add_gadget(gadget_name=name, gadget_object=data)
+        else:
+            raise TypeError(type+" not recognized!")
 
 
 class UtilityBelt:
@@ -76,5 +84,11 @@ class UtilityBelt:
 
     def add_data(self, data_name, data_object):
         self.data[data_name] = data_object
+
+    def remove_gadget(self, gadget_name):
+        del self.gadgets[gadget_name]
+
+    def remove_data(self, data_name):
+        del self.data[data_name]
 
 
