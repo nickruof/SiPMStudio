@@ -27,7 +27,7 @@ class MeasurementArray(ABC):
         self.calcs = digitizer.format_data(waves=False)
         self.waves = digitizer.format_data(waves=True)
 
-    def process(self):
+    def run(self):
         for measurement in self.measurement_list:
             if isinstance(measurement, Measurement):
                 p_result = measurement.process_block()
@@ -63,7 +63,7 @@ class Measurement:
     def add_to_belt(self, name, utility_belt, data, type="data"):
         if type == "data":
             utility_belt.add_data(data_name=name, data_object=data)
-        elif type == "gadget"
+        elif type == "gadget":
             utility_belt.add_gadget(gadget_name=name, gadget_object=data)
         else:
             raise TypeError(type+" not recognized!")

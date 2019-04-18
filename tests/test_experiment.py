@@ -16,7 +16,7 @@ from SiPMStudio.processing import measurement
 file1 = "t1_0_waves_31.csv"
 file2 = "t1_0_waves_32.csv"
 
-Digitizer1 = digitizers.CAENDT5730()
+Digitizer1 = digitizers.CAENDT5730(df_data=file2)
 Digitizer1.v_range = 2.0
 Digitizer1.e_cal = 2.0e-15
 Digitizer2 = digitizers.CAENDT5730()
@@ -27,10 +27,11 @@ ketek_32 = devices.sipm(name="ketek", area=9e-6)
 
 apparatus = measurement.MeasurementArray()
 apparatus.set_array(digitizer=Digitizer1)
-fit_settings = {"params_data":apparatus.calcs, "min_distance":80, "min_height":1.0e-5}
+fit_settings = {"params_data":apparatus.calcs["E_SHORT"], "min_dist":80, "min_height":1.0e-5, "display":True}
 gain_settings = {"params"}
-apparatus.add(fun_name="fit_multi_gauss", settings=fit_settings)
-apparatus.add(fun_name="gain", settings= )
+apparatus.add(fun_name="spectrum_peaks", settings=fit_settings)
+#apparatus.add(fun_name="gain", settings= )
+apparatus.run()
 
 
 

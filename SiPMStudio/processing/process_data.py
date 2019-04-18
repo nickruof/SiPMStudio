@@ -80,7 +80,7 @@ def _write_output(data_file, output_frame, output_dir):
     print("Writing Output file ...")
     indices = [i for i, item in enumerate(data_file) if item == "/"]
     file_name = data_file[indices[-1]+1:]
-    output_frame.to_csv(output_dir+"t1_"+file_name)
+    output_frame.to_csv(path_or_buf=output_dir+"t1_"+file_name, sep=";", header=False, index=False)
 
 
 def _output_time(delta_seconds):
