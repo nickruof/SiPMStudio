@@ -27,12 +27,16 @@ ketek_32 = devices.sipm(name="ketek", area=9e-6)
 
 apparatus = measurement.MeasurementArray()
 belt = measurement.UtilityBelt()
+belt.set_belt(names=["peak_locations"])
 apparatus.set_array(digitizer=Digitizer1)
 fit_settings = {"params_data": apparatus.calcs["E_SHORT"], "min_dist": 80, "min_height": 1.0e-5, "display": True}
-gain_settings = {"digitizer": Digitizer1, "sipm": ketek_32, "peaks": belt.data["peaks"]}
-apparatus.add(fun_name="spectrum_peaks", settings=fit_settings)
-apparatus.add(fun_name="gain", settings= )
-apparatus.run()
+fit_post = {"name": "peak_locations"}
+gain_settings = {"digitizer": Digitizer1, "sipm": ketek_32}
+gain_retrieve = {"variable": "peaks", "name": "peak_locations"}
+apparatus.add(fun_name="spectrum_peaks", settings=fit_settings, post_settings=fit_post)
+apparatus.add(fun_name="gain", settings=gain_settings, retrieve_settings=gain_retrieve)
+apparatus.run(utility_belt=belt)
+print(ketek_32.gain)
 
 
 

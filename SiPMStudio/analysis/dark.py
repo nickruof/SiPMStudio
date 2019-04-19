@@ -116,10 +116,10 @@ def fit_multi_gauss(params_data, min_dist=0.0, min_height=0.0, params=None, disp
 def gain(digitizer, sipm, sum_len=1, params=None, peaks=None):
     diffs = []
     gain_average = 1
-    if peaks is None and params:
+    if peaks is None and params is not None:
         for i in range(0, len(params)-3, 3):
             diffs.append(params[i+3] - params[i])
-    elif peaks and params is None:
+    elif params is None and peaks is not None:
         for i in range(len(peaks)-1):
             diffs.append(peaks[i+1]-peaks[i])
     gain_average = sum(diffs[0:sum_len]) / float(len(diffs[0:sum_len]))

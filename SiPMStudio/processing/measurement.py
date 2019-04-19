@@ -27,14 +27,14 @@ class MeasurementArray(ABC):
         self.calcs = digitizer.format_data(waves=False)
         self.waves = digitizer.format_data(waves=True)
 
-    def run(self):
+    def run(self, utility_belt):
         for measurement in self.measurement_list:
             if isinstance(measurement, Measurement):
-                p_result = measurement.process_block()
+                p_result = measurement.process_block(utility_belt)
             else:
                 raise TypeError("Unknown Measurment type!")
 
-    def add(self, fun_name, settings={}, post_settings={}):
+    def add(self, fun_name, settings=None, post_settings=None, retrieve_settings=None):
         if fun_name in self.settings:
             self.settings[fun_name] = {**self.settings[fun_name], **settings}
         else:
@@ -42,59 +42,60 @@ class MeasurementArray(ABC):
 
         if fun_name in dir(sith):
             self.measurement_list.append(
-                Measurement(getattr(sith, fun_name), self.settings[fun_name], post_settings))
+                Measurement(getattr(sith, fun_name), self.settings[fun_name], post_settings, retrieve_settings))
         elif fun_name in dir(jedi):
             self.measurement_list.append(
-                Measurement(getattr(jedi, fun_name), self.settings[fun_name], post_settings))
+                Measurement(getattr(jedi, fun_name), self.settings[fun_name], post_settings, retrieve_settings))
         else:
             raise TypeError("ERROR! unknown measurement function: ", fun_name)
 
 
 class Measurement:
 
-    def __init__(self, function, fun_args=None, post_args=None):
+    def __init__(self, function, fun_args=None, post_args=None, retrieve_args=None):
         self.function = function
         self.fun_args = fun_args
-        self.post_args = post_args
+        self.post_name = None
+        self.retrieve = None
         if post_args is not None:
             self.post_name = post_args["name"]
-            self.utility_belt = post_args["belt"]
+        if retrieve_args is not None:
+            self.retrieve = retrieve_args
 
-    def process_block(self):
+    def process_block(self, utility_belt=None):
+        if self.retrieve is not None:
+            self.fun_args[self.retrieve["variable"]] = utility_belt[self.retrieve["name"]]
         result = self.function(**self.fun_args)
-        if self.post_args is not None:
-            add_to_belt(self.post_name, self.utility_belt, result, "data")
+        if self.post_name is not None:
+            utility_belt.add_data(self.post_name, result)
         return result
-
-    def add_to_belt(self, name, utility_belt, data, data_type="data"):
-        if type == "data":
-            utility_belt.add_data(data_name=name, data_object=data)
-        elif type == "gadget":
-            utility_belt.add_gadget(gadget_name=name, gadget_object=data)
-        else:
-            raise TypeError(type+" not recognized!")
 
 
 class UtilityBelt:
 
-    def __init__(self, gadgets=None, data=None):
-        if self.gadgets is None:
-            self.gadgets = {}
-        if self.data is None:
+    def __init__(self, data=None):
+        if data is None:
             self.data = {}
-        self.gadgets = gadgets
-        self.data = data
+        else:
+            self.data = data
 
-    def add_gadget(self, gadget_name, gadget_object):
-        self.gadgets[gadget_name] = gadget_object
+    def __getitem__(self, name):
+        return self.data[name]
+
+    def set_belt(self, names):
+        for name in names:
+            self.data[name] = None
 
     def add_data(self, data_name, data_object):
         self.data[data_name] = data_object
 
-    def remove_gadget(self, gadget_name):
-        del self.gadgets[gadget_name]
+    def retrieve_data(self, data_name):
+        return self.data[data_name]
 
-    def remove_data(self, data_name):
-        del self.data[data_name]
+    def remove_data(self, data_name=None):
+        if data_name is None:
+            self.data = {}
+        else:
+            del self.data[data_name]
 
 
