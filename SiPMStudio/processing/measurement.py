@@ -65,7 +65,9 @@ def _find_measurement_index(measurement_list, fun_name):
     print("No function found matching "+ fun_name)
 
 
-
+def global_add(measurement_arrays, fun_name, settings=None, post_settings=None, retrieve_settings=None):
+    for array in measurement_arrays:
+        array.add(fun_name, settings, post_settings, retrieve_settings)
 
 
 class Measurement:
