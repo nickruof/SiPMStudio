@@ -61,15 +61,15 @@ def collect_files(path, data_dir="UNFILTERED"):
     return runs, waves
 
 
-def time_interval(params_data):
+def time_interval(params_data, waves_data=None):
     interval = params_data["TIMETAG"].iloc[-1] - params_data["TIMETAG"].iloc[0]
     interval = interval * 1.0e-12
     return interval
 
 
-def spectrum_peaks(params_data, min_dist=0.0, min_height=0.0, display=False):
-    bins = np.linspace(start=0, stop=max(params_data), num=int(max(params_data)))
-    bin_vals, bin_edges = np.histogram(params_data, bins=bins, density=True)
+def spectrum_peaks(params_data, waves_data=None, min_dist=0.0, min_height=0.0, display=False):
+    bins = np.linspace(start=0, stop=max(params_data["E_SHORT"]), num=int(max(params_data["E_SHORT"])))
+    bin_vals, bin_edges = np.histogram(params_data["E_SHORT"], bins=bins, density=True)
     peak_locs = detect_peaks(bin_vals, mpd=min_dist, mph=min_height)
     if display:
         plt.figure()
@@ -80,7 +80,7 @@ def spectrum_peaks(params_data, min_dist=0.0, min_height=0.0, display=False):
     return peak_locs
 
 
-def fit_multi_gauss(params_data, min_dist=0.0, min_height=0.0, params=None, display=False):
+def fit_multi_gauss(params_data, waves_data=None, min_dist=0.0, min_height=0.0, params=None, display=False):
     bins = np.linspace(start=0, stop=max(params_data), num=int(max(params_data)))
     bin_vals, bin_edges = np.histogram(params_data, bins=bins, density=True)
     fit = []
@@ -113,7 +113,7 @@ def fit_multi_gauss(params_data, min_dist=0.0, min_height=0.0, params=None, disp
     return popt
 
 
-def gain(digitizer, sipm, sum_len=1, params=None, peaks=None):
+def gain(digitizer, sipm, sum_len=1, params=None, peaks=None, params_data=None, waves_data=None):
     diffs = []
     gain_average = 1
     if peaks is None and params is not None:
@@ -129,7 +129,7 @@ def gain(digitizer, sipm, sum_len=1, params=None, peaks=None):
     return gain_average, gain_magnitude
 
 
-def pulse_rate(wave_data, sipm, min_height, min_dist):
+def pulse_rate(sipm, min_height, min_dist, params_data=None, waves_data=None):
     pulse_rate = []
     for i, wave in wave_data.iterrows():
         peaks = detect_peaks(wave, mph=min_height, mpd=min_dist)
@@ -139,7 +139,7 @@ def pulse_rate(wave_data, sipm, min_height, min_dist):
     return average_pulse_rate
 
 
-def dcr_exp_fit(dts, sipm, bounds):
+def dcr_exp_fit(dts, sipm, bounds, params_data=None, waves_data=None):
     if bounds is None:
         bounds=[0, 1e5]
     dts_fit = dts[(dts > bounds[0]) & (dts < bounds[1])]
@@ -148,11 +148,11 @@ def dcr_exp_fit(dts, sipm, bounds):
     return 1/(exp_fit[1]*1e-9)
 
 
-def excess_charge_factor(sipm):
+def excess_charge_factor(sipm, params_data=None, waves_data=None):
     return np.divide(sipm.pulse_rate, sipm.dcr_fit)
 
 
-def cross_talk(params_data, sipm, params=None, peaks=None):
+def cross_talk(params_data, sipm, params=None, peaks=None, waves_data=None):
     if peaks is None and params:
         index1 = int(params[0] - sipm.gain[-1]/2)
         index2 = int(params[3] - sipm.gain[-1]/2)
@@ -171,7 +171,7 @@ def cross_talk(params_data, sipm, params=None, peaks=None):
     return prob
 
 
-def delay_times(params_data, wave_data, min_height, min_dist):
+def delay_times(params_data, waves_data, min_height, min_dist):
     all_times = []
 
     for i, wave in wave_data.iterrows():
@@ -184,7 +184,7 @@ def delay_times(params_data, wave_data, min_height, min_dist):
     return all_dts
 
 
-def heights(wave_data, min_height, min_dist):
+def heights(wave_data, min_height, min_dist, params_data=None):
     all_heights = []
 
     for i, wave in wave_data.iterrows():

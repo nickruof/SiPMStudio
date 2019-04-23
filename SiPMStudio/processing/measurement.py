@@ -30,7 +30,7 @@ class MeasurementArray(ABC):
     def run(self, utility_belt):
         for measurement in self.measurement_list:
             if isinstance(measurement, Measurement):
-                p_result = measurement.process_block(utility_belt)
+                p_result = measurement.process_block(self.calcs, self.waves, utility_belt)
             else:
                 raise TypeError("Unknown Measurment type!")
 
@@ -49,6 +49,24 @@ class MeasurementArray(ABC):
         else:
             raise TypeError("ERROR! unknown measurement function: ", fun_name)
 
+    def overwrite(self, fun_name, settings=None):
+        if fun_name is not in self.settings:
+            raise LookupError("Function to overwrite does not exist!")
+        else:
+            self.settings[fun_name] = settings
+            index = _find_measurement_index(self.measurement_list, fun_name)
+            self.measurement_list[i].fun_args=settings
+
+
+def _find_measurement_index(measurement_list, fun_name):
+    for i, measurement in enumerate(measurement_list):
+        if measurement.__name__ == fun_name:
+            return i
+    print("No function found matching "+ fun_name)
+
+
+
+
 
 class Measurement:
 
@@ -62,10 +80,10 @@ class Measurement:
         if retrieve_args is not None:
             self.retrieve = retrieve_args
 
-    def process_block(self, utility_belt=None):
+    def process_block(self, params, waves, utility_belt=None):
         if self.retrieve is not None:
             self.fun_args[self.retrieve["variable"]] = utility_belt[self.retrieve["name"]]
-        result = self.function(**self.fun_args)
+        result = self.function(params_data=params, waves_data=waves, **self.fun_args)
         if self.post_name is not None:
             utility_belt.add_data(self.post_name, result)
         return result
@@ -97,5 +115,10 @@ class UtilityBelt:
             self.data = {}
         else:
             del self.data[data_name]
+
+    def clear(self):
+        self.data={}
+
+
 
 

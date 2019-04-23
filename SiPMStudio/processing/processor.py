@@ -6,6 +6,11 @@ import SiPMStudio.processing.transforms as pt
 
 
 class Processor(ABC):
+    """
+    An object that stores a series of ProcessorBase classes to be independently run
+    on a series of calcs and waves.  The calcs and waves are references to a pandas
+    dataframe that is stored in the DataLoading base class of a digitizer object
+    """
 
     def __init__(self, settings=None):
         self.proc_list = []
