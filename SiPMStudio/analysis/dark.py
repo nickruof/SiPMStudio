@@ -139,9 +139,9 @@ def pulse_rate(sipm, min_height, min_dist, params_data=None, waves_data=None):
     return average_pulse_rate
 
 
-def dcr_exp_fit(dts, sipm, bounds, params_data=None, waves_data=None):
+def dcr_exp_fit(sipm, bounds=None, dts=None, params_data=None, waves_data=None):
     if bounds is None:
-        bounds=[0, 1e5]
+        bounds = [0, 1e5]
     dts_fit = dts[(dts > bounds[0]) & (dts < bounds[1])]
     exp_fit = expon.fit(dts_fit)
     sipm.dcr_fit.append(1/(exp_fit[1]*1e-9))
@@ -153,12 +153,13 @@ def excess_charge_factor(sipm, params_data=None, waves_data=None):
 
 
 def cross_talk(params_data, sipm, params=None, peaks=None, waves_data=None):
-    if peaks is None and params:
+    if peaks is None and params is not None:
         index1 = int(params[0] - sipm.gain[-1]/2)
         index2 = int(params[3] - sipm.gain[-1]/2)
-    elif params is None and peaks:
+    elif params is None and peaks is not None:
         index1 = int(peaks[0] - sipm.gain[-1]/2)
         index2 = int(peaks[1] - sipm.gain[-1]/2)
+        print(index1, index2)
     else:
         print("No params or peaks specified!")
         return None

@@ -12,6 +12,7 @@ from SiPMStudio.core import digitizers
 from SiPMStudio.processing import processor
 from SiPMStudio.processing import process_data
 from SiPMStudio.processing import measurement
+from SiPMStudio.processing import experiment
 
 file1 = "t1_0_waves_31.csv"
 file2 = "t1_0_waves_32.csv"
@@ -29,14 +30,17 @@ apparatus = measurement.MeasurementArray()
 belt = measurement.UtilityBelt()
 belt.set_belt(names=["peak_locations"])
 apparatus.set_array(digitizer=Digitizer1)
-fit_settings = {"min_dist": 80, "min_height": 1.0e-5, "display": True}
+fit_settings = {"min_dist": 80, "min_height": 1.0e-5, "display": False}
 fit_post = {"name": "peak_locations"}
 gain_settings = {"digitizer": Digitizer1, "sipm": ketek_32}
 gain_retrieve = {"variable": "peaks", "name": "peak_locations"}
 apparatus.add(fun_name="spectrum_peaks", settings=fit_settings, post_settings=fit_post)
 apparatus.add(fun_name="gain", settings=gain_settings, retrieve_settings=gain_retrieve)
-apparatus.run(utility_belt=belt)
-print(ketek_32.gain)
+apparatus.add(fun_name="cross_talk", settings={"sipm": ketek_32}, retrieve_settings=gain_retrieve)
+apparatus.add(fun_name="dcr_exp_fit", settings={})
+experiment.Experiment(files=[file1, file2], measurement_arrays=[apparatus, apparatus], utility_belt=belt, digitizer=Digitizer1)
+
+print(ketek_32.cross_talk)
 
 
 

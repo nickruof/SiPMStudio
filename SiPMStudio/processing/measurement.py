@@ -50,7 +50,7 @@ class MeasurementArray(ABC):
             raise TypeError("ERROR! unknown measurement function: ", fun_name)
 
     def overwrite(self, fun_name, settings=None):
-        if fun_name is not in self.settings:
+        if fun_name not in self.settings:
             raise LookupError("Function to overwrite does not exist!")
         else:
             self.settings[fun_name] = settings
