@@ -69,14 +69,17 @@ def time_interval(params_data, waves_data=None):
 
 def spectrum_peaks(params_data, waves_data=None, min_dist=0.0, min_height=0.0, display=False):
     bins = np.linspace(start=0, stop=max(params_data["E_SHORT"]), num=int(max(params_data["E_SHORT"])))
-    bin_vals, bin_edges = np.histogram(params_data["E_SHORT"], bins=bins, density=True)
-    peak_locs = detect_peaks(bin_vals, mpd=min_dist, mph=min_height)
     if display:
         plt.figure()
-        plt.bar(bin_edges[:-1], bin_vals, edgecolor="none")
+        [bin_vals, bins_edges, _patches] = plt.hist(params_data["E_SHORT"], bins=bins, density=True, edgecolor="none")
+        peak_locs = detect_peaks(bin_vals, mpd=min_dist, mph=min_height)
         plt.plot(peak_locs, bin_vals[peak_locs], ".r")
         plt.yscale("log")
         plt.show()
+    else:
+        [bin_vals, bins_edges, _patches] = plt.hist(params_data["E_SHORT"], bins=bins, density=True, edgecolor="none")
+        peak_locs = detect_peaks(bin_vals, mpd=min_dist, mph=min_height)
+
     return peak_locs
 
 
@@ -89,7 +92,7 @@ def fit_multi_gauss(params_data, waves_data=None, min_dist=0.0, min_height=0.0, 
         peaks = detect_peaks(bin_vals, mpd=min_dist, mph=min_height)
         if display:
             plt.figure()
-            plt.bar(bin_edges[:-1], bin_vals, edgecolor="none")
+            plt.bar(bin_edges[:-1], bin_vals, width=1000, edgecolor="none")
             plt.plot(peaks, bin_vals[peaks],".r")
             plt.yscale("log")
             plt.show()
