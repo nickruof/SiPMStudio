@@ -68,7 +68,9 @@ def time_interval(params_data, waves_data=None):
 
 
 def spectrum_peaks(params_data, waves_data=None, min_dist=0.0, min_height=0.0, display=False):
-    bins = np.linspace(start=0, stop=max(params_data["E_SHORT"]), num=int(max(params_data["E_SHORT"])))
+    # bins = np.linspace(start=0, stop=max(params_data["E_SHORT"]), num=int(max(params_data["E_SHORT"])))
+    bins = list(range(int(max(params_data["E_SHORT"]))))
+    peak_locs = []
     if display:
         plt.figure()
         [bin_vals, bins_edges, _patches] = plt.hist(params_data["E_SHORT"], bins=bins, density=True, edgecolor="none")
@@ -97,7 +99,7 @@ def fit_multi_gauss(params_data, waves_data=None, min_dist=0.0, min_height=0.0, 
             plt.yscale("log")
             plt.show()
         amplitudes = bin_vals[peaks]
-        sigmas = [17]*len(peaks) #method needed to avoid hard coded sigma guess
+        sigmas = [17]*len(peaks)  # method needed to avoid hard coded sigma guess
         guess = []
         for i, peak in enumerate(peaks):
             guess.append(peak)
@@ -162,7 +164,6 @@ def cross_talk(params_data, sipm, params=None, peaks=None, waves_data=None):
     elif params is None and peaks is not None:
         index1 = int(peaks[0] - sipm.gain[-1]/2)
         index2 = int(peaks[1] - sipm.gain[-1]/2)
-        print(index1, index2)
     else:
         print("No params or peaks specified!")
         return None
@@ -178,7 +179,7 @@ def cross_talk(params_data, sipm, params=None, peaks=None, waves_data=None):
 def delay_times(params_data, waves_data, min_height, min_dist):
     all_times = []
 
-    for i, wave in wave_data.iterrows():
+    for i, wave in waves_data.iterrows():
         peaks = detect_peaks(wave, mph=min_height, mpd=min_dist)
         times = np.add(params_data.iloc[i, 0]*10**-3, 2*peaks)
         all_times = np.append(all_times, [times])

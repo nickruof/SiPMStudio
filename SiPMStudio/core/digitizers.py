@@ -75,7 +75,7 @@ class CAENDT5730(Digitizer):
         self.id = settings["id"]
         self.v_range = settings["v_range"]
         self.e_cal = settings["e_cal"]
-        self.int_window = ["int_window"]
+        self.int_window = settings["int_window"]
 
     def parse_xml(self, xmlfile):
         pass

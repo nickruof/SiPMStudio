@@ -58,6 +58,20 @@ def zoom(event, axis, base_scale=2.0):
     plt.draw()
 
 
+def key_event(event, fig, time, waveforms):
+    global curr_pos
+
+    if e.key == "right":
+        curr_pos = curr_pos + 1
+    elif e.key == "left":
+        curr_pos = curr_pos - 1
+    else:
+        return
+    curr_pos = curr_pos % len(plots)
+
+    ax.plot(time, waveforms.iloc[curr_pos, :])
+    fig.canvas.draw()
+
 def pause():
     input("Press a key to continue!")
 

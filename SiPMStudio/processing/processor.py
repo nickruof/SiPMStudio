@@ -1,5 +1,6 @@
 from abc import ABC
 import sys
+import pandas as pd
 
 import SiPMStudio.processing.calculators as pc
 import SiPMStudio.processing.transforms as pt
@@ -32,12 +33,12 @@ class Processor(ABC):
     def process(self):
         for processor in self.proc_list:
             if isinstance(processor, Calculator):
-                p_result = processor.process_block(self.waves, self.calcs)
+                self.calcs = processor.process_block(self.waves, self.calcs)
             elif isinstance(processor, Transformer):
-                p_result = processor.process_block(self.waves)
-                self.waves = p_result
+                self.waves = processor.process_block(self.waves)
             else:
                 pass
+        return pd.concat([self.calcs, self.waves], axis=1)
 
     def add(self, fun_name, settings):
         if settings is None:

@@ -40,7 +40,7 @@ def plot_FFT(digitizer, waveform):
     plt.show()
 
 
-def plot_waveform(waveform, find_peaks, min_dist, min_height):
+def plot_waveform(waveform, find_peaks=False, min_dist=None, min_height=None):
     time = np.linspace(0, 2*len(waveform)-1, len(waveform))
     plt.figure()
     plt.plot(time, waveform)
