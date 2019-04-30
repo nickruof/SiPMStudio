@@ -11,6 +11,7 @@ from scipy.signal import freqz
 from scipy.stats import linregress
 from scipy.stats import kde
 from scipy.stats import expon
+from functools import partial
 
 sns.set_style("whitegrid")
 
@@ -51,6 +52,40 @@ def plot_waveform(waveform, find_peaks=False, min_dist=None, min_height=None):
         peaks = detect_peaks(waveform, mph=min_height, mpd=min_dist)
         print(peaks)
         peak_heights = waveform.values[peaks]
+        peak_times = time[peaks]
+        plt.plot(peak_times, peak_heights, "r.")
+    plt.show()
+
+
+def waveform_plots(waveforms, find_peaks=False, min_dist=None, min_height=None, thresh=0):
+    time = np.linspace(0, 2*waveforms.shape[1]-1, waveforms.shape[1])
+    waveform_number = 0
+
+    def key_event(event, fig):
+        nonlocal waveform_number
+
+        if event.key == "right":
+            waveform_number = waveform_number + 1
+        elif event.key == "left":
+            waveform_number = waveform_number - 1
+        else:
+            return
+        waveform_number = waveform_number % len(waveforms)
+        plt.clf()
+        plt.plot(time, waveforms.iloc[waveform_number, :])
+        if find_peaks:
+            peaks = detect_peaks(waveforms.iloc[waveform_number, :], mph=min_height, mpd=min_dist, threshold=thresh)
+            peak_heights = waveforms.iloc[waveform_number, :].values[peaks]
+            peak_times = time[peaks]
+            plt.plot(peak_times, peak_heights, "r.")
+        fig.canvas.draw()
+
+    fig = plt.figure()
+    fig.canvas.mpl_connect("key_press_event", partial(key_event, fig=fig))
+    plt.plot(time, waveforms.iloc[0, :])
+    if find_peaks:
+        peaks = detect_peaks(waveforms.iloc[0, :], mph=min_height, mpd=min_dist, threshold=thresh)
+        peak_heights = waveforms.iloc[0, :].values[peaks]
         peak_times = time[peaks]
         plt.plot(peak_times, peak_heights, "r.")
     plt.show()

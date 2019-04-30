@@ -8,6 +8,20 @@ import SiPMStudio.plots.plots as sipm_plt
 from SiPMStudio.calculations.helpers import detect_peaks
 from SiPMStudio.analysis.dark import spectrum_peaks
 
+def key_event(event, fig, time, waveforms):
+    global curr_pos
+
+    if e.key == "right":
+        curr_pos = curr_pos + 1
+    elif e.key == "left":
+        curr_pos = curr_pos - 1
+    else:
+        return
+    curr_pos = curr_pos % len(plots)
+
+    ax.plot(time, waveforms.iloc[curr_pos, :])
+    fig.canvas.draw()
+
 sns.set_style("whitegrid")
 
 path = "/Users/nickruof/legendsw/SiPMStudio/tests/"
@@ -25,9 +39,8 @@ wave_number = 0
 while retry:
     min_distance = float(input("guess minimum distance between peaks "))
     min_height = float(input("guess minimum peak height "))
-    sipm_plt.plot_waveform(waves_data.iloc[wave_number, :], find_peaks=True, min_dist=min_distance, min_height=min_height)
+    sipm_plt.waveform_plots(waves_data, find_peaks=True, min_dist=min_distance, min_height=min_height, thresh=0)
     again = input("do it again! y/n ")
-    wave_number = int(input("input a waveform number "))
     if again == "y":
         retry = True
     elif again == "n":
