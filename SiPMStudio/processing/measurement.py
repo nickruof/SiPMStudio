@@ -70,6 +70,11 @@ def global_add(measurement_arrays, fun_name, settings=None, post_settings=None, 
         array.add(fun_name, settings, post_settings, retrieve_settings)
 
 
+def recursive_add(measurement_arrays, fun_name, settings=None, post_settings=None, retrieve_settings=None):
+    for i, array in enumerate(measurement_arrays):
+        array.add(fun_name, settings[i], post_settings, retrieve_settings)
+
+
 class Measurement:
 
     def __init__(self, function, fun_args=None, post_args=None, retrieve_args=None):

@@ -14,7 +14,7 @@ class DataLoader(ABC):
         if isinstance(df_data, pd.core.frame.DataFrame):
             self.df_data = df_data
         elif isinstance(df_data, str):
-            self.df_data = pd.read_csv(df_data, delimiter=";", header=None, chunksize=chunksize)
+            self.df_data = pd.read_csv(df_data, delimiter=";", header=None, skiprows=1, chunksize=chunksize)
         elif df_data is None:
             pass
         else:
@@ -28,6 +28,8 @@ class Keithley2450(DataLoader):
 
     def __init__(self, *args, **kwargs):
         self.model_name = "Keithley2450"
+        self.current = []
+        self.voltage = []
         super().__init__(*args, **kwargs)
 
     def load_data(self, df_data, chunksize=None):

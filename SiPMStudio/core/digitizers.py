@@ -32,7 +32,7 @@ class CAENDT5730(Digitizer):
 
         self.e_cal = None
         self.int_window = None
-        self.parameters = ["TIMETAG", "E_SHORT", "E_LONG"]
+        self.parameters = ["TIMETAG", "E_LONG", "E_SHORT"]
         super().__init__(*args, **kwargs)
 
     def format_data(self, waves=False, rows=None):

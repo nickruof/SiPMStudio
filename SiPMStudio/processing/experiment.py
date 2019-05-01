@@ -17,7 +17,6 @@ def Experiment(files,
                 utility_belt,
                 digitizer,
                 overwrite=True,
-                multiprocess=True, 
                 verbose=False):
 
     print("Running Experiment ...")
