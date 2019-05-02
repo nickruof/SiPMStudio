@@ -1,25 +1,16 @@
 import numpy as np
 import matplotlib.pyplot as plt
-import seaborn as sns
 import pandas as pd
 import os
 
 from scipy.sparse import diags
 from scipy.stats import expon
 from scipy.optimize import curve_fit
-from functools import partial
+from scipy.signal import find_peaks
 
-from SiPMStudio.core import data_loading
-from SiPMStudio.core import digitizers
-from SiPMStudio.core import devices
 from SiPMStudio.calculations.helpers import detect_peaks
 from SiPMStudio.processing.functions import multi_gauss
 from SiPMStudio.processing.functions import multi_gauss_moyal
-from SiPMStudio.interactive.plot_interact import nearest_on_click
-from SiPMStudio.interactive.plot_interact import connect
-from SiPMStudio.interactive.plot_interact import disconnect
-from SiPMStudio.interactive.plot_interact import zoom
-from SiPMStudio.interactive.plot_interact import pause
 
 
 def collect_files(path, data_dir="UNFILTERED"):
@@ -67,22 +58,22 @@ def time_interval(params_data, waves_data=None):
     return interval
 
 
-def spectrum_peaks(params_data, waves_data=None, min_dist=0.0, min_height=0.0, display=False):
+def spectrum_peaks(params_data, waves_data=None, min_dist=0.0, min_height=0.0, width=0.0, display=False):
     # bins = np.linspace(start=0, stop=max(params_data["E_SHORT"]), num=int(max(params_data["E_SHORT"])))
     bins = list(range(int(max(params_data["E_SHORT"]))))
-    peak_locs = []
+    peaks = []
     if display:
         plt.figure()
         [bin_vals, bins_edges, _patches] = plt.hist(params_data["E_SHORT"], bins=bins, density=True, edgecolor="none")
-        peak_locs = detect_peaks(bin_vals, mpd=min_dist, mph=min_height)
-        plt.plot(peak_locs, bin_vals[peak_locs], ".r")
+        peaks, _properties = find_peaks(bin_vals, height=min_height, distance=min_dist, width=width)
+        plt.plot(peaks, bin_vals[peaks], ".r")
         plt.yscale("log")
         plt.show()
     else:
         [bin_vals, bins_edges, _patches] = plt.hist(params_data["E_SHORT"], bins=bins, density=True, edgecolor="none")
-        peak_locs = detect_peaks(bin_vals, mpd=min_dist, mph=min_height)
+        peaks, _properties = find_peaks(bin_vals, height=min_height, distance=min_dist, width=width)
 
-    return peak_locs
+    return peaks
 
 
 def fit_multi_gauss(params_data, waves_data=None, min_dist=0.0, min_height=0.0, params=None, display=False):
@@ -91,7 +82,7 @@ def fit_multi_gauss(params_data, waves_data=None, min_dist=0.0, min_height=0.0, 
     fit = []
     popt = []
     if params is None:
-        peaks = detect_peaks(bin_vals, mpd=min_dist, mph=min_height)
+        peaks, _properties = find_peaks(bin_vals, height=min_height, distance=min_dist, width=width)
         if display:
             plt.figure()
             plt.bar(bin_edges[:-1], bin_vals, width=1000, edgecolor="none")
@@ -142,12 +133,12 @@ def pe_units(df_data, gain, first_peak):
     return pd.DataFrame(data=data_array, columns=df_data.columns)
 
 
-def pulse_rate(sipm, min_height, min_dist, params_data=None, waves_data=None):
-    pulse_rate = []
+def pulse_rate(sipm, min_height, min_dist, width=0, params_data=None, waves_data=None):
+    rate = []
     for i, wave in wave_data.iterrows():
-        peaks = detect_peaks(wave, mph=min_height, mpd=min_dist)
-        pulse_rate.append(len(peaks) / (len(wave)*2e-9))
-    average_pulse_rate = sum(pulse_rate) / len(pulse_rate)
+        peaks, _properties = find_peaks(x=wave, height=min_height, distance=min_dist, width=width)
+        rate.append(len(peaks) / (len(wave)*2e-9))
+    average_pulse_rate = sum(rate) / len(rate)
     sipm.pulse_rate.append(average_pulse_rate)
     return average_pulse_rate
 
@@ -184,11 +175,11 @@ def cross_talk(params_data, sipm, params=None, peaks=None, waves_data=None):
     return prob
 
 
-def delay_times(params_data, waves_data, min_height, min_dist):
+def delay_times(params_data, waves_data, min_height, min_dist, width=0):
     all_times = []
 
     for i, wave in waves_data.iterrows():
-        peaks = detect_peaks(wave, mph=min_height, mpd=min_dist)
+        peaks, _properties = find_peaks(x=wave, height=min_height, distance=min_dist, width=width)
         times = np.add(params_data.iloc[i, 0]*10**-3, 2*peaks)
         all_times = np.append(all_times, [times])
     M_diag = diags([-1, 1], [0, 1], shape=(len(all_times), len(all_times)))
@@ -208,13 +199,13 @@ def heights(wave_data, min_height, min_dist, params_data=None):
     return all_heights
 
 
-def delay_time_vs_height(params_data, wave_data, min_height, min_dist):
+def delay_time_vs_height(params_data, wave_data, min_height, min_dist, width=0):
     all_dts = []
     all_heights = []
     all_times = []
 
     for i, wave in wave_data.iterrows():
-        peaks = detect_peaks(wave, mph=min_height, mpd=min_dist)
+        peaks, _properties = find_peaks(x=wave, height=min_height, distance=min_dist, width=width)
         times = np.add(params_data.iloc[i, 0]*10**-3, 2*peaks)
         peak_heights = wave_data.iloc[i, :].values[peaks]
         all_times = np.append(all_times, [times])

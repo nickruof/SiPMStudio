@@ -4,14 +4,13 @@ import seaborn as sns
 
 from SiPMStudio.processing.functions import butter_bandpass
 from SiPMStudio.processing.functions import multi_gauss
-from SiPMStudio.calculations.helpers import detect_peaks
 
 from scipy import fftpack
 from scipy.signal import freqz
 from scipy.stats import linregress
 from scipy.stats import kde
 from scipy.stats import expon
-from scipy.interpolate import UnivariateSpline
+from scipy.signal import find_peaks
 from functools import partial
 
 sns.set_style("whitegrid")
@@ -42,15 +41,15 @@ def plot_FFT(digitizer, waveform):
     plt.show()
 
 
-def plot_waveform(waveform, find_peaks=False, min_dist=None, min_height=None):
+def plot_waveform(waveform, get_peaks=False, min_dist=None, min_height=None, width=0):
     time = np.linspace(0, 2*len(waveform)-1, len(waveform))
     plt.figure()
     plt.plot(time, waveform)
     plt.xlabel("Time (ns)")
     plt.ylabel("Voltage (V)")
 
-    if find_peaks:
-        peaks = detect_peaks(waveform, mph=min_height, mpd=min_dist)
+    if get_peaks:
+        peaks, _properties = find_peaks(x=waveform, height=min_height, distance=min_dist, width=width)
         print(peaks)
         peak_heights = waveform.values[peaks]
         peak_times = time[peaks]
@@ -58,7 +57,7 @@ def plot_waveform(waveform, find_peaks=False, min_dist=None, min_height=None):
     plt.show()
 
 
-def waveform_plots(waveforms, find_peaks=False, min_dist=None, min_height=None, thresh=0):
+def waveform_plots(waveforms, get_peaks=False, min_dist=None, min_height=None, width=0):
     time = np.linspace(0, 2*waveforms.shape[1]-1, waveforms.shape[1])
     waveform_number = 0
 
@@ -74,8 +73,10 @@ def waveform_plots(waveforms, find_peaks=False, min_dist=None, min_height=None, 
         waveform_number = waveform_number % len(waveforms)
         plt.clf()
         plt.plot(time, waveforms.iloc[waveform_number, :])
-        if find_peaks:
-            peaks = detect_peaks(waveforms.iloc[waveform_number, :], mph=min_height, mpd=min_dist, threshold=thresh)
+        if get_peaks:
+            # peaks = detect_peaks(waveforms.iloc[waveform_number, :], mph=min_height, mpd=min_dist, threshold=thresh)
+            peaks, _properties = find_peaks(waveforms.iloc[waveform_number, :],
+                                            height=min_height, distance=min_dist, width=width)
             peak_heights = waveforms.iloc[waveform_number, :].values[peaks]
             peak_times = time[peaks]
             plt.plot(peak_times, peak_heights, "r.")
@@ -84,8 +85,9 @@ def waveform_plots(waveforms, find_peaks=False, min_dist=None, min_height=None, 
     fig = plt.figure()
     fig.canvas.mpl_connect("key_press_event", partial(key_event, fig=fig))
     plt.plot(time, waveforms.iloc[0, :])
-    if find_peaks:
-        peaks = detect_peaks(waveforms.iloc[0, :], mph=min_height, mpd=min_dist, threshold=thresh)
+    if get_peaks:
+        peaks, _properties = find_peaks(waveforms.iloc[waveform_number, :],
+                                        height=min_height, distance=min_dist, width=width)
         peak_heights = waveforms.iloc[0, :].values[peaks]
         peak_times = time[peaks]
         plt.plot(peak_times, peak_heights, "r.")

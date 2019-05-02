@@ -35,15 +35,16 @@ def main():
         if peaks:
             min_distance = float(input("guess minimum distance between peaks "))
             min_height = float(input("guess minimum peak height "))
-            sipm_plt.waveform_plots(waves_data, find_peaks=peaks, min_dist=min_distance, min_height=min_height)
-            plt.show()
-            plt.figure(2)
-            dts = sith.delay_times(params_data, waves_data, min_height, min_distance)
-            sipm_plt.plot_delay_times(dts, fit=True)
+            width = float(input("guess peak widths "))
+            sipm_plt.waveform_plots(waves_data, get_peaks=peaks, min_dist=min_distance, min_height=min_height, width=width)
+            # plt.show()
+            # plt.figure(2)
+            # dts = sith.delay_times(params_data, waves_data, min_height, min_distance)
+            # sipm_plt.plot_delay_times(dts, fit=True)
             plt.show()
             again = input("do it again! y/n ")
         else:
-            sipm_plt.waveform_plots(waves_data, find_peaks=peaks)
+            sipm_plt.waveform_plots(waves_data, get_peaks=peaks)
             plt.show()
             again = input("do it again! y/n ")
         if again == "y":
