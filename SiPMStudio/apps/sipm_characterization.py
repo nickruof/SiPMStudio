@@ -12,11 +12,13 @@ import SiPMStudio.plots.plots as sipm_plt
 from SiPMStudio.processing.process_data import ProcessData
 from SiPMStudio.processing.experiment import Experiment
 
+
 def attach_path(path, files):
     new_files = []
     for file in files:
         new_files.append(path+file)
     return new_files
+
 
 file_path = "/Users/nickruof/Documents/LEGEND/SIPM/PDE/ketek_PDE/"
 output_path = file_path
@@ -48,12 +50,16 @@ proc.add(fun_name="savgol", settings={"window": 51, "order": 3})
 # ProcessData(data_files=input_files, output_dir=output_path, digitizer=digitizer, processor=processor, multiprocess=True)
 # dark_sipm_pwaves = attach_path("t1_", dark_sipm_waves)
 
+########################################
+# Spectrum Measurements without waves ###
+########################################
+
 measurements = []
 for bias in sipm.bias:
     measurements.append(measure.MeasurementArray())
 
 belt = measure.UtilityBelt()
-belt.set_belt(names=["peak_locations", "dts"])
+belt.set_belt(names=["peak_locations"])
 # posted data settings
 fit_post = {"name": "peak_locations"}
 dt_post = {"name": "dts"}
@@ -77,8 +83,37 @@ measure.global_add(measurement_arrays=measurements,
 input_files = attach_path(file_path, dark_sipm_runs)
 Experiment(files=input_files, measurement_arrays=measurements, utility_belt=belt, digitizer=digitizer)
 
+############################
+# Measurements with waves ###
+############################
+
+measurements = []
+for bias in sipm.bias:
+    measurements.append(measure.MeasurementArray())
+
+belt = measure.UtilityBelt()
+belt.set_belt(names=["dts"])
+dt_post = {"name": "dts"}
+dt_retrieve = {"variable": "dts", "name": "dts"}
+dt_settings = [
+    {"min_dist": 60, "min_height": 0.0015},
+    {"min_dist": 70, "min_height": 0.0015},
+    {"min_dist": 70, "min_height": 0.0015},
+    {"min_dist": 70, "min_height": 0.0015}
+]
+measure.recursive_add(measurement_arrays=measurements,
+                      fun_name="delay_times", settings=dt_settings, post_settings=dt_post)
+measure.global_add(measurement_arrays=measurements,
+                   fun_name="dcr_exp_fit", settings={"sipm": sipm}, retrieve_settings=dt_retrieve)
+measure.global_add(measurement_arrays=measurements,
+                   fun_name="pulse_rate", settings=dt_settings)
+
+
 plt.close()
-sipm_plt.plot_gain(sipm)
+plt.figure(1)
+sipm_plt.plot_gain(sipm, lin_fit=True)
+plt.figure(2)
 sipm_plt.plot_cross_talk(sipm)
+plt.show()
 
 

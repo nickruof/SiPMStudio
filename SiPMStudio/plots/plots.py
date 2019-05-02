@@ -11,6 +11,7 @@ from scipy.signal import freqz
 from scipy.stats import linregress
 from scipy.stats import kde
 from scipy.stats import expon
+from scipy.interpolate import UnivariateSpline
 from functools import partial
 
 sns.set_style("whitegrid")
@@ -88,7 +89,6 @@ def waveform_plots(waveforms, find_peaks=False, min_dist=None, min_height=None, 
         peak_heights = waveforms.iloc[0, :].values[peaks]
         peak_times = time[peaks]
         plt.plot(peak_times, peak_heights, "r.")
-    plt.show()
 
 
 def plot_waveforms(waveforms):
@@ -99,9 +99,8 @@ def plot_waveforms(waveforms):
 
 
 def pc_spectrum(hist_array, params=None, log=False):
-    sns.set_style("white")
-    plt.figure()
-    bins = np.linspace(start=0, stop=max(hist_array), num=int(max(hist_array)))
+    sns.set_style("ticks")
+    bins = list(range(int(max(hist_array))))
     [n, bins, patches] = plt.hist(hist_array, bins=bins, edgecolor="none")
     plt.xlabel("ADC")
     plt.ylabel("Counts")
@@ -109,60 +108,61 @@ def pc_spectrum(hist_array, params=None, log=False):
         plt.yscale("log")
     if params is not None:
         plt.plot(multi_gauss(bins, *params), "r")
-    plt.show()
+
+
+def ph_spectrum(heights, log=False):
+    sns.set_style("ticks")
+    bins = list(range(int(max(heights))))
+    [n, bins, patches] = plt.hist(heights, bins=bins, edgecolor="none")
+    plt.xlabel("Pulse Heights (V)")
+    plt.ylabel("Counts")
+    if log:
+        plt.yscale("log")
 
 
 def plot_gain(sipm, lin_fit=False):
-    plt.figure()
     plt.plot(sipm.bias, sipm.gain, '.')
     plt.xlabel("Bias Voltage (V)")
     plt.ylabel("Gain")
 
     if lin_fit:
-        (slope, intercept) = linregress(x=sipm.bias, y=sipm.gain)
+        (slope, intercept, _rvalue, _pvalue, _stderr) = linregress(x=sipm.bias, y=sipm.gain)
         x = np.linspace(sipm.bias[0], sipm.bias[-1], 100)
         y = np.multiply(slope, x)
         y = np.add(y, intercept)
         plt.plot(x, y, "r")
-        plt.legend(["Breakdown Voltage: "+str(intercept)+" V"])
-    plt.show()
+        plt.legend(["Breakdown Voltage: "+str(round(intercept, 1))+" V"])
 
 
 def plot_dcr(sipm):
-    plt.figure()
     plt.plot(sipm.bias, sipm.dark_rate)
     plt.xlabel("Bias Voltage (V)")
     plt.ylabel("Dark Count Rate")
-    plt.show()
 
 
 def plot_cross_talk(sipm):
-    plt.figure()
-    plt.plot(sipm.bias, sipm.cross_talk, ".")
+    plt.plot(sipm.bias, sipm.cross_talk, "-.")
     plt.xlabel("Bias Voltage (V)")
     plt.ylabel("Cross Talk Probability (%)")
-    plt.show()
 
 
 def plot_pde(sipm):
-    plt.figure()
-    plt.plot(sipm.bias, sipm.pde)
+    plt.plot(sipm.bias, sipm.pde, "-.")
     plt.xlabel("Bias Voltage (V)")
     plt.ylabel("Photon Detection Efficiency (%)")
-    plt.show()
 
 
 def plot_delay_times(dts, bins=500, bounds=[0, 1e5], fit=False):
-    plt.figure()
+    sns.set_style("ticks")
     [n, bins, _patches] = plt.hist(dts, bins=bins, range=bounds, density=True, edgecolor="none")
     if fit:
         loc, scale = expon.fit(dts[(dts > bounds[0]) & (dts < bounds[1])])
         plt.plot(bins[:-1], expon.pdf(bins[:-1], loc=loc, scale=scale), color="r")
+        plt.legend(["1/tau = "+str(round(1/(scale*1e-9)))+ " Hz"])
     plt.xlabel("Delay Times (ns)")
     plt.ylabel("Normalized Counts")
     plt.xscale("log")
     plt.yscale("log")
-    plt.show()
 
 
 def plot_delay_height(dts, heights, density=False):

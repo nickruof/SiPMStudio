@@ -134,6 +134,14 @@ def gain(digitizer, sipm, sum_len=1, params=None, peaks=None, params_data=None, 
     return gain_average, gain_magnitude
 
 
+def pe_units(df_data, gain, first_peak):
+    data_array = df_data.values
+    data_array = np.subtract(data_array, first_peak)
+    data_array = np.divide(data_array, gain)
+    data_array = np.add(data_array, 1)
+    return pd.DataFrame(data=data_array, columns=df_data.columns)
+
+
 def pulse_rate(sipm, min_height, min_dist, params_data=None, waves_data=None):
     pulse_rate = []
     for i, wave in wave_data.iterrows():
