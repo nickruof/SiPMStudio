@@ -73,7 +73,7 @@ class Calculator(ProcessorBase):
         super().__init__(function, fun_args)
 
     def process_block(self, waves, calcs):
-        return self.function(waves, calcs, **self.fun_args)
+        return self.function(waves_data=waves, params_data=calcs, **self.fun_args)
 
 
 class Transformer(ProcessorBase):
@@ -81,5 +81,5 @@ class Transformer(ProcessorBase):
         super().__init__(function, fun_args)
 
     def process_block(self, waves, calcs=None):
-        return self.function(waves, **self.fun_args)
+        return self.function(waves_data=waves, **self.fun_args)
 

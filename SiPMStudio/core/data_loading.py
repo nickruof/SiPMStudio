@@ -14,7 +14,13 @@ class DataLoader(ABC):
         if isinstance(df_data, pd.core.frame.DataFrame):
             self.df_data = df_data
         elif isinstance(df_data, str):
-            self.df_data = pd.read_csv(df_data, delimiter=";", header=None, skiprows=1, chunksize=chunksize)
+            if df_data.endswith(".csv"):
+                self.df_data = pd.read_csv(df_data, delimiter=";", header=None, skiprows=1, chunksize=chunksize)
+            elif df_data.endswith(".h5"):
+                self.df_data = pd.read_hdf(df_data, key="dataset", chunksize=chunksize)
+            else:
+                raise IOError("File Type Not Found!")
+
         elif df_data is None:
             pass
         else:

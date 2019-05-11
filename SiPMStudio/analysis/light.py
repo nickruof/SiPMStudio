@@ -2,7 +2,6 @@ import numpy as np
 
 from scipy.sparse import diags
 from SiPMStudio.core import devices
-from SiPMStudio.calculations.helpers import detect_peaks
 from SiPMStudio.analysis.dark import excess_charge_factor
 
 
@@ -10,53 +9,6 @@ def time_interval(params_data):
     interval = params_data["TIMETAG"].iloc[-1] - params_data["TIMETAG"].iloc[0]
     interval = interval * 1.0e-12
     return interval
-
-
-def delay_times(params_data, wave_data, min_height, min_dist):
-    all_dts = []
-    all_times = []
-
-    for i, wave in wave_data.iterrows():
-        peaks = detect_peaks(wave, mph=min_height, mpd=min_dist)
-        times = np.add(params_data.iloc[i, 0]*10**-3, 2*peaks)
-        all_times = np.append(all_times, [times])
-    M_diag = diags([-1, 1], [0, 1], shape=(len(all_times), len(all_times)))
-    all_dts = M_diag @ all_times
-    all_dts = np.delete(all_dts, -1)
-    return all_dts
-
-
-def heights(params_data, wave_data, min_height, min_dist):
-    all_heights = []
-
-    for i, wave in wave_data.iterrows():
-        peaks = detect_peaks(wave, mph=min_height, mpd=min_dist)
-        heights = wave_data[i].values[peaks]
-        all_heights = np.append(all_heights, [heights])
-    all_heights = np.delete(all_heights, -1)
-    return all_heights
-
-
-def delay_time_vs_height(params_data, wave_data, min_height, min_dist):
-    all_dts = []
-    all_heights = []
-    all_times = []
-
-    for i, wave in wave_data.iterrows():
-        peaks = detect_peaks(wave, mph=min_height, mpd=min_dist)
-        times = np.add(params_data.iloc[i, 0]*10**-3, 2*peaks)
-        heights = wave_data.iloc[i, :].values[peaks]
-        all_times = np.append(all_times, [times])
-        all_heights = np.append(all_heights, [heights])
-    if len(all_times) == 0 or len(all_heights) == 0:
-        print("No peaks found!")
-        return all_dts, all_heights
-    else:
-        M_diag = diags([-1, 1], [0, 1], shape=(len(all_times), len(all_times)))
-        all_dts = M_diag @ all_times
-        all_dts = np.delete(all_dts, -1)
-        all_heights = np.delete(all_heights, -1)
-        return all_dts, all_heights
 
 
 def average_currents(dataloader, device, bias, files):
@@ -108,7 +60,5 @@ def continuous_pde(dataloader, sipm, diode, led, bias, dark_files, light_files):
     pde = np.divide(pde, incident_photons)
     pde = np.divide(pde, sipm.gain_magnitude)
     pde = np.divide(pde, q)
-    print(incident_photons)
-    print(light_sipm_currents)
     sipm.pde = pde
     return pde

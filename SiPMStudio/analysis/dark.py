@@ -8,7 +8,6 @@ from scipy.stats import expon
 from scipy.optimize import curve_fit
 from scipy.signal import find_peaks
 
-from SiPMStudio.calculations.helpers import detect_peaks
 from SiPMStudio.processing.functions import multi_gauss
 from SiPMStudio.processing.functions import multi_gauss_moyal
 
@@ -58,7 +57,7 @@ def time_interval(params_data, waves_data=None):
     return interval
 
 
-def spectrum_peaks(params_data, waves_data=None, min_dist=0.0, min_height=0.0, width=0.0, display=False):
+def spectrum_peaks(params_data, waves_data=None, min_dist=0.0, min_height=0.0, width=4.0, display=False):
     # bins = np.linspace(start=0, stop=max(params_data["E_SHORT"]), num=int(max(params_data["E_SHORT"])))
     bins = list(range(int(max(params_data["E_SHORT"]))))
     peaks = []
@@ -135,7 +134,7 @@ def pe_units(df_data, gain, first_peak):
 
 def pulse_rate(sipm, min_height, min_dist, width=0, params_data=None, waves_data=None):
     rate = []
-    for i, wave in wave_data.iterrows():
+    for i, wave in waves_data.iterrows():
         peaks, _properties = find_peaks(x=wave, height=min_height, distance=min_dist, width=width)
         rate.append(len(peaks) / (len(wave)*2e-9))
     average_pulse_rate = sum(rate) / len(rate)
@@ -192,7 +191,7 @@ def heights(wave_data, min_height, min_dist, params_data=None):
     all_heights = []
 
     for i, wave in wave_data.iterrows():
-        peaks = detect_peaks(wave, mph=min_height, mpd=min_dist)
+        peaks, _properties = find_peaks(x=wave, height=min_height, distance=min_dist, width=width)
         peak_heights = wave_data[i].values[peaks]
         all_heights = np.append(all_heights, [peak_heights])
     all_heights = np.delete(all_heights, -1)

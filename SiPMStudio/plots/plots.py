@@ -100,12 +100,15 @@ def plot_waveforms(waveforms):
     ax.set_xlim([0, 1000])
 
 
-def pc_spectrum(hist_array, params=None, log=False):
+def pc_spectrum(hist_array, params=None, log=False, density=True):
     sns.set_style("ticks")
     bins = list(range(int(max(hist_array))))
-    [n, bins, patches] = plt.hist(hist_array, bins=bins, edgecolor="none")
+    [n, bins, patches] = plt.hist(hist_array, bins=bins, edgecolor="none", density=density)
     plt.xlabel("ADC")
-    plt.ylabel("Counts")
+    if density:
+        plt.ylabel("Counts")
+    else:
+        plt.ylabel("Norm Counts")
     if log:
         plt.yscale("log")
     if params is not None:
@@ -123,7 +126,7 @@ def ph_spectrum(heights, log=False):
 
 
 def plot_gain(sipm, lin_fit=False):
-    plt.plot(sipm.bias, sipm.gain, '.')
+    plt.plot(sipm.bias, sipm.gain_magnitude, '.')
     plt.xlabel("Bias Voltage (V)")
     plt.ylabel("Gain")
 
@@ -143,13 +146,13 @@ def plot_dcr(sipm):
 
 
 def plot_cross_talk(sipm):
-    plt.plot(sipm.bias, sipm.cross_talk, "-.")
+    plt.plot(sipm.bias, sipm.cross_talk, ".")
     plt.xlabel("Bias Voltage (V)")
     plt.ylabel("Cross Talk Probability (%)")
 
 
 def plot_pde(sipm):
-    plt.plot(sipm.bias, sipm.pde, "-.")
+    plt.plot(sipm.bias, sipm.pde, ".")
     plt.xlabel("Bias Voltage (V)")
     plt.ylabel("Photon Detection Efficiency (%)")
 

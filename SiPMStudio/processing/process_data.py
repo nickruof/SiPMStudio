@@ -13,7 +13,8 @@ from SiPMStudio.core import devices
 from functools import partial
 from pathos.threading import ThreadPool
 
-def ProcessData(data_files,
+
+def process_data(data_files,
                 processor, 
                 digitizer, 
                 output_dir=None, 
@@ -84,7 +85,8 @@ def _write_output(data_file, output_frame, output_dir):
     print("Writing Output file ...")
     indices = [i for i, item in enumerate(data_file) if item == "/"]
     file_name = data_file[indices[-1]+1:]
-    output_frame.to_csv(path_or_buf=output_dir+"t1_"+file_name, sep=";", header=False, index=False)
+    output_frame.columns = output_frame.columns.astype(str)
+    output_frame.to_hdf(path_or_buf=output_dir+"t1_"+file_name[:-4]+".h5", key="dataset", mode="w", table=True)
 
 
 def _output_time(delta_seconds):

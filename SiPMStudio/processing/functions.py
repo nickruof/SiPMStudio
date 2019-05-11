@@ -1,7 +1,6 @@
 import numpy as np
 
-from SiPMStudio.calculations.helpers import detect_peaks
-
+from scipy.signal import butter
 
 def gaussian(x, mu, sigma, A):
     return A * np.exp(-(x-mu)**2/(2*sigma**2))
@@ -30,5 +29,5 @@ def butter_bandpass(digitizer, lowcut, highcut, order=5):
     nyq = 0.5 * digitizer.sample_rate
     low = lowcut / nyq
     high = highcut / nyq
-    (b, a) = butter(order, [low, high], btype="bandpass")
+    (b, a) = butter(N=order, Wn=[low, high], btype="bandpass")
     return b, a

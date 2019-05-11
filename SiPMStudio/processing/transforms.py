@@ -9,15 +9,15 @@ from statsmodels.robust import mad
 from SiPMStudio.processing.functions import butter_bandpass
 
 
-def adc_to_volts(waveforms, digitizer):
+def adc_to_volts(waves_data, digitizer):
     V_pp = digitizer.v_range
     n_bits = digitizer.adc_bitcount
-    processed_waveforms = np.multiply((V_pp/2**n_bits), waveforms)
+    processed_waveforms = np.multiply((V_pp/2**n_bits), waves_data)
     return processed_waveforms
 
 
-def baseline_subtract(waveforms):
-    processed_waveforms = waveforms.sub(waveforms.mean(axis=1), axis=0)
+def baseline_subtract(waves_data):
+    processed_waveforms = waves_data.sub(waves_data.mean(axis=1), axis=0)
     return processed_waveforms
 
 
@@ -46,13 +46,13 @@ def wavelet_denoise(waveforms, wavelet="db1", levels=3, mode="soft"):
     return processed_waveforms
 
 
-def moving_average(waveforms, box_size=20):
+def moving_average(waves_data, box_size=20):
     smooth_waves = []
     box = np.ones(box_size) / box_size
-    for wave in waveforms.values:
+    for wave in waves_data.values:
         smooth_wave = np.convolve(wave, box, mode="same")
         smooth_waves.append(smooth_wave)
-    processed_waveforms = pd.DataFrame(data=smooth_waves, index=waveforms.index, columns=waveforms.columns)
+    processed_waveforms = pd.DataFrame(data=smooth_waves, index=waves_data.index, columns=waves_data.columns)
     return processed_waveforms
 
 
