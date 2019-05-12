@@ -63,7 +63,7 @@ for bias in sipm.bias:
     measurements.append(measure.MeasurementArray())
 
 belt = measure.UtilityBelt()
-belt.set_belt(names=["peak_locations"])
+belt.set_belt(names=["peak_locations", "dts"])
 # posted data settings
 fit_post = {"name": "peak_locations"}
 dt_post = {"name": "dts"}

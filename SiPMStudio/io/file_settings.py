@@ -33,6 +33,7 @@ def update_json(path, file_name, section, key, value):
         data = json.load(file)
         loc = _find_index(file_name, data["files"])
         data[section][loc][key] = value
+        json.dump(data, settings, indent=4)
 
 
 
