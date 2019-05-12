@@ -1,5 +1,4 @@
 from abc import ABC
-import sys
 import pandas as pd
 
 import SiPMStudio.processing.calculators as pc
@@ -55,8 +54,7 @@ class Processor(ABC):
             self.proc_list.append(
                 Transformer(getattr(pt, fun_name), self.settings[fun_name]))
         else:
-            print("ERROR! unknown function: ", fun_name)
-            sys.exit()
+            raise TypeError("ERROR! unknown function: ", fun_name)
 
 
 class ProcessorBase(ABC):

@@ -27,9 +27,12 @@ def create_json(path):
         json.dump(data, settings, indent=4)
 
 
-def update_json(path, file_name, key, value):
+def update_json(path, file_name, section, key, value):
     settings_file = os.path.join(path, "settings.json")
     with open(settings_file, "w") as file:
         data = json.load(file)
         loc = _find_index(file_name, data["files"])
-        data["files"][loc][key] = value
+        data[section][loc][key] = value
+
+
+
