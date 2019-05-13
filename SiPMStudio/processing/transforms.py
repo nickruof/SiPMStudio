@@ -10,15 +10,19 @@ from SiPMStudio.processing.functions import butter_bandpass
 
 
 def adc_to_volts(waves_data, digitizer):
-    V_pp = digitizer.v_range
+    v_pp = digitizer.v_range
     n_bits = digitizer.adc_bitcount
-    processed_waveforms = np.multiply((V_pp/2**n_bits), waves_data)
+    processed_waveforms = np.multiply((v_pp/2**n_bits), waves_data)
     return processed_waveforms
 
 
 def baseline_subtract(waves_data):
     processed_waveforms = waves_data.sub(waves_data.mean(axis=1), axis=0)
     return processed_waveforms
+
+
+#def normalize_pe(waves_data, peak_settings):
+
 
 
 def savgol(waveforms, window=15, order=2):

@@ -188,12 +188,12 @@ def delay_times(params_data, waves_data, min_height, min_dist, width=0):
     return all_dts
 
 
-def heights(wave_data, min_height, min_dist, params_data=None):
+def heights(params_data, wave_data, min_height, min_dist, width=0):
     all_heights = []
 
     for i, wave in wave_data.iterrows():
         peaks, _properties = find_peaks(x=wave, height=min_height, distance=min_dist, width=width)
-        peak_heights = wave_data[i].values[peaks]
+        peak_heights = wave.values[peaks]
         all_heights = np.append(all_heights, [peak_heights])
     all_heights = np.delete(all_heights, -1)
     return all_heights
