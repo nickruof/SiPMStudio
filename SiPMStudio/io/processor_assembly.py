@@ -21,6 +21,6 @@ def output_processor(path, proc):
         settings_data = json.load(settings)
         if "processor" not in settings_data:
             settings_data["processor"] = []
-        for key, value in proc.settings.iteritems():
-            settings_data["processor"].append({"name": key, "settings": value})
+        for proc_object in proc:
+            settings_data["processor"].append({"name": proc_object.function.__name__, "settings": proc_object.fun_args})
         settings_data.dump(settings_data, settings_file, indent=4)

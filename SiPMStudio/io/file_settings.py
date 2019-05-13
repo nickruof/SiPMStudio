@@ -27,13 +27,33 @@ def create_json(path):
         json.dump(data, settings, indent=4)
 
 
-def update_json(path, file_name, section, key, value):
+def update_json(path, section, file_name,  key, value):
     settings_file = os.path.join(path, "settings.json")
     with open(settings_file, "w") as file:
         data = json.load(file)
         loc = _find_index(file_name, data["files"])
         data[section][loc][key] = value
         json.dump(data, settings, indent=4)
+
+
+def add_file(path, file_name):
+    settings_file = os.path.join(path, "settings.json"):
+    with open(settings_file, "w") as file:
+        data = json.load(file)
+        data["files"].append({"name": file_name, "peaks": None, "wave_peaks": None})
+        json.dump(data, file, indent=4)
+
+
+def file_exists(path, file_name):
+    settings_file = os.path.join(path, "settings.json")
+    with open(settings_file, "w") as file:
+        data = json.load(file)
+        for element in data["files"]:
+            if element["name"] == file_name:
+                return True
+    return False
+
+
 
 
 
