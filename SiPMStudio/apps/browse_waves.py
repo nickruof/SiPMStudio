@@ -8,6 +8,7 @@ import SiPMStudio.analysis.dark as sith
 import SiPMStudio.io.file_settings as file_settings
 from SiPMStudio.processing.transforms import moving_average
 
+
 def _exists(x, array):
     for element in array:
         if element == x:
@@ -38,7 +39,6 @@ def main():
     digitizer1.e_cal = 2.0e-15
     params_data = digitizer1.format_data(waves=False)
     waves_data = digitizer1.format_data(waves=True)
-    # new_waves_data = moving_average(waves_data, box_size=15)
 
     retry = True
     again = False
@@ -54,10 +54,10 @@ def main():
             width = float(input("guess peak widths "))
             sipm_plt.waveform_plots(waves_data, get_peaks=peaks, min_dist=min_distance, min_height=min_height, width=width)
             plt.show()
-            plt.figure(2)
-            dts = sith.delay_times(params_data, waves_data, min_height, min_distance, width)
-            sipm_plt.plot_delay_times(dts, fit=True)
-            plt.show()
+            # plt.figure(2)
+            # dts = sith.delay_times(params_data, waves_data, min_height, min_distance, width)
+            # sipm_plt.plot_delay_times(dts, fit=True)
+            # plt.show()
             again = input("do it again! y/n ")
         else:
             sipm_plt.waveform_plots(waves_data, get_peaks=peaks)
@@ -70,7 +70,7 @@ def main():
         else:
             break
 
-    if os.stat(output_dir+"/settings.json").st_size == 0:
+    if not os.path.exists(output_dir+"/settings.json"):
         file_settings.create_json(output_dir)
     if file_settings.file_exists(output_dir, file_name):
         file_settings.update_json(output_dir, "files", file_name, "wave_peaks",

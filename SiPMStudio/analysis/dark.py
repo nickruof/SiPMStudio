@@ -179,8 +179,9 @@ def delay_times(params_data, waves_data, min_height, min_dist, width=0):
 
     for i, wave in waves_data.iterrows():
         peaks, _properties = find_peaks(x=wave, height=min_height, distance=min_dist, width=width)
-        times = np.add(params_data.iloc[i, 0]*10**-3, 2*peaks)
-        all_times = np.append(all_times, [times])
+        if len(peaks) > 0:
+            times = np.add(params_data.iloc[i, 0]*10**-3, 2*peaks)
+            all_times = np.append(all_times, [times])
     M_diag = diags([-1, 1], [0, 1], shape=(len(all_times), len(all_times)))
     all_dts = M_diag @ all_times
     all_dts = np.delete(all_dts, -1)
