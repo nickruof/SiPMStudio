@@ -48,6 +48,14 @@ def add_file(path, file_name):
         json.dump(data, file, indent=4)
 
 
+def read_file(path, file_name):
+    settings_file = os.path.join(path, "settings.json")
+    with open(settings_file, "r") as file:
+        data = json.load(file)
+    loc = _find_index(file_name, data["files"])
+    return data["files"][loc]
+
+
 def file_exists(path, file_name):
     settings_file = os.path.join(path, "settings.json")
     with open(settings_file, "r") as file:

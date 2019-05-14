@@ -7,6 +7,7 @@ from scipy.signal import filtfilt
 from statsmodels.robust import mad
 
 from SiPMStudio.processing.functions import butter_bandpass
+from SiPMStudio.analysis.dark import heights
 
 
 def adc_to_volts(waves_data, digitizer):
@@ -21,17 +22,13 @@ def baseline_subtract(waves_data):
     return processed_waveforms
 
 
-#def normalize_pe(waves_data, peak_settings):
-
-
-
-def savgol(waveforms, window=15, order=2):
+def savgol(waves_data, window=15, order=2):
     filtered_data = savgol_filter(waveforms.values, window, order, axis=1)
     processed_waveforms = pd.DataFrame(data=filtered_data, index=waveforms.index, columns=waveforms.columns)
     return processed_waveforms
 
 
-def butter_bandpass_filter(waveforms, digitizer, lowcut, highcut, order=5):
+def butter_bandpass_filter(waves_data, digitizer, lowcut, highcut, order=5):
     sample_rate = digitizer.sample_rate
     (b, a) = butter_bandpass(lowcut, highcut, sample_rate, order=order)
     filtered_data = filtfilt(b, a, waveforms.values, axis=1)
@@ -39,7 +36,7 @@ def butter_bandpass_filter(waveforms, digitizer, lowcut, highcut, order=5):
     return processed_waveforms
 
 
-def wavelet_denoise(waveforms, wavelet="db1", levels=3, mode="soft"):
+def wavelet_denoise(waves_data, wavelet="db1", levels=3, mode="soft"):
     data = waveforms.values
     coeffs = pywt.wavedec(data=data, wavelet=wavelet, level=levels, axis=0)
     sigma = mad(coeffs[-levels], axis=0)
@@ -58,5 +55,16 @@ def moving_average(waves_data, box_size=20):
         smooth_waves.append(smooth_wave)
     processed_waveforms = pd.DataFrame(data=smooth_waves, index=waves_data.index, columns=waves_data.columns)
     return processed_waveforms
+
+
+def normalize_waves(waves_data, path, file_name):
+    peak_locs = read_file(path, file_name)["peak_waves"]
+    diffs = peak_locs[1:] - peak_locs[:-1]
+    average_diff = np.mean(diffs)
+    normalized = np.subtract(waves_data, peak_locs[0])
+    normalized = np.divide(normalized_E, average_diff)
+    normalized = np.add(normalized_E, 1)
+    return normalized
+
 
 

@@ -74,7 +74,6 @@ def waveform_plots(waveforms, get_peaks=False, min_dist=None, min_height=None, w
         plt.clf()
         plt.plot(time, waveforms.iloc[waveform_number, :])
         if get_peaks:
-            # peaks = detect_peaks(waveforms.iloc[waveform_number, :], mph=min_height, mpd=min_dist, threshold=thresh)
             peaks, _properties = find_peaks(waveforms.iloc[waveform_number, :],
                                             height=min_height, distance=min_dist, width=width)
             peak_heights = waveforms.iloc[waveform_number, :].values[peaks]

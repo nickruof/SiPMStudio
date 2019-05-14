@@ -188,7 +188,7 @@ def delay_times(params_data, waves_data, min_height, min_dist, width=0):
     return all_dts
 
 
-def heights(params_data, wave_data, min_height, min_dist, width=0):
+def heights(wave_data, min_height, min_dist, width=0):
     all_heights = []
 
     for i, wave in wave_data.iterrows():

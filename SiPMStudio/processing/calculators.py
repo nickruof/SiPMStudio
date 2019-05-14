@@ -1,22 +1,22 @@
 import numpy as np
-from scipy.optimize import curve_fit
+
+from SiPMStudio.io.file_settings import read_file
 
 
-def fit_multi_gauss(calcs, min_dist, min_height, display=False):
-    bins = np.linspace(start=0, stop=max(calcs),
-                       num=int(max(calcs)))
-    bin_vals, _bin_edges = np.histogram(calcs, bins=bins, density=True)
-    peaks = detect_peaks(bin_vals, mpd=min_dist, mph=min_height)
-    amplitudes = bin_vals[peaks]
-    sigmas = [17]*len(peaks) #method needed to avoid hard coded sigma guess
-    guess = []
-    for i, peak in enumerate(peaks):
-        guess.append(peak)
-        guess.append(amplitudes[i])
-        guess.append(sigmas[i])
-    popt, pcov = curve_fit(multi_gauss, xdata=bins[:-1], ydata=bin_vals, p0=guess)
-    fit = multi_gauss(bins[:-1], *popt)
-    if display:
-        plt.figure()
-        plt.plot(bins[:-1], fit, color="red")
-    return popt
+def normalize_e(path, file_name, params_data, wave_data=None):
+    peak_locs = read_file(path, file_name)["peaks"]
+    peak_locs = np.array(peak_locs)
+    diffs = peak_locs[1:] - peak_locs[:-1]
+    average_diff = np.mean(diffs)
+    normalized_E = np.subtract(params_data["E_SHORT"].values, peak_locs[0])
+    normalized_E = np.divide(normalized_E, average_diff)
+    normalized_E = np.add(normalized_E, 1)
+    return params_data.replace({"E_SHORT": normalized_E})
+
+
+
+
+
+
+
+

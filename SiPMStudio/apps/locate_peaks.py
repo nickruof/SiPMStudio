@@ -68,21 +68,6 @@ def main():
     else:
         file_settings.add_file(output_path, file_name)
         file_settings.update_json(output_path, "files", file_name, "peaks", output_peaks)
-    # with open(output_file, "w+") as file:
-    #    if os.stat(output_file).st_size != 0:
-    #        data = json.load(file)
-    #        if exists(output_file, data):
-    #            loc = find_index(file_name, data["files"])
-    #            peaks = [int(peak) for peak in peaks]
-    #            data["files"][loc]["peak_locs"] = peaks
-    #        else:
-    #            peaks = [int(peak) for peak in peaks]
-    #            data["files"].append({"name": file_name, "peak_locs": peaks, "wave_peaks": None})
-    #    else:
-    #        data["files"] = []
-    #        peaks = [int(peak) for peak in peaks]
-    #        data["files"].append({"name": file_name, "peak_locs": peaks, "wave_peaks": None})
-    #    json.dump(data, file, indent=4)
 
 
 if __name__ == "__main__":
