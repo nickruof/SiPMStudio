@@ -62,8 +62,8 @@ def normalize_waves(waves_data, path, file_name):
     diffs = peak_locs[1:] - peak_locs[:-1]
     average_diff = np.mean(diffs)
     normalized = np.subtract(waves_data, peak_locs[0])
-    normalized = np.divide(normalized_E, average_diff)
-    normalized = np.add(normalized_E, 1)
+    normalized = np.divide(normalized, average_diff)
+    normalized = np.add(normalized, 1)
     return normalized
 
 

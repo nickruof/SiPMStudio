@@ -59,17 +59,18 @@ def time_interval(params_data, waves_data=None):
 
 def spectrum_peaks(params_data, waves_data=None, min_dist=0.0, min_height=0.0, width=4.0, display=False):
     # bins = np.linspace(start=0, stop=max(params_data["E_SHORT"]), num=int(max(params_data["E_SHORT"])))
-    bins = list(range(int(max(params_data["E_SHORT"]))))
+    bins = 500  # list(range(int(max(params_data))))
     peaks = []
     if display:
         plt.figure()
-        [bin_vals, bins_edges, _patches] = plt.hist(params_data["E_SHORT"], bins=bins, density=True, edgecolor="none")
+        [bin_vals, bins_edges, _patches] = plt.hist(params_data, bins=bins, density=True, edgecolor="none")
         peaks, _properties = find_peaks(bin_vals, height=min_height, distance=min_dist, width=width)
+        print(peaks)
         plt.plot(peaks, bin_vals[peaks], ".r")
         plt.yscale("log")
         plt.show()
     else:
-        [bin_vals, bins_edges, _patches] = plt.hist(params_data["E_SHORT"], bins=bins, density=True, edgecolor="none")
+        [bin_vals, bins_edges, _patches] = plt.hist(params_data, bins=bins, density=True, edgecolor="none")
         peaks, _properties = find_peaks(bin_vals, height=min_height, distance=min_dist, width=width)
 
     return peaks
@@ -122,14 +123,6 @@ def gain(digitizer, sipm, sum_len=1, params=None, peaks=None, params_data=None, 
     gain_magnitude = gain_average * digitizer.e_cal/1.6e-19
     sipm.gain_magnitude.append(gain_magnitude)    
     return gain_average, gain_magnitude
-
-
-def pe_units(df_data, gain, first_peak):
-    data_array = df_data.values
-    data_array = np.subtract(data_array, first_peak)
-    data_array = np.divide(data_array, gain)
-    data_array = np.add(data_array, 1)
-    return pd.DataFrame(data=data_array, columns=df_data.columns)
 
 
 def pulse_rate(sipm, min_height, min_dist, width=0, params_data=None, waves_data=None):

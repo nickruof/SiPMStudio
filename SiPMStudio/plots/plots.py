@@ -117,7 +117,7 @@ def pc_spectrum(hist_array, params=None, log=False, density=True):
 def ph_spectrum(heights, log=False, density=True):
     sns.set_style("ticks")
     bins = 500
-    [n, bins, patches] = plt.hist(heights, bins=bins, density=density edgecolor="none")
+    [n, bins, patches] = plt.hist(heights, bins=bins, density=density, edgecolor="none")
     plt.xlabel("Pulse Heights (V)")
     plt.ylabel("Counts")
     if log:

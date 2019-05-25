@@ -55,7 +55,7 @@ def main():
             sipm_plt.waveform_plots(waves_data, get_peaks=peaks, min_dist=min_distance, min_height=min_height, width=width)
             plt.show()
             plt.figure(2)
-            heights = sith.heights(params_data, waves_data, min_height, min_distance, width)
+            heights = sith.heights(waves_data, min_height, min_distance, width)
             sipm_plt.ph_spectrum(heights, log=True)
             plt.show()
             again = input("do it again! y/n ")
