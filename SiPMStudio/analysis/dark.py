@@ -57,8 +57,8 @@ def time_interval(params_data, waves_data=None):
     return interval
 
 
-def spectrum_peaks(params_data, waves_data=None, min_dist=0.0, min_height=0.0, width=4.0, display=False):
-    bins = np.linspace(start=min(params_data), stop=max(params_data), num=500)
+def spectrum_peaks(params_data, waves_data=None, n_bins=500, min_dist=0.0, min_height=0.0, width=4.0, display=False):
+    bins = np.linspace(start=min(params_data), stop=max(params_data), num=n_bins)
     peaks = []
     if display:
         plt.figure()

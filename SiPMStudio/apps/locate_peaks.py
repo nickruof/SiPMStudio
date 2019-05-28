@@ -50,7 +50,7 @@ def main():
     while retry:
         min_distance = float(input("guess minimum distance between peaks "))
         min_height = float(input("guess minimum peak height "))
-        peaks = spectrum_peaks(params_data=params_data, min_dist=min_distance, min_height=min_height, display=True)
+        peaks = spectrum_peaks(params_data=params_data["E_SHORT"], min_dist=min_distance, min_height=min_height, display=True)
         again = input("do it again! y/n ")
         if again == "y":
             retry = True

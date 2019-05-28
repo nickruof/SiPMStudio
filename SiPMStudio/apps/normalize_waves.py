@@ -10,6 +10,14 @@ from SiPMStudio.analysis.dark import heights
 from SiPMStudio.plots.plots import ph_spectrum
 
 
+def exists(x, array):
+    for element in array:
+        if element == x:
+            return True
+        else:
+            return False
+
+
 def main():
 
     file_name = ""
