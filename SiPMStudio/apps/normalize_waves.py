@@ -1,6 +1,5 @@
 import os
 import sys
-import json
 import matplotlib.pyplot as plt
 
 import SiPMStudio.core.digitizers as digitizers
@@ -9,21 +8,6 @@ import SiPMStudio.io.file_settings as file_settings
 from SiPMStudio.analysis.dark import spectrum_peaks
 from SiPMStudio.analysis.dark import heights
 from SiPMStudio.plots.plots import ph_spectrum
-
-
-def exists(x, array):
-    for element in array:
-        if element == x:
-            return True
-        else:
-            return False
-
-
-def find_index(name, array):
-    for i, element in enumerate(array):
-        if element["name"] == name:
-            return i
-    raise LookupError(str(name)+"not found in the array")
 
 
 def main():
