@@ -62,6 +62,16 @@ def main():
         else:
             break
 
+    output_file = os.path.join(output_path, "settings.json")
+    output_peaks = [int(peak) for peak in list(peaks)]
+    if not os.path.exists(output_file):
+        file_settings.create_json(output_path)
+    if file_settings.file_exists(output_path, file_name):
+        file_settings.update_json(output_path, "files", file_name, "height peaks", output_peaks)
+    else:
+        file_settings.add_file(output_path, file_name)
+        file_settings.update_json(output_path, "files", file_name, "height peaks", output_peaks)
+
 
 if __name__ == "__main__":
     main()
