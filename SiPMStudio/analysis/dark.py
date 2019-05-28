@@ -58,15 +58,15 @@ def time_interval(params_data, waves_data=None):
 
 
 def spectrum_peaks(params_data, waves_data=None, min_dist=0.0, min_height=0.0, width=4.0, display=False):
-    # bins = np.linspace(start=0, stop=max(params_data["E_SHORT"]), num=int(max(params_data["E_SHORT"])))
-    bins = 500  # list(range(int(max(params_data))))
+    bins = np.linspace(start=min(params_data), stop=max(params_data), num=500)
     peaks = []
     if display:
         plt.figure()
-        [bin_vals, bins_edges, _patches] = plt.hist(params_data, bins=bins, density=True, edgecolor="none")
+        [bin_vals, bin_edges, _patches] = plt.hist(params_data, bins=bins, density=True, edgecolor="none")
         peaks, _properties = find_peaks(bin_vals, height=min_height, distance=min_dist, width=width)
         print(peaks)
-        plt.plot(peaks, bin_vals[peaks], ".r")
+        bin_centers = (bin_edges[:-1]+bin_edges[1:])/2
+        plt.plot(bin_centers[peaks], bin_vals[peaks], ".r")
         plt.yscale("log")
         plt.show()
     else:
@@ -186,8 +186,9 @@ def heights(wave_data, min_height, min_dist, width=0):
 
     for i, wave in wave_data.iterrows():
         peaks, _properties = find_peaks(x=wave, height=min_height, distance=min_dist, width=width)
-        peak_heights = wave.values[peaks]
-        all_heights = np.append(all_heights, [peak_heights])
+        for height in wave.values[peaks]:
+            all_heights.append(height)
+    all_heights = np.array(all_heights)
     all_heights = np.delete(all_heights, -1)
     return all_heights
 
