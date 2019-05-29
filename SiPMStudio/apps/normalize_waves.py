@@ -32,7 +32,8 @@ def main():
     digitizer1.v_range = 2.0
     digitizer1.e_cal = 2.0e-15
     waves_data = digitizer1.format_data(waves=True)
-    settings = file_settings.read_file(output_path, file_name)["wave_peaks"]
+    file_type = "waves"
+    settings = file_settings.read_file(output_path, file_name, file_type)["wave_peaks"]
     peak_heights = heights(waves_data, settings["min_height"], settings["min_dist"], settings["width"])
 
     plt.figure()
@@ -55,14 +56,14 @@ def main():
             break
 
     output_file = os.path.join(output_path, "settings.json")
-    output_peaks = [int(peak) for peak in list(peaks)]
+    output_peaks = [float(peak) for peak in list(peaks)]
     if not os.path.exists(output_file):
         file_settings.create_json(output_path)
-    if file_settings.file_exists(output_path, file_name):
-        file_settings.update_json(output_path, "files", file_name, "height peaks", output_peaks)
+    if file_settings.file_exists(output_path, file_name, file_type):
+        file_settings.update_json(output_path, file_type, file_name, "height_peaks", output_peaks)
     else:
         file_settings.add_file(output_path, file_name)
-        file_settings.update_json(output_path, "files", file_name, "height peaks", output_peaks)
+        file_settings.update_json(output_path, file_type, file_name, "height_peaks", output_peaks)
 
 
 if __name__ == "__main__":

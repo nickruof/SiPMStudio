@@ -50,7 +50,8 @@ def main():
     while retry:
         min_distance = float(input("guess minimum distance between peaks "))
         min_height = float(input("guess minimum peak height "))
-        peaks = spectrum_peaks(params_data=params_data["E_SHORT"], min_dist=min_distance, min_height=min_height, display=True)
+        peaks = spectrum_peaks(params_data=params_data["E_SHORT"], n_bins=2000,
+                               min_dist=min_distance, min_height=min_height, display=True)
         again = input("do it again! y/n ")
         if again == "y":
             retry = True
@@ -60,14 +61,15 @@ def main():
             break
 
     output_file = os.path.join(output_path, "settings.json")
-    output_peaks = [int(peak) for peak in list(peaks)]
+    file_type = "runs"
+    output_peaks = [float(peak) for peak in list(peaks)]
     if not os.path.exists(output_file):
         file_settings.create_json(output_path)
-    if file_settings.file_exists(output_path, file_name):
-        file_settings.update_json(output_path, "files", file_name, "peaks", output_peaks)
+    if file_settings.file_exists(output_path, file_name, file_type):
+        file_settings.update_json(output_path, file_type, file_name, "peaks", output_peaks)
     else:
-        file_settings.add_file(output_path, file_name)
-        file_settings.update_json(output_path, "files", file_name, "peaks", output_peaks)
+        file_settings.add_file(output_path, file_name, file_type)
+        file_settings.update_json(output_path, file_type, file_name, "peaks", output_peaks)
 
 
 if __name__ == "__main__":

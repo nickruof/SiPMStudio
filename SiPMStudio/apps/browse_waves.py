@@ -47,16 +47,13 @@ def main():
     min_height = 0
     width = 0
 
+    heights = []
     while retry:
         if peaks:
             min_distance = float(input("guess minimum distance between peaks "))
             min_height = float(input("guess minimum peak height "))
             width = float(input("guess peak widths "))
             sipm_plt.waveform_plots(waves_data, get_peaks=peaks, min_dist=min_distance, min_height=min_height, width=width)
-            plt.show()
-            plt.figure(2)
-            heights = sith.heights(waves_data, min_height, min_distance, width)
-            sipm_plt.ph_spectrum(heights, log=True)
             plt.show()
             again = input("do it again! y/n ")
         else:
@@ -70,14 +67,20 @@ def main():
         else:
             break
 
+    heights = sith.heights(waves_data, min_height, min_distance, width)
+    plt.figure(2)
+    sipm_plt.ph_spectrum(heights, log=True)
+    plt.show()
+
+    file_type = "waves"
     if not os.path.exists(output_dir+"/settings.json"):
         file_settings.create_json(output_dir)
-    if file_settings.file_exists(output_dir, file_name):
-        file_settings.update_json(output_dir, "files", file_name, "wave_peaks",
+    if file_settings.file_exists(output_dir, file_name, file_type):
+        file_settings.update_json(output_dir, file_type, file_name, "wave_peaks",
                               {"min_dist": min_distance, "min_height": min_height, "width": width})
     else:
-        file_settings.add_file(output_dir, file_name)
-        file_settings.update_json(output_dir, "files", file_name, "wave_peaks",
+        file_settings.add_file(output_dir, file_name, file_type)
+        file_settings.update_json(output_dir, file_type, file_name, "wave_peaks",
                               {"min_dist": min_distance, "min_height": min_height, "width": width})
 
 

@@ -99,15 +99,15 @@ def plot_waveforms(waveforms):
     ax.set_xlim([0, 1000])
 
 
-def pc_spectrum(hist_array, params=None, log=False, density=True):
+def pc_spectrum(hist_array, params=None, n_bins=2000, log=False, density=True):
     sns.set_style("ticks")
-    bins = list(range(int(max(hist_array))))
+    bins = np.linspace(start=min(hist_array), stop=max(hist_array), num=n_bins)
     [n, bins, patches] = plt.hist(hist_array, bins=bins, edgecolor="none", density=density)
     plt.xlabel("ADC")
     if density:
-        plt.ylabel("Counts")
-    else:
         plt.ylabel("Norm Counts")
+    else:
+        plt.ylabel("Counts")
     if log:
         plt.yscale("log")
     if params is not None:
