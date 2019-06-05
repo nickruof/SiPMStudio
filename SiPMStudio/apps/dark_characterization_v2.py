@@ -7,12 +7,13 @@ import SiPMStudio.core.devices as device
 
 import SiPMStudio.processing.processor as processor
 import SiPMStudio.processing.measurement as measure
+from SiPMStudio.processing.process_data import process_data
+from SiPMStudio.processing.experiment import Experiment
+
+from SiPMStudio.io.file_settings import read_file
 
 import SiPMStudio.plots.plots as sipm_plt
 import SiPMStudio.analysis.light as jedi
-
-from SiPMStudio.processing.process_data import process_data
-from SiPMStudio.processing.experiment import Experiment
 
 
 def attach_path(path, files):
@@ -40,7 +41,9 @@ proc = processor.Processor()
 proc.add(fun_name="adc_to_volts", settings={"digitizer": digitizer})
 proc.add(fun_name="baseline_subtract", settings={})
 proc.add(fun_name="moving_average", settings={"box_size": 15})
+proc.add(fun_name="normalize_waves", settings={"path": file_path, "file_name": None})
 
 input_files = attach_path(file_path, dark_sipm_waves)
 process_data(data_files=input_files, output_dir=output_path, digitizer=digitizer, processor=proc, multiprocess=False)
 dark_sipm_pwaves = attach_path("t1_", dark_sipm_waves)
+

@@ -37,7 +37,6 @@ def main():
     digitizer1 = digitizers.CAENDT5730(df_data=file_name)
     digitizer1.v_range = 2.0
     digitizer1.e_cal = 2.0e-15
-    params_data = digitizer1.format_data(waves=False)
     waves_data = digitizer1.format_data(waves=True)
 
     retry = True
@@ -67,10 +66,10 @@ def main():
         else:
             break
 
-    heights = sith.heights(waves_data, min_height, min_distance, width)
-    plt.figure(2)
-    sipm_plt.ph_spectrum(heights, log=True)
-    plt.show()
+    # heights = sith.heights(waves_data, min_height, min_distance, width)
+    # plt.figure(2)
+    # sipm_plt.ph_spectrum(heights, log=True)
+    # plt.show()
 
     file_type = "waves"
     if not os.path.exists(output_dir+"/settings.json"):

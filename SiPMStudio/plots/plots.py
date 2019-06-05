@@ -114,10 +114,10 @@ def pc_spectrum(hist_array, params=None, n_bins=2000, log=False, density=True):
         plt.plot(multi_gauss(bins, *params), "r")
 
 
-def ph_spectrum(heights, log=False, density=True):
+def ph_spectrum(heights, hist_range=None, log=False, density=True):
     sns.set_style("ticks")
     bins = 500
-    [n, bins, patches] = plt.hist(heights, bins=bins, density=density, edgecolor="none")
+    [n, bins, patches] = plt.hist(heights, bins=bins, range=hist_range, density=density, edgecolor="none")
     plt.xlabel("Pulse Heights (V)")
     plt.ylabel("Counts")
     if log:

@@ -37,7 +37,7 @@ def main():
     peak_heights = heights(waves_data, settings["min_height"], settings["min_dist"], settings["width"])
 
     plt.figure()
-    ph_spectrum(heights=peak_heights, log=True)
+    ph_spectrum(heights=peak_heights, hist_range=[0, 0.02], log=True)
     plt.show()
     plt.close()
 
@@ -46,7 +46,7 @@ def main():
     while retry:
         min_distance = float(input("guess minimum distance between peaks "))
         min_height = float(input("guess minimum peak height "))
-        peaks = spectrum_peaks(params_data=peak_heights, min_dist=min_distance, min_height=min_height, display=True)
+        peaks = spectrum_peaks(params_data=peak_heights, hist_range=[0, 0.02], min_dist=min_distance, min_height=min_height, display=True)
         again = input("do it again! y/n ")
         if again == "y":
             retry = True

@@ -7,7 +7,7 @@ from scipy.signal import filtfilt
 from statsmodels.robust import mad
 
 from SiPMStudio.processing.functions import butter_bandpass
-from SiPMStudio.analysis.dark import heights
+from SiPMStudio.io.file_settings import read_file
 
 
 def adc_to_volts(waves_data, digitizer):
@@ -37,13 +37,13 @@ def butter_bandpass_filter(waves_data, digitizer, lowcut, highcut, order=5):
 
 
 def wavelet_denoise(waves_data, wavelet="db1", levels=3, mode="soft"):
-    data = waveforms.values
+    data = waves_data.values
     coeffs = pywt.wavedec(data=data, wavelet=wavelet, level=levels, axis=0)
     sigma = mad(coeffs[-levels], axis=0)
     uthresh = sigma * np.sqrt(2 * np.log(data.shape[1]))
-    coeffs[1:] = (pywt.threshold(coeffs[i], value=uthresh, mode=mode)  for i in range(1, len(coeffs)))
+    coeffs[1:] = (pywt.threshold(coeffs[i], value=uthresh, mode=mode) for i in range(1, len(coeffs)))
     filtered_data = pywt.waverec(coeffs, wavelet, axis=0)
-    processed_waveforms = pd.DataFrame(data=filtered_data, index=waveforms.index, columns=waveforms.columns)
+    processed_waveforms = pd.DataFrame(data=filtered_data, index=waves_data.index, columns=waves_data.columns)
     return processed_waveforms
 
 
@@ -57,8 +57,8 @@ def moving_average(waves_data, box_size=20):
     return processed_waveforms
 
 
-def normalize_waves(waves_data, path, file_name):
-    peak_locs = read_file(path, file_name)["peak_waves"]
+def normalize_waves(waves_data, path, file_name, settings_option="height_peaks"):
+    peak_locs = np.array(read_file(path, file_name, file_type="waves")[settings_option])
     diffs = peak_locs[1:] - peak_locs[:-1]
     average_diff = np.mean(diffs)
     normalized = np.subtract(waves_data, peak_locs[0])

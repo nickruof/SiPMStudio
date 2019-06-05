@@ -2,6 +2,7 @@ import numpy as np
 
 from scipy.signal import butter
 
+
 def gaussian(x, mu, sigma, A):
     return A * np.exp(-(x-mu)**2/(2*sigma**2))
 
@@ -31,3 +32,11 @@ def butter_bandpass(digitizer, lowcut, highcut, order=5):
     high = highcut / nyq
     (b, a) = butter(N=order, Wn=[low, high], btype="bandpass")
     return b, a
+
+
+def sipm_rise(t, a, tau, t0):
+    return a * (1 - np.exp(-(t-t0)/tau))
+
+
+def sipm_fall(t, a, tau, t0):
+    return a * np.exp(-(t-t0)/tau)

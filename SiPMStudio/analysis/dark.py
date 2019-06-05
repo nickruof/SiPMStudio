@@ -57,22 +57,22 @@ def time_interval(params_data, waves_data=None):
     return interval
 
 
-def spectrum_peaks(params_data, waves_data=None, n_bins=2000, min_dist=0.0, min_height=0.0, width=4.0, display=False):
-    bins = np.linspace(start=min(params_data), stop=max(params_data), num=n_bins)
+def spectrum_peaks(params_data, waves_data=None, n_bins=2000, hist_range=None, min_dist=0.0, min_height=0.0, width=4.0, display=False):
+    # bins = np.linspace(start=min(params_data), stop=max(params_data), num=n_bins)
     peaks = []
     bin_edges = []
     if display:
         plt.figure()
-        [bin_vals, bin_edges, _patches] = plt.hist(params_data, bins=bins, density=True, edgecolor="none")
+        [bin_vals, bin_edges, _patches] = plt.hist(params_data, bins=n_bins, range=hist_range, density=True, edgecolor="none")
         bin_width = bin_edges[1] - bin_edges[0]
         peaks, _properties = find_peaks(bin_vals, height=min_height, distance=min_dist/bin_width, width=width)
-        print(str(len(peaks)) + " found!")
+        print(str(len(peaks)) + " peaks found!")
         bin_centers = (bin_edges[:-1]+bin_edges[1:])/2
         plt.plot(bin_centers[peaks], bin_vals[peaks], ".r")
         plt.yscale("log")
         plt.show()
     else:
-        [bin_vals, bins_edges, _patches] = plt.hist(params_data, bins=bins, density=True, edgecolor="none")
+        [bin_vals, bins_edges, _patches] = plt.hist(params_data, bins=n_bins, range=hist_range, density=True, edgecolor="none")
         bin_width = bin_edges[1] - bin_edges[0]
         peaks, _properties = find_peaks(bin_vals, height=min_height, distance=min_dist/bin_width, width=width)
 

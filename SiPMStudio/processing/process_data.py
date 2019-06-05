@@ -49,7 +49,7 @@ def process_data(data_files,
             _output_time(time.time()-start)
         else:
             for idx in tqdm.tqdm(chunk_idx, total=len(chunk_idx)):
-                _process_chunk(digitizer=digitizer, processor=processor, rows=idx, out_frame=data_chunks)
+                _process_chunk(file=file, digitizer=digitizer, processor=processor, rows=idx, out_frame=data_chunks)
 
         print("Assembling Output Dataframe!")
         output = pd.concat(data_chunks, axis=0)
@@ -75,7 +75,8 @@ def _get_chunks(file, digitizer, chunksize):
     return row_list
 
 
-def _process_chunk(rows, digitizer, processor, out_frame):
+def _process_chunk(file, rows, digitizer, processor, out_frame):
+    processor.file = file
     processor.set_processor(digitizer, rows=rows)
     out_frame.append(processor.process())
 

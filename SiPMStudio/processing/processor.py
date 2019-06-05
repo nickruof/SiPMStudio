@@ -13,6 +13,7 @@ class Processor(ABC):
     """
 
     def __init__(self, settings=None):
+        self.file = ""
         self.proc_list = []
         self.digitizer = None
         self.calcs = []
@@ -25,6 +26,9 @@ class Processor(ABC):
                 self.add(key, settings[key])
 
     def set_processor(self, digitizer, rows=None):
+        for processor in self.proc_list:
+            if "file_name" in processor.fun_args.keys():
+                processor.fun_args["file_name"] = self.file
         self.digitizer = digitizer
         self.calcs = digitizer.format_data(waves=False, rows=rows)
         self.waves = digitizer.format_data(waves=True, rows=rows)

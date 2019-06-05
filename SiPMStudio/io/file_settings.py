@@ -14,7 +14,7 @@ def _find_index(name, array):
     for i, element in enumerate(array):
         if element["name"] == name:
             return i
-    raise LookupError(str(name)+"not found in the array")
+    raise LookupError(str(name)+" not found in the array")
 
 
 def create_json(path):
@@ -25,6 +25,13 @@ def create_json(path):
     with open(output_file, "w+") as settings:
         data = {"runs": [], "waves": []}
         json.dump(data, settings, indent=4)
+
+
+def output_json(path):
+    settings_file = os.path.join(path, "settings.json")
+    with open(settings_file, "r") as file:
+        settings_data = json.load(file)
+    return settings_data
 
 
 def update_json(path, section, file_name,  key, value):
@@ -71,6 +78,15 @@ def file_exists(path, file_name, file_type):
                 return True
     return False
 
+
+def update_settings(output_dir, file_name, file_type, section, setting):
+    if not os.path.exists(output_dir+"/settings.json"):
+        create_json(output_dir)
+    if file_exists(output_dir, file_name, file_type):
+        update_json(output_dir, file_type, file_name, section, setting)
+    else:
+        add_file(output_dir, file_name, file_type)
+        update_json(output_dir, file_type, file_name, section, setting)
 
 
 
