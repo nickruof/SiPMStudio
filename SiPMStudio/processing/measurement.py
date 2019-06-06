@@ -1,9 +1,5 @@
-import numpy as np
-import pandas as pd
 from abc import ABC
-import sys
 
-import SiPMStudio.core.devices as gadget
 import SiPMStudio.analysis.dark as sith
 import SiPMStudio.analysis.light as jedi
 
@@ -25,7 +21,7 @@ class MeasurementArray(ABC):
 
     def set_array(self, digitizer):
         for measurement in self.measurement_list:
-            if "file_name" in processor.fun_args.keys():
+            if "file_name" in measurement.fun_args.keys():
                 measurement.fun_args["file_name"] = self.file
         self.digitizer = digitizer
         self.calcs = digitizer.format_data(waves=False)
@@ -69,16 +65,6 @@ def _find_measurement_index(measurement_list, fun_name):
     print("No function found matching "+ fun_name)
 
 
-def global_add(measurement_arrays, fun_name, settings=None, post_settings=None, retrieve_settings=None):
-    for array in measurement_arrays:
-        array.add(fun_name, settings, post_settings, retrieve_settings)
-
-
-def recursive_add(measurement_arrays, fun_name, settings=None, post_settings=None, retrieve_settings=None):
-    for i, array in enumerate(measurement_arrays):
-        array.add(fun_name, settings[i], post_settings, retrieve_settings)
-
-
 class Measurement:
 
     def __init__(self, function, fun_args=None, post_args=None, retrieve_args=None):
@@ -98,37 +84,6 @@ class Measurement:
         if self.post_name is not None:
             utility_belt.add_data(self.post_name, result)
         return result
-
-
-class UtilityBelt:
-
-    def __init__(self, data=None):
-        if data is None:
-            self.data = {}
-        else:
-            self.data = data
-
-    def __getitem__(self, name):
-        return self.data[name]
-
-    def set_belt(self, names):
-        for name in names:
-            self.data[name] = None
-
-    def add_data(self, data_name, data_object):
-        self.data[data_name] = data_object
-
-    def retrieve_data(self, data_name):
-        return self.data[data_name]
-
-    def remove_data(self, data_name=None):
-        if data_name is None:
-            self.data = {}
-        else:
-            del self.data[data_name]
-
-    def clear(self):
-        self.data={}
 
 
 

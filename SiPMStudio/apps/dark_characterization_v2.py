@@ -47,3 +47,6 @@ input_files = attach_path(file_path, dark_sipm_waves)
 process_data(data_files=input_files, output_dir=output_path, digitizer=digitizer, processor=proc, multiprocess=False)
 dark_sipm_pwaves = attach_path("t1_", dark_sipm_waves)
 
+measurements = measure.MeasurementArray()
+
+

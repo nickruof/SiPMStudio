@@ -1,6 +1,5 @@
 import numpy as np
 import matplotlib.pyplot as plt
-import pandas as pd
 import os
 
 from scipy.sparse import diags
@@ -59,7 +58,6 @@ def time_interval(params_data, waves_data=None):
 
 
 def spectrum_peaks(params_data, waves_data=None, n_bins=2000, hist_range=None, min_dist=0.0, min_height=0.0, width=4.0, display=False):
-    # bins = np.linspace(start=min(params_data), stop=max(params_data), num=n_bins)
     peaks = []
     bin_edges = []
     if display:
@@ -138,6 +136,7 @@ def dark_count_rate(path, file_name, sipm, settings_option="wave_peaks", bounds=
         if len(peaks) > 0:
             times = np.add(params_data.iloc[i, 0]*10**-3, 2*peaks)
             all_times = np.append(all_times, [times])
+
     # pulse_rate
     average_pulse_rate = sum(rate) / len(rate)
     sipm.pulse_rate.append(average_pulse_rate)
