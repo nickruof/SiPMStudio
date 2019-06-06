@@ -40,6 +40,8 @@ class photodiode:
         self.bias = None
         self.current = []
         self.responsivity = pd.DataFrame()
+        self.cal_slope = 0
+        self.cal_intercept = 0
 
     def load_response(self, file_path):
         response_data = pd.read_csv(file_path, delimiter=", ", header=None, engine="python")

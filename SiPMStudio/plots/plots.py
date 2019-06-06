@@ -35,9 +35,10 @@ def plot_FFT(digitizer, waveform):
     fft_norm = np.linalg.norm(y_fft)
     y_fft_norm = [element/fft_norm for element in y_fft]
     plt.figure()
-    plt.plot(x_fft, y_fft_norm)
-    plt.xlabel("Frequency (Hz)")
+    plt.plot(x_fft/1.0e6, y_fft_norm)
+    plt.xlabel("Frequency (MHz)")
     plt.ylabel("Power (%)")
+    plt.yscale("log")
     plt.show()
 
 

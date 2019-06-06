@@ -11,6 +11,7 @@ import SiPMStudio.analysis.light as jedi
 class MeasurementArray(ABC):
 
     def __init__(self, settings=None):
+        self.file = ""
         self.measurement_list = []
         self.settings = {}
         self.digitizer = None
@@ -23,6 +24,9 @@ class MeasurementArray(ABC):
                 self.add(key, settings[key])
 
     def set_array(self, digitizer):
+        for measurement in self.measurement_list:
+            if "file_name" in processor.fun_args.keys():
+                measurement.fun_args["file_name"] = self.file
         self.digitizer = digitizer
         self.calcs = digitizer.format_data(waves=False)
         self.waves = digitizer.format_data(waves=True)

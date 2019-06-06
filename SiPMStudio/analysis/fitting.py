@@ -14,16 +14,17 @@ def super_pulse(waves_data):
 
 
 def fit_super_pulse(time_series, wave, display=False):
-    peak_location = find_peaks(wave, distance=1000, width=4)
+    peaks = find_peaks(wave, distance=1000, width=4)
+    peak_location = peaks[0][0]
     rise_region = wave.iloc[0:peak_location]
     fall_region = wave.iloc[peak_location:]
-    rise_guess = [1, 40, 10]
-    fall_guess = [1, 100, 10]
+    rise_guess = [1, 1, 1, 1]
+    fall_guess = [1, 1, 1, 1]
     coeffs_1, cov_1 = curve_fit(sipm_rise, time_series[0:peak_location], rise_region)
     coeffs_2, cov_2 = curve_fit(sipm_fall, time_series[peak_location:], fall_region)
     if display:
-        t_rise = np.linspace(0, time_series[0:peak_location], 1000)
-        t_fall = np.linspace(0, time_series[peak_location:], 1000)
+        t_rise = np.linspace(0, time_series[peak_location], 1000)
+        t_fall = np.linspace(time_series[peak_location], time_series[-1], 1000)
         sns.set_style("whitegrid")
         plt.figure()
         plt.plot(time_series, wave)
@@ -32,6 +33,7 @@ def fit_super_pulse(time_series, wave, display=False):
         plt.xlabel("Time (ns)")
         plt.ylabel("Amplitude")
         plt.legend(["Super-Pulse", "fit"])
+    return coeffs_1, coeffs_2
 
 
 

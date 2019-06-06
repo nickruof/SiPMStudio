@@ -34,9 +34,9 @@ def butter_bandpass(digitizer, lowcut, highcut, order=5):
     return b, a
 
 
-def sipm_rise(t, a, tau, t0):
-    return a * (1 - np.exp(-(t-t0)/tau))
+def sipm_rise(t, a, tau, t0, d):
+    return a * (1 - np.exp(-(t-t0)/tau)) + d
 
 
-def sipm_fall(t, a, tau, t0):
-    return a * np.exp(-(t-t0)/tau)
+def sipm_fall(t, a, tau, t0, d):
+    return a * np.exp(-(t-t0)/tau) + d

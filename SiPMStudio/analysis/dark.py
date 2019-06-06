@@ -10,6 +10,7 @@ from scipy.signal import find_peaks
 
 from SiPMStudio.processing.functions import multi_gauss
 from SiPMStudio.processing.functions import multi_gauss_moyal
+from SiPMStudio.io.file_settings import read_file
 
 
 def collect_files(path, data_dir="UNFILTERED"):
@@ -113,15 +114,12 @@ def fit_multi_gauss(params_data, waves_data=None, min_dist=0.0, min_height=0.0, 
     return popt
 
 
-def gain(digitizer, sipm, sum_len=1, params=None, peaks=None, params_data=None, waves_data=None):
+def gain(digitizer, path, file_name, sipm, sum_len=1, settings_option="peaks", params_data=None, waves_data=None):
     diffs = []
     gain_average = 1
-    if peaks is None and params is not None:
-        for i in range(0, len(params)-3, 3):
-            diffs.append(params[i+3] - params[i])
-    elif params is None and peaks is not None:
-        for i in range(len(peaks)-1):
-            diffs.append(peaks[i+1]-peaks[i])
+    peaks = np.array(read_file(path, file_name, file_type="runs")[settings_option])
+    for i in range(len(peaks)-1):
+        diffs.append(peaks[i+1]-peaks[i])
     gain_average = sum(diffs[0:sum_len]) / float(len(diffs[0:sum_len]))
     sipm.gain.append(gain_average)
     gain_magnitude = gain_average * digitizer.e_cal/1.6e-19
@@ -129,39 +127,42 @@ def gain(digitizer, sipm, sum_len=1, params=None, peaks=None, params_data=None, 
     return gain_average, gain_magnitude
 
 
-def pulse_rate(sipm, min_height, min_dist, width=0, params_data=None, waves_data=None):
+def dark_count_rate(path, file_name, sipm, settings_option="wave_peaks", bounds=None, params_data=None, waves_data=None):
     rate = []
+    all_times = []
+    settings = np.array(read_file(path, file_name, file_type="waves")[settings_option])
     for i, wave in waves_data.iterrows():
-        peaks, _properties = find_peaks(x=wave, height=min_height, distance=min_dist, width=width)
-        rate.append(len(peaks) / (len(wave)*2e-9))
+        peaks, _properties = find_peaks(x=wave, height=settings["min_height"],
+                                        distance=settings["min_dist"], width=settings["width"])
+        rate.append(len(peaks) / (len(wave) * 2e-9))
+        if len(peaks) > 0:
+            times = np.add(params_data.iloc[i, 0]*10**-3, 2*peaks)
+            all_times = np.append(all_times, [times])
+    # pulse_rate
     average_pulse_rate = sum(rate) / len(rate)
     sipm.pulse_rate.append(average_pulse_rate)
-    return average_pulse_rate
 
-
-def dcr_exp_fit(sipm, bounds=None, dts=None, params_data=None, waves_data=None):
+    # exponential fit to delay time histogram
+    M_diag = diags([-1, 1], [0, 1], shape=(len(all_times), len(all_times)))
+    all_dts = M_diag @ all_times
+    all_dts = np.delete(all_dts, -1)
     if bounds is None:
         bounds = [0, 1e5]
-    dts_fit = dts[(dts > bounds[0]) & (dts < bounds[1])]
+    dts_fit = all_dts[(all_dts > bounds[0]) & (all_dts < bounds[1])]
     exp_fit = expon.fit(dts_fit)
     sipm.dcr_fit.append(1/(exp_fit[1]*1e-9))
-    return 1/(exp_fit[1]*1e-9)
+
+    return average_pulse_rate, 1/(exp_fit[1]*1e-9)
 
 
 def excess_charge_factor(sipm, params_data=None, waves_data=None):
     return np.divide(sipm.pulse_rate, sipm.dcr_fit)
 
 
-def cross_talk(params_data, sipm, params=None, peaks=None, waves_data=None):
-    if peaks is None and params is not None:
-        index1 = int(params[0] - sipm.gain[-1]/2)
-        index2 = int(params[3] - sipm.gain[-1]/2)
-    elif params is None and peaks is not None:
-        index1 = int(peaks[0] - sipm.gain[-1]/2)
-        index2 = int(peaks[1] - sipm.gain[-1]/2)
-    else:
-        print("No params or peaks specified!")
-        return None
+def cross_talk(path, file_name, sipm, settings_option="peaks", params_data=None, waves_data=None):
+    peaks = np.array(read_file(path, file_name, file_type="runs")[settings_option])
+    index1 = int(peaks[0] - sipm.gain[-1]/2)
+    index2 = int(peaks[1] - sipm.gain[-1]/2)
     bins = list(range(int(max(params_data["E_SHORT"]))))
     bin_vals, _bin_edges = np.histogram(params_data["E_SHORT"], bins=bins)
     total_counts1 = sum(bin_vals[index1:])
