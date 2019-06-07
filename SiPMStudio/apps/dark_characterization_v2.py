@@ -44,9 +44,18 @@ proc.add(fun_name="moving_average", settings={"box_size": 15})
 proc.add(fun_name="normalize_waves", settings={"path": file_path, "file_name": None})
 
 input_files = attach_path(file_path, dark_sipm_waves)
-process_data(data_files=input_files, output_dir=output_path, digitizer=digitizer, processor=proc, multiprocess=False)
-dark_sipm_pwaves = attach_path("t1_", dark_sipm_waves)
+# process_data(data_files=input_files, output_dir=output_path, digitizer=digitizer, processor=proc, multiprocess=False)
+# dark_sipm_pwaves = attach_path("t1_", dark_sipm_waves)
 
+dark_sipm_runs = attach_path(file_path, dark_sipm_runs)
+dark_sipm_waves = attach_path(file_path, dark_sipm_waves)
 measurements = measure.MeasurementArray()
+measurements.add(fun_name="gain", settings={"digitizer": digitizer, "sipm": sipm, "path": file_path, "file_name": None})
+measurements.add(fun_name="cross_talk", settings={"sipm": sipm, "path": file_path, "file_name": None})
+# Experiment(files=dark_sipm_runs, measurement_array=measurements, digitizer=digitizer)
 
-
+wave_measurements = measure.MeasurementArray()
+wave_measurements.add(fun_name="dark_count_rate", settings={"sipm": sipm, "path": file_path, "file_name": None})
+Experiment(files=dark_sipm_waves, measurement_array=wave_measurements, digitizer=digitizer)
+print(sipm.pulse_rate)
+print(sipm.dcr_fit)

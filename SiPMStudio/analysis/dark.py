@@ -1,4 +1,5 @@
 import numpy as np
+import pandas as pd
 import matplotlib.pyplot as plt
 import os
 
@@ -128,7 +129,7 @@ def gain(digitizer, path, file_name, sipm, sum_len=1, settings_option="peaks", p
 def dark_count_rate(path, file_name, sipm, settings_option="wave_peaks", bounds=None, params_data=None, waves_data=None):
     rate = []
     all_times = []
-    settings = np.array(read_file(path, file_name, file_type="waves")[settings_option])
+    settings = read_file(path, file_name, file_type="waves")[settings_option]
     for i, wave in waves_data.iterrows():
         peaks, _properties = find_peaks(x=wave, height=settings["min_height"],
                                         distance=settings["min_dist"], width=settings["width"])
@@ -160,12 +161,14 @@ def excess_charge_factor(sipm, params_data=None, waves_data=None):
 
 def cross_talk(path, file_name, sipm, settings_option="peaks", params_data=None, waves_data=None):
     peaks = np.array(read_file(path, file_name, file_type="runs")[settings_option])
-    index1 = int(peaks[0] - sipm.gain[-1]/2)
-    index2 = int(peaks[1] - sipm.gain[-1]/2)
-    bins = list(range(int(max(params_data["E_SHORT"]))))
-    bin_vals, _bin_edges = np.histogram(params_data["E_SHORT"], bins=bins)
-    total_counts1 = sum(bin_vals[index1:])
-    total_counts2 = sum(bin_vals[index2:])
+    energy_data = params_data["E_SHORT"]
+    counts = pd.Series(data=[1]*energy_data.shape[0])
+    half_pe = peaks[0] - sipm.gain[-1]/2
+    one_half_pe = peaks[1] - sipm.gain[-1]/2
+    # bins = list(range(int(max(params_data["E_SHORT"]))))
+    # bin_vals, _bin_edges = np.histogram(params_data["E_SHORT"], bins=bins)
+    total_counts1 = counts[energy_data > half_pe].sum()
+    total_counts2 = counts[energy_data > one_half_pe].sum()
     prob = total_counts2 / total_counts1
     sipm.cross_talk.append(prob)
     return prob

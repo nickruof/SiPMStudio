@@ -13,8 +13,7 @@ from SiPMStudio.processing import measurement
 from SiPMStudio.processing.process_data import _output_time
 
 def Experiment(files,
-                measurement_arrays, # replace with measurement settings
-                utility_belt,
+                measurement_array,
                 digitizer,
                 overwrite=True,
                 verbose=False):
@@ -26,15 +25,14 @@ def Experiment(files,
 
     for i, file in enumerate(tqdm.tqdm(files, total=len(files))):
         digitizer.load_data(df_data=file)
-        measurement_arrays[i].set_array(digitizer=digitizer)
-        _process(file=file, digitizer=digitizer, measurement_array=measurement_arrays[i], utility_belt=utility_belt)
+        measurement_array.set_array(digitizer=digitizer)
+        _process(file=file, digitizer=digitizer, measurement_array=measurement_array)
 
     _output_time(time.time()-start)
 
 
-def _process(file, digitizer, measurement_array, utility_belt):
+def _process(file, digitizer, measurement_array):
     measurement_array.file = file
     measurement_array.set_array(digitizer=digitizer)
-    measurement_array.run(utility_belt)
-    utility_belt.clear()
+    measurement_array.run()
 

@@ -27,10 +27,10 @@ class MeasurementArray(ABC):
         self.calcs = digitizer.format_data(waves=False)
         self.waves = digitizer.format_data(waves=True)
 
-    def run(self, utility_belt):
+    def run(self):
         for measurement in self.measurement_list:
             if isinstance(measurement, Measurement):
-                p_result = measurement.process_block(self.calcs, self.waves, utility_belt)
+                p_result = measurement.process_block(self.calcs, self.waves)
             else:
                 raise TypeError("Unknown Measurment type!")
 
@@ -78,11 +78,7 @@ class Measurement:
             self.retrieve = retrieve_args
 
     def process_block(self, params, waves, utility_belt=None):
-        if self.retrieve is not None:
-            self.fun_args[self.retrieve["variable"]] = utility_belt[self.retrieve["name"]]
         result = self.function(params_data=params, waves_data=waves, **self.fun_args)
-        if self.post_name is not None:
-            utility_belt.add_data(self.post_name, result)
         return result
 
 
