@@ -55,7 +55,7 @@ measurements.add(fun_name="cross_talk", settings={"sipm": sipm, "path": file_pat
 # Experiment(files=dark_sipm_runs, measurement_array=measurements, digitizer=digitizer)
 
 wave_measurements = measure.MeasurementArray()
-wave_measurements.add(fun_name="dark_count_rate", settings={"sipm": sipm, "path": file_path, "file_name": None})
+wave_measurements.add(fun_name="dark_count_rate", settings={"sipm": sipm, "path": file_path, "file_name": None, "display": True})
 Experiment(files=dark_sipm_waves, measurement_array=wave_measurements, digitizer=digitizer)
 print(sipm.pulse_rate)
 print(sipm.dcr_fit)

@@ -9,7 +9,7 @@ from scipy.optimize import curve_fit
 from scipy.signal import find_peaks
 
 from SiPMStudio.processing.functions import multi_gauss
-from SiPMStudio.processing.functions import multi_gauss_moyal
+from SiPMStudio.plots.plots import plot_delay_times
 from SiPMStudio.io.file_settings import read_file
 
 
@@ -126,7 +126,7 @@ def gain(digitizer, path, file_name, sipm, sum_len=1, settings_option="peaks", p
     return gain_average, gain_magnitude
 
 
-def dark_count_rate(path, file_name, sipm, settings_option="wave_peaks", bounds=None, params_data=None, waves_data=None):
+def dark_count_rate(path, file_name, sipm, settings_option="wave_peaks", bounds=None, params_data=None, waves_data=None, display=False):
     rate = []
     all_times = []
     settings = read_file(path, file_name, file_type="waves")[settings_option]
@@ -151,6 +151,12 @@ def dark_count_rate(path, file_name, sipm, settings_option="wave_peaks", bounds=
     dts_fit = all_dts[(all_dts > bounds[0]) & (all_dts < bounds[1])]
     exp_fit = expon.fit(dts_fit)
     sipm.dcr_fit.append(1/(exp_fit[1]*1e-9))
+
+    if display:
+        plt.figure()
+        plot_delay_times(dts=all_dts, fit=True)
+        plt.show()
+        plt.close()
 
     return average_pulse_rate, 1/(exp_fit[1]*1e-9)
 
