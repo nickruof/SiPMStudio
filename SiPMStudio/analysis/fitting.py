@@ -82,7 +82,7 @@ def fit_hist(func, hist, bins, var=None, guess=None,
         mask = ~(zeros & zero_errors)
         sigma = np.sqrt(var)[mask]
         hist = hist[mask]
-        xvals = pgh.get_bin_centers(bins)[mask]
+        xvals = _get_bin_centers(bins)[mask]
         if bounds is None:
             bounds = (-np.inf, np.inf)
 

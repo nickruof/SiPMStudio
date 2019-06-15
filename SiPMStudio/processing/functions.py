@@ -40,3 +40,10 @@ def sipm_rise(t, a, tau, t0, d):
 
 def sipm_fall(t, a, tau, t0, d):
     return a * np.exp(-(t-t0)/tau) + d
+
+
+def double_exp(t, A, lam1, lam2):
+    distro_1 = A*np.exp(-lam1*t)
+    distro_2 = (1 - A)*np.exp(-lam2*t)
+    return distro_1 + distro_2
+

@@ -2,6 +2,7 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import os
+import warnings
 
 from scipy.sparse import diags
 from scipy.stats import expon
@@ -11,6 +12,8 @@ from scipy.signal import find_peaks
 from SiPMStudio.processing.functions import multi_gauss
 from SiPMStudio.plots.plots import plot_delay_times
 from SiPMStudio.io.file_settings import read_file
+
+warnings.filterwarnings("ignore", "PeakPropertyWarning: some peaks have a width of 0")
 
 
 def collect_files(path, data_dir="UNFILTERED"):
@@ -183,7 +186,7 @@ def cross_talk(path, file_name, sipm, settings_option="peaks", params_data=None,
 def delay_times(params_data, waves_data, min_height, min_dist, width=0):
     all_times = []
 
-    for i, wave in waves_data.iterrows():
+    for i, wave in enumerate(waves_data.values):
         peaks, _properties = find_peaks(x=wave, height=min_height, distance=min_dist, width=width)
         if len(peaks) > 0:
             times = np.add(params_data.iloc[i, 0]*10**-3, 2*peaks)
