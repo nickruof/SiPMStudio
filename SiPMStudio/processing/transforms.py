@@ -9,6 +9,8 @@ from statsmodels.robust import mad
 from SiPMStudio.processing.functions import butter_bandpass
 from SiPMStudio.io.file_settings import read_file
 
+# TODO: change DataFrame initialisation
+
 
 def adc_to_volts(waves_data, digitizer):
     v_pp = digitizer.v_range

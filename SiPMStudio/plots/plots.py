@@ -16,6 +16,9 @@ from functools import partial
 sns.set_style("whitegrid")
 
 
+# TODO: add plt.subplots() functionality
+
+
 def plot_hist(values_array, bins=500, x_range=None, density=False, labels=None):
     sns.set_style("ticks")
     colors = sns.color_palette()
@@ -30,7 +33,8 @@ def plot_hist(values_array, bins=500, x_range=None, density=False, labels=None):
         heights.append(n)
         bin_edges.append(bins)
         all_patches.append(patches)
-    plt.legend(labels)
+    if labels is not None:
+        plt.legend(labels)
     return heights, bin_edges, all_patches
 
 
@@ -163,7 +167,8 @@ def ph_spectrum(heights_array, hist_range=None, log=False, density=False, labels
 
 
 def plot_gain(sipm, lin_fit=False):
-    plt.plot(sipm.bias, sipm.gain_magnitude, '.')
+    plt.plot(sipm.bias, sipm.gain_magnitude)
+    plt.scatter(sipm.bias, sipm.gain_magnitude)
     plt.xlabel("Bias Voltage (V)")
     plt.ylabel("Gain")
 
@@ -178,18 +183,21 @@ def plot_gain(sipm, lin_fit=False):
 
 def plot_dcr(sipm):
     plt.plot(sipm.bias, sipm.dark_rate)
+    plt.scatter(sipm.bias, sipm.dark_rate)
     plt.xlabel("Bias Voltage (V)")
     plt.ylabel("Dark Count Rate")
 
 
 def plot_cross_talk(sipm):
-    plt.plot(sipm.bias, sipm.cross_talk, ".")
+    plt.plot(sipm.bias, sipm.cross_talk)
+    plt.scatter(sipm.bias, sipm.cross_talk)
     plt.xlabel("Bias Voltage (V)")
     plt.ylabel("Cross Talk Probability (%)")
 
 
 def plot_pde(sipm):
-    plt.plot(sipm.bias, sipm.pde, ".")
+    plt.plot(sipm.bias, sipm.pde)
+    plt.scatter(sipm.bias, sipm.pde)
     plt.xlabel("Bias Voltage (V)")
     plt.ylabel("Photon Detection Efficiency (%)")
 

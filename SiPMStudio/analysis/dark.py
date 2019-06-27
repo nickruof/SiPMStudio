@@ -68,19 +68,19 @@ def spectrum_peaks(params_data, waves_data=None, n_bins=2000, hist_range=None, m
     if display:
         plt.figure()
         [bin_vals, bin_edges, _patches] = sipm_plt.plot_hist([params_data], bins=n_bins, x_range=hist_range, density=False)
-        bin_width = bin_edges[1] - bin_edges[0]
-        peaks, _properties = find_peaks(bin_vals, height=min_height, distance=min_dist/bin_width, width=width)
+        bin_width = bin_edges[0][1] - bin_edges[0][0]
+        peaks, _properties = find_peaks(bin_vals[0], height=min_height, distance=min_dist/bin_width, width=width)
         print(str(len(peaks)) + " peaks found!")
-        bin_centers = (bin_edges[:-1]+bin_edges[1:])/2
-        plt.plot(bin_centers[peaks], bin_vals[peaks], ".r")
+        bin_centers = (bin_edges[0][:-1]+bin_edges[0][1:])/2
+        plt.plot(bin_centers[peaks], bin_vals[0][peaks], "+r")
         plt.yscale("log")
         plt.show()
     else:
-        [bin_vals, bins_edges, _patches] = plt.hist(params_data, bins=n_bins, range=hist_range, density=True, edgecolor="none")
-        bin_width = bin_edges[1] - bin_edges[0]
-        peaks, _properties = find_peaks(bin_vals, height=min_height, distance=min_dist/bin_width, width=width)
+        [bin_vals, bin_edges, _patches] = sipm_plt.plot_hist([params_data], bins=n_bins, x_range=hist_range, density=False)
+        bin_width = bin_edges[0][1] - bin_edges[0][0]
+        peaks, _properties = find_peaks(bin_vals[0], height=min_height, distance=min_dist / bin_width, width=width)
 
-    x_values = bin_edges[:-1]
+    x_values = np.array(bin_edges[0][:-1])
     return x_values[peaks]
 
 
@@ -134,7 +134,7 @@ def dark_count_rate(path, file_name, sipm, settings_option="wave_peaks", bounds=
     rate = []
     all_times = []
     settings = read_file(path, file_name, file_type="waves")[settings_option]
-    for i, wave in waves_data.iterrows():
+    for i, wave in enumerate(waves_data.values):
         peaks, _properties = find_peaks(x=wave, height=settings["min_height"],
                                         distance=settings["min_dist"], width=settings["width"])
         rate.append(len(peaks) / (len(wave) * 2e-9))
@@ -169,16 +169,19 @@ def excess_charge_factor(sipm, params_data=None, waves_data=None):
     return np.divide(sipm.pulse_rate, sipm.dcr_fit)
 
 
-def cross_talk(path, file_name, sipm, settings_option="peaks", params_data=None, waves_data=None):
-    peaks = np.array(read_file(path, file_name, file_type="runs")[settings_option])
+def cross_talk(path, file_name, sipm, settings_option="pc_peaks", params_data=None, waves_data=None):
+
+    # TODO: prevent dependency on CoMPASS output variables
+
+    peaks = np.array(read_file(path, file_name, file_type="waves")[settings_option])
     energy_data = params_data["E_SHORT"]
     counts = pd.Series(data=[1]*energy_data.shape[0])
     half_pe = peaks[0] - sipm.gain[-1]/2
     one_half_pe = peaks[1] - sipm.gain[-1]/2
     # bins = list(range(int(max(params_data["E_SHORT"]))))
     # bin_vals, _bin_edges = np.histogram(params_data["E_SHORT"], bins=bins)
-    total_counts1 = counts[energy_data > half_pe].sum()
-    total_counts2 = counts[energy_data > one_half_pe].sum()
+    total_counts1 = counts[energy_data >= half_pe].sum()
+    total_counts2 = counts[energy_data >= one_half_pe].sum()
     prob = total_counts2 / total_counts1
     sipm.cross_talk.append(prob)
     return prob
@@ -186,7 +189,6 @@ def cross_talk(path, file_name, sipm, settings_option="peaks", params_data=None,
 
 def delay_times(params_data, waves_data, min_height, min_dist, width=0):
     all_times = []
-
     for i, wave in enumerate(waves_data.values):
         peaks, _properties = find_peaks(x=wave, height=min_height, distance=min_dist, width=width)
         if len(peaks) > 0:
