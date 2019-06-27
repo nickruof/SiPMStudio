@@ -10,6 +10,7 @@ from scipy.optimize import curve_fit
 from scipy.signal import find_peaks
 
 from SiPMStudio.processing.functions import multi_gauss
+import SiPMStudio.plots.plots as sipm_plt
 from SiPMStudio.plots.plots import plot_delay_times
 from SiPMStudio.io.file_settings import read_file
 
@@ -66,7 +67,7 @@ def spectrum_peaks(params_data, waves_data=None, n_bins=2000, hist_range=None, m
     bin_edges = []
     if display:
         plt.figure()
-        [bin_vals, bin_edges, _patches] = plt.hist(params_data, bins=n_bins, range=hist_range, density=True, edgecolor="none")
+        [bin_vals, bin_edges, _patches] = sipm_plt.plot_hist([params_data], bins=n_bins, x_range=hist_range, density=False)
         bin_width = bin_edges[1] - bin_edges[0]
         peaks, _properties = find_peaks(bin_vals, height=min_height, distance=min_dist/bin_width, width=width)
         print(str(len(peaks)) + " peaks found!")

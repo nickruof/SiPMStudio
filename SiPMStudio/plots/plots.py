@@ -141,10 +141,9 @@ def plot_waveforms(waveforms):
     ax.set_xlim([0, 1000])
 
 
-def pc_spectrum(hist_array, params=None, n_bins=2000, log=False, density=True, alpha=0.75):
-    sns.set_style("ticks")
-    bins = np.linspace(start=min(hist_array), stop=max(hist_array), num=n_bins)
-    [n, bins, patches] = plt.hist(hist_array, bins=bins, edgecolor="none", density=density)
+def pc_spectrum(hist_array, n_bins=2000, log=False, density=False, labels=None):
+    bins = np.linspace(start=min(hist_array[-1]), stop=max(hist_array[-1]), num=n_bins)
+    [n, bins, patches] = sipm_plt.plot_hist(hist_array, bins, None, density, labels)
     plt.xlabel("ADC")
     if density:
         plt.ylabel("Norm Counts")
@@ -152,14 +151,11 @@ def pc_spectrum(hist_array, params=None, n_bins=2000, log=False, density=True, a
         plt.ylabel("Counts")
     if log:
         plt.yscale("log")
-    if params is not None:
-        plt.plot(multi_gauss(bins, *params), "r")
 
 
-def ph_spectrum(heights, hist_range=None, log=False, density=True, alpha=0.75):
-    sns.set_style("ticks")
+def ph_spectrum(heights_array, hist_range=None, log=False, density=False, labels=None):
     bins = 500
-    [n, bins, patches] = plt.hist(heights, bins=bins, range=hist_range, density=density, edgecolor="none")
+    [n, bins, patches] = sipm_plt.plot_hist(heights_array, bins, hist_range, density, labels)
     plt.xlabel("Pulse Heights (V)")
     plt.ylabel("Counts")
     if log:

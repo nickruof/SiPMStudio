@@ -18,13 +18,6 @@ def exists(x, array):
             return False
 
 
-def find_index(name, array):
-    for i, element in enumerate(array):
-        if element["name"] == name:
-            return i
-    raise LookupError(str(name)+"not found in the array")
-
-
 def main():
 
     file_name = ""
