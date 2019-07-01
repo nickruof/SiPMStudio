@@ -9,7 +9,7 @@ from statsmodels.robust import mad
 from SiPMStudio.processing.functions import butter_bandpass
 from SiPMStudio.io.file_settings import read_file
 
-# TODO: change DataFrame initialisation
+# TODO: change DataFrame initialisation and come up with way to store waveform timing information
 
 
 def adc_to_volts(waves_data, digitizer):
@@ -59,7 +59,7 @@ def moving_average(waves_data, box_size=20):
     return processed_waveforms
 
 
-def normalize_waves(waves_data, path, file_name, settings_option="height_peaks"):
+def normalize_waves(waves_data, path, file_name, settings_option="ph_peaks"):
     peak_locs = np.array(read_file(path, file_name, file_type="waves")[settings_option])
     diffs = peak_locs[1:] - peak_locs[:-1]
     average_diff = np.mean(diffs)

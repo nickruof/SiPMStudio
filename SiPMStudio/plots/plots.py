@@ -147,7 +147,7 @@ def plot_waveforms(waveforms):
 
 def pc_spectrum(hist_array, n_bins=2000, log=False, density=False, labels=None):
     bins = np.linspace(start=min(hist_array[-1]), stop=max(hist_array[-1]), num=n_bins)
-    [n, bins, patches] = sipm_plt.plot_hist(hist_array, bins, None, density, labels)
+    [n, bins, patches] = plot_hist(hist_array, bins, None, density, labels)
     plt.xlabel("ADC")
     if density:
         plt.ylabel("Norm Counts")
@@ -155,6 +155,8 @@ def pc_spectrum(hist_array, n_bins=2000, log=False, density=False, labels=None):
         plt.ylabel("Counts")
     if log:
         plt.yscale("log")
+
+    return n, bins
 
 
 def ph_spectrum(heights_array, hist_range=None, log=False, density=False, labels=None):
@@ -164,6 +166,7 @@ def ph_spectrum(heights_array, hist_range=None, log=False, density=False, labels
     plt.ylabel("Counts")
     if log:
         plt.yscale("log")
+    return n, bins
 
 
 def plot_gain(sipm, lin_fit=False):

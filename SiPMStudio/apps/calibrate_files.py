@@ -1,6 +1,6 @@
 import os
 import sys
-import json
+import numpy as np
 import matplotlib.pyplot as plt
 
 import SiPMStudio.core.digitizers as digitizers
@@ -13,14 +13,9 @@ import SiPMStudio.plots.plots as sipm_plt
 import SiPMStudio.analysis.dark as sith
 
 
-from SiPMStudio.analysis.dark import spectrum_peaks
-from SiPMStudio.analysis.dark import heights
-from SiPMStudio.plots.plots import ph_spectrum
-
-
-def locate_spectrum_peaks(hist_data):
+def locate_spectrum_peaks(hist_data, bins=2000):
     plt.figure()
-    pc_spectrum(hist_array=[hist_data], log=True)
+    [n_hist, bin_edges] = pc_spectrum(hist_array=[hist_data], n_bins=bins, log=True)
     plt.show()
     plt.close()
 
@@ -29,12 +24,12 @@ def locate_spectrum_peaks(hist_data):
     while retry:
         min_distance = float(input("guess minimum distance between peaks "))
         min_height = float(input("guess minimum peak height "))
-        peaks = spectrum_peaks(params_data=params_data["E_SHORT"], n_bins=2000,
+        peaks = spectrum_peaks(params_data=hist_data, n_bins=bins,
                                min_dist=min_distance, min_height=min_height, display=True)
-        remove_peaks = input("Remove Peaks? y/n")
+        remove_peaks = input("Remove Peaks? y/n ")
         if remove_peaks == "y":
-            what_peaks = input("Input peaks to delete!")
-            peak_nums = [float(num) for num in what_peaks.split(" ")]
+            what_peaks = input("Input peaks to delete! ")
+            peak_nums = [int(num) for num in what_peaks.split(" ")]
             peaks = np.delete(peaks, peak_nums)
         again = input("do it again! y/n ")
         if again == "y":
@@ -76,20 +71,23 @@ def locate_waveform_peaks(waves_data):
             break
 
     peak_heights = sith.heights(waves_data, min_height, min_distance, width)
-    peak_specs = locate_spectrum_peaks(peak_heights)
+    peak_specs = locate_spectrum_peaks(peak_heights, 400)
+
     return peak_specs
 
 
 def output_to_json(output_dir, file_name, file_type="waves", pc_peaks=None, ph_peaks=None):
+    store_pc = [float(x_peak) for x_peak in pc_peaks]
+    store_ph = [float(x_peak) for x_peak in ph_peaks]
     if not os.path.exists(output_dir+"/settings.json"):
         file_settings.create_json(output_dir)
     if file_settings.file_exists(output_dir, file_name, file_type):
-        file_settings.update_json(output_dir, file_type, file_name, "pc_peaks", pc_peaks)
-        file_settings.update_json(output_dir, file_type, file_name, "ph_peaks", ph_peaks)
+        file_settings.update_json(output_dir, file_type, file_name, "pc_peaks", store_pc)
+        file_settings.update_json(output_dir, file_type, file_name, "ph_peaks", store_ph)
     else:
         file_settings.add_file(output_dir, file_name, file_type)
-        file_settings.update_json(output_dir, file_type, file_name, "pc_peaks", pc_peaks)
-        file_settings.update_json(output_dir, file_type, file_name, "ph_peaks", ph_peaks)
+        file_settings.update_json(output_dir, file_type, file_name, "pc_peaks", store_pc)
+        file_settings.update_json(output_dir, file_type, file_name, "ph_peaks", store_ph)
 
 
 def main():
@@ -98,8 +96,13 @@ def main():
     if len(sys.argv) == 3:
         file_name = sys.argv[1]
         output_path = sys.argv[2]
+    elif len(sys.argv) ==2:
+        input_option = str(sys.argv[1])
+        index = input_option.rfind("/")
+        output_path = input_option[:index]
+        file_name = input_option[index+1:]
     else:
-        print("Specify <file_name> <output_path>!")
+        print("Specify <file_name> <output_path>(optional)!")
 
     digitizer = digitizers.CAENDT5730(df_data=file_name)
     digitizer.v_range = 2.0
@@ -112,5 +115,5 @@ def main():
     output_to_json(output_path, file_name, "waves", pulse_charge_peaks, pulse_height_peaks)
 
 
-if __name__ == "main":
+if __name__ == "__main__":
     main()

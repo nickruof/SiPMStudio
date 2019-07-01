@@ -62,14 +62,15 @@ def time_interval(params_data, waves_data=None):
     return interval
 
 
-def spectrum_peaks(params_data, waves_data=None, n_bins=2000, hist_range=None, min_dist=0.0, min_height=0.0, width=4.0, display=False):
+def spectrum_peaks(params_data, waves_data=None, n_bins=2000, hist_range=None, min_dist=0.0, min_height=0.0, width=0.0, display=False):
     peaks = []
     bin_edges = []
     if display:
         plt.figure()
         [bin_vals, bin_edges, _patches] = sipm_plt.plot_hist([params_data], bins=n_bins, x_range=hist_range, density=False)
         bin_width = bin_edges[0][1] - bin_edges[0][0]
-        peaks, _properties = find_peaks(bin_vals[0], height=min_height, distance=min_dist/bin_width, width=width)
+        peaks, _properties = find_peaks(bin_vals[0], height=min_height, distance=min_dist, width=width)
+        print(bin_width, min_dist/bin_width)
         print(str(len(peaks)) + " peaks found!")
         bin_centers = (bin_edges[0][:-1]+bin_edges[0][1:])/2
         plt.plot(bin_centers[peaks], bin_vals[0][peaks], "+r")
@@ -78,7 +79,7 @@ def spectrum_peaks(params_data, waves_data=None, n_bins=2000, hist_range=None, m
     else:
         [bin_vals, bin_edges, _patches] = sipm_plt.plot_hist([params_data], bins=n_bins, x_range=hist_range, density=False)
         bin_width = bin_edges[0][1] - bin_edges[0][0]
-        peaks, _properties = find_peaks(bin_vals[0], height=min_height, distance=min_dist / bin_width, width=width)
+        peaks, _properties = find_peaks(bin_vals[0], height=min_height, distance=min_dist, width=width)
 
     x_values = np.array(bin_edges[0][:-1])
     return x_values[peaks]
@@ -130,17 +131,18 @@ def gain(digitizer, path, file_name, sipm, sum_len=1, settings_option="peaks", p
     return gain_average, gain_magnitude
 
 
-def dark_count_rate(path, file_name, sipm, settings_option="wave_peaks", bounds=None, params_data=None, waves_data=None, display=False):
+def dark_count_rate(path, file_name, sipm, bounds=None, params_data=None, waves_data=None, display=False):
+
+    # TODO: Replace hard coded sampling rate of CAENDT5730 with something more generic
+
     rate = []
     all_times = []
-    settings = read_file(path, file_name, file_type="waves")[settings_option]
     for i, wave in enumerate(waves_data.values):
-        peaks, _properties = find_peaks(x=wave, height=settings["min_height"],
-                                        distance=settings["min_dist"], width=settings["width"])
+        peaks, _properties = find_peaks(x=wave, height=0.5, distance=50, width=4)
         rate.append(len(peaks) / (len(wave) * 2e-9))
         if len(peaks) > 0:
-            times = np.add(params_data.iloc[i, 0]*10**-3, 2*peaks)
-            all_times = np.append(all_times, [times])
+            times = map(lambda x: 2*x + params_data.iloc[i, 0]*10**-3, peaks)
+            all_times = all_times + list(times)
 
     # pulse_rate
     average_pulse_rate = sum(rate) / len(rate)
@@ -187,7 +189,7 @@ def cross_talk(path, file_name, sipm, settings_option="pc_peaks", params_data=No
     return prob
 
 
-def delay_times(params_data, waves_data, min_height, min_dist, width=0):
+def delay_times(params_data, waves_data, min_height=0.5, min_dist=50, width=0):
     all_times = []
     for i, wave in enumerate(waves_data.values):
         peaks, _properties = find_peaks(x=wave, height=min_height, distance=min_dist, width=width)
@@ -203,10 +205,11 @@ def delay_times(params_data, waves_data, min_height, min_dist, width=0):
 def heights(wave_data, min_height, min_dist, width=0):
     all_heights = []
 
-    for i, wave in wave_data.iterrows():
+    for wave in wave_data.values:
         peaks, _properties = find_peaks(x=wave, height=min_height, distance=min_dist, width=width)
-        for height in wave.values[peaks]:
-            all_heights.append(height)
+        if len(peaks) > 0:
+            for height in wave[peaks]:
+                all_heights.append(height)
     all_heights = np.array(all_heights)
     all_heights = np.delete(all_heights, -1)
     return all_heights

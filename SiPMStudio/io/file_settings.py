@@ -1,6 +1,8 @@
 import os
 import json
 
+# TODO: Remove all json file openings redundancies
+
 
 def _exists(x, array):
     for element in array:
@@ -53,7 +55,7 @@ def add_file(path, file_name, file_type):
     if file_type == "runs":
         data[file_type].append({"name": file_name, "peaks": None})
     elif file_type == "waves":
-        data[file_type].append({"name": file_name, "wave_peaks": None, "height_peaks": None})
+        data[file_type].append({"name": file_name, "pc_peaks": None, "ph_peaks": None})
     else:
         raise TypeError("File type " + str(file_type) + " not recognized!")
 
