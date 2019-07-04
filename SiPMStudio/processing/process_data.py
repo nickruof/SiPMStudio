@@ -8,7 +8,8 @@ from functools import partial
 from pathos.threading import ThreadPool
 
 
-def process_data(data_files,
+def process_data(path,
+                data_files,
                 processor, 
                 digitizer, 
                 output_dir=None, 
@@ -28,16 +29,16 @@ def process_data(data_files,
     # Declare an output file and overwriting options here
 
     processor.digitizer = digitizer
+    processor.file = path+"/"+"settings.json"
 
     for file in data_files:
-        digitizer.load_data(df_data=file)
-        chunk_idx = _get_chunks(file=file, digitizer=digitizer, chunksize=chunk)
+        processor.digitizer.load_data(df_data=file)
+        chunk_idx = _get_chunks(file=file, digitizer=processor.digitizer, chunksize=chunk)
         if multiprocess:
             wait = animation.Wait(animation="elipses", text="Multiprocessing")
             with ThreadPool(NCPU) as p:
                 wait.start()
-                p.map(partial(_process_chunk, digitizer=digitizer, processor=processor,
-                              out_frame=data_chunks), chunk_idx)
+                p.map(partial(_process_chunk, processor=processor), chunk_idx)
                 wait.stop()
             _output_time(time.time()-start)
         else:
@@ -67,8 +68,7 @@ def _get_chunks(file, digitizer, chunksize):
     return row_list
 
 
-def _process_chunk(file, rows, processor, out_frame):
-    processor.file = file
+def _process_chunk(rows, processor):
     processor.set_processor(rows=rows)
     processor.digitizer.update(params=processor.params, waves=processor.waves)
 
