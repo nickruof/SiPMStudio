@@ -38,7 +38,6 @@ def process_data(data_files,
     for file in data_files:
         digitizer.load_data(df_data=file)
         chunk_idx = _get_chunks(file=file, digitizer=digitizer, chunksize=chunk)
-        data_chunks = []
         if multiprocess:
             wait = animation.Wait(animation="elipses", text="Multiprocessing")
             with ThreadPool(NCPU) as p:
@@ -49,11 +48,10 @@ def process_data(data_files,
             _output_time(time.time()-start)
         else:
             for idx in tqdm.tqdm(chunk_idx, total=len(chunk_idx)):
-                _process_chunk(file=file, digitizer=digitizer, processor=processor, rows=idx, out_frame=data_chunks)
+                _process_chunk(file=file, processor=processor, rows=idx)
 
         print("Assembling Output Dataframe!")
-        output = pd.concat(data_chunks, axis=0)
-        _write_output(data_file=file, output_frame=output, output_dir=output_dir)
+        # _write_output(data_file=file, output_frame=output, output_dir=output_dir)
 
     _output_time(time.time() - start)
 
@@ -75,10 +73,10 @@ def _get_chunks(file, digitizer, chunksize):
     return row_list
 
 
-def _process_chunk(file, rows, digitizer, processor, out_frame):
+def _process_chunk(file, rows, processor, out_frame):
     processor.file = file
-    processor.set_processor(digitizer, rows=rows)
-    out_frame.append(processor.process())
+    processor.set_processor(rows=rows)
+    processor.digitizer.update(params=processor.params, waves=processor.waves)
 
 
 def _write_output(data_file, output_frame, output_dir):

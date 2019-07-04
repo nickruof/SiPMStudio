@@ -25,13 +25,14 @@ class Processor(ABC):
             for key in settings:
                 self.add(key, settings[key])
 
-    def set_processor(self, digitizer, rows=None):
+    def set_processor(self, digitizer=None, rows=None):
         for processor in self.proc_list:
             if "file_name" in processor.fun_args.keys():
                 processor.fun_args["file_name"] = self.file
-        self.digitizer = digitizer
-        self.calcs = digitizer.format_data(waves=False, rows=rows)
-        self.waves = digitizer.format_data(waves=True, rows=rows)
+        if digitizer is not None:
+            self.digitizer = digitizer
+        self.calcs = self.digitizer.format_data(waves=False, rows=rows)
+        self.waves = self.digitizer.format_data(waves=True, rows=rows)
 
     def process(self):
         for processor in self.proc_list:
@@ -40,8 +41,7 @@ class Processor(ABC):
             elif isinstance(processor, Transformer):
                 self.waves = processor.process_block(self.waves)
             else:
-                pass
-        return pd.concat([self.calcs, self.waves], axis=1)
+                raise TypeError("Couldn't identify processor type!")
 
     def add(self, fun_name, settings):
         if settings is None:

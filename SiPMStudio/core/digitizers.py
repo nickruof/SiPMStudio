@@ -20,6 +20,9 @@ class Digitizer(DataLoader):
     def format_data(self, waves=False, rows=None):
         pass
 
+    def update(self, params, waves):
+        pass
+
 
 class CAENDT5730(Digitizer):
 
@@ -33,6 +36,8 @@ class CAENDT5730(Digitizer):
         self.e_cal = None
         self.int_window = None
         self.parameters = ["TIMETAG", "E_LONG", "E_SHORT"]
+        if self.df_data is not None:
+            self.df_data = self.df_data.replace({"timetag":"TIMETAG", "E_long":"E_LONG", "E_short":"E_SHORT"})
         super().__init__(*args, **kwargs)
 
     def format_data(self, waves=False, rows=None):
@@ -70,6 +75,16 @@ class CAENDT5730(Digitizer):
                 params_frame = self.df_data.iloc[:, :3]
                 params_frame.columns = self.parameters
                 return params_frame
+
+    def update(self, params_data, waves_data):
+        if set(params_data.columns).issubset(self.df_data.columns):
+            self.df_data.update(params_data)
+        else:
+            raise LookupError("Update Error params columns don't match!")
+        if set(waves_data.columns).issubset(self.df_data.columns):
+            self.df_data.update(waves_data)
+        else:
+            raise LookupError("Update Error waves columns don't match!")
 
     def input_settings(self, settings):
         self.id = settings["id"]
