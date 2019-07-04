@@ -43,7 +43,7 @@ def process_data(path,
             _output_time(time.time()-start)
         else:
             for idx in tqdm.tqdm(chunk_idx, total=len(chunk_idx)):
-                _process_chunk(file=file, processor=processor, rows=idx)
+                _process_chunk(processor=processor, rows=idx)
 
         print("Assembling Output Dataframe!")
         # _write_output(data_file=file, output_frame=output, output_dir=output_dir)
