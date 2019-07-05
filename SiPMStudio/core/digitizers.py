@@ -31,14 +31,15 @@ class CAENDT5730(Digitizer):
         self.model_name = "CAENDT5730"
         self.adc_bitcount = 14
         self.sample_rate = 500e6
-        self.v_range = 0.0
+        self.v_range = 2.0
 
         self.e_cal = None
         self.int_window = None
         self.parameters = ["TIMETAG", "E_LONG", "E_SHORT"]
-        if self.df_data is not None:
-            self.df_data = self.df_data.replace({"timetag":"TIMETAG", "E_long":"E_LONG", "E_short":"E_SHORT"})
         super().__init__(*args, **kwargs)
+
+    def initialize_data(self):
+        self.df_data = self.df_data.rename(index=str, columns={0: "TIMETAG", 1: "E_SHORT", 2: "E_LONG", 3: "FLAGS"})
 
     def format_data(self, waves=False, rows=None):
         if self.df_data is None:
@@ -80,11 +81,13 @@ class CAENDT5730(Digitizer):
         if set(params_data.columns).issubset(self.df_data.columns):
             self.df_data.update(params_data)
         else:
-            raise LookupError("Update Error params columns don't match!")
+            print(self.df_data.columns, params_data.columns)
+            raise LookupError("Update Error, params columns don't match!")
         if set(waves_data.columns).issubset(self.df_data.columns):
             self.df_data.update(waves_data)
         else:
-            raise LookupError("Update Error waves columns don't match!")
+            print(waves_data.columns)
+            raise LookupError("Update Error, waves columns don't match!")
 
     def input_settings(self, settings):
         self.id = settings["id"]

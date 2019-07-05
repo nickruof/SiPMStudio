@@ -26,6 +26,11 @@ class DataLoader(ABC):
         else:
             raise TypeError("DataType not recognized!")
 
+        self.initialize_data()
+
+    def initialize_data(self):
+        pass
+
     def clear_data(self):
         self.df_data = None
 

@@ -2,6 +2,7 @@ import os, time
 import math
 import tqdm
 import animation
+import pandas as pd
 import multiprocessing as mp
 
 from functools import partial
@@ -19,7 +20,8 @@ def process_data(path,
                 chunk=2000):
 
     print("Starting SiPMStudio processing ... ")
-    print("Input files: ", data_files)
+    print("Input Path: ", path)
+    print("Input Files: ", data_files)
 
     NCPU = mp.cpu_count()
 
@@ -30,10 +32,13 @@ def process_data(path,
 
     processor.digitizer = digitizer
     processor.file = path+"/"+"settings.json"
+    data_chunks = []
 
     for file in data_files:
-        processor.digitizer.load_data(df_data=file)
-        chunk_idx = _get_chunks(file=file, digitizer=processor.digitizer, chunksize=chunk)
+        destination = path+"/"+file
+        print("Loading: "+file)
+        processor.digitizer.load_data(df_data=destination)
+        chunk_idx = _get_chunks(file=destination, digitizer=processor.digitizer, chunksize=chunk)
         if multiprocess:
             wait = animation.Wait(animation="elipses", text="Multiprocessing")
             with ThreadPool(NCPU) as p:
@@ -42,11 +47,12 @@ def process_data(path,
                 wait.stop()
             _output_time(time.time()-start)
         else:
+            print("Processing "+file)
             for idx in tqdm.tqdm(chunk_idx, total=len(chunk_idx)):
-                _process_chunk(processor=processor, rows=idx)
+                _process_chunk(processor=processor, rows=idx, output_chunks=data_chunks)
 
-        print("Assembling Output Dataframe!")
-        # _write_output(data_file=file, output_frame=output, output_dir=output_dir)
+        output = pd.concat(data_chunks, axis=0)
+        # _write_output(data_file=destination, output_frame=output, output_dir=output_dir)
 
     _output_time(time.time() - start)
 
@@ -68,14 +74,13 @@ def _get_chunks(file, digitizer, chunksize):
     return row_list
 
 
-def _process_chunk(rows, processor):
+def _process_chunk(rows, processor, output_chunks):
     processor.set_processor(rows=rows)
-    processor.digitizer.update(params=processor.params, waves=processor.waves)
+    output_chunks.append(processor.process())
 
 
 def _write_output(data_file, output_frame, output_dir):
-    print("")
-    print("Writing Output file ...")
+    wait = animation.Wait(animation="elipses", text="Writing Output file!")
     indices = [i for i, item in enumerate(data_file) if item == "/"]
     file_name = data_file[indices[-1]+1:]
     output_frame.columns = output_frame.columns.astype(str)

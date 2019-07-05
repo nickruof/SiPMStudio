@@ -42,6 +42,7 @@ class Processor(ABC):
                 self.waves = processor.process_block(self.waves)
             else:
                 raise TypeError("Couldn't identify processor type!")
+        return pd.concat([self.calcs, self.waves], axis=1)
 
     def add(self, fun_name, settings):
         if settings is None:
