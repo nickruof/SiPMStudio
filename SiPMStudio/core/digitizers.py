@@ -1,21 +1,12 @@
 from .data_loading import DataLoader
+from construct import Struct, Array, this, Int16ub, Int32ub, Int64ub
 
 
 class Digitizer(DataLoader):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-
-    def apply_settings(self, settings):
-        if settings["digitizer"] == self.decoder_name:
-            sk = settings.keys()
-            if "window" in sk:
-                self.window = True
-                self.win_type = settings["window"]
-            if "n_samp" in sk:
-                self.n_samp = settings["n_samp"]
-            if "n_blsamp" in sk:
-                self.n_blsamp = settings["n_blsamp"]
+        self.metadata_parser = None
 
     def format_data(self, waves=False, rows=None):
         pass
@@ -36,10 +27,24 @@ class CAENDT5730(Digitizer):
         self.e_cal = None
         self.int_window = None
         self.parameters = ["TIMETAG", "E_LONG", "E_SHORT"]
+
+        self.metadata_parser = Struct(
+            "board" /  Int16ub,
+            "channel" / Int16ub,
+            "timestamp" / Int64ub,
+            "energy" / Int16ub,
+            "energy_short" / Int16ub,
+            "flags" / Int32ub,
+            "num_samples" / Int32ub,
+            "waveform" / Array(this.num_samples, Int16ub)
+        )
         super().__init__(*args, **kwargs)
 
     def initialize_data(self):
-        self.df_data = self.df_data.rename(index=str, columns={0: "TIMETAG", 1: "E_SHORT", 2: "E_LONG", 3: "FLAGS"})
+        if self.df_data is not None:
+            self.df_data = self.df_data.rename(index=str, columns={0: "TIMETAG", 1: "E_SHORT", 2: "E_LONG", 3: "FLAGS"})
+        else:
+            raise LookupError("No Data Loaded!")
 
     def format_data(self, waves=False, rows=None):
         if self.df_data is None:
