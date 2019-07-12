@@ -8,7 +8,7 @@ class Digitizer(DataLoader):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.metadata_parser = None
+        self.metadata_event = None
 
     def format_data(self, waves=False, rows=None):
         pass
