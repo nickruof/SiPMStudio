@@ -8,7 +8,7 @@ class Digitizer(DataLoader):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.metadata_event = None
+        self.decoded_values = None
 
     def format_data(self, waves=False, rows=None):
         pass
@@ -33,7 +33,7 @@ class CAENDT5730(Digitizer):
         self.int_window = None
         self.parameters = ["TIMETAG", "E_LONG", "E_SHORT"]
 
-        self.metadata_event = {
+        self.decoded_values = {
             "board": None,
             "channel": None,
             "timestamp": None,
@@ -100,22 +100,22 @@ class CAENDT5730(Digitizer):
         return 24 + 2 * num_samples  # number of bytes / 2
 
     def get_event(self, event_data_bytes):
-        self.metadata_event["board"] = np.frombuffer(event_data_bytes[0:2], dtype=np.uint16)
-        self.metadata_event["channel"] = np.frombuffer(event_data_bytes[2:4], dtype=np.uint16)
-        self.metadata_event["timestamp"] = np.frombuffer(event_data_bytes[4:12], dtype=np.uint64)
-        self.metadata_event["energy"] = np.frombuffer(event_data_bytes[12:14], dtype=np.uint16)
-        self.metadata_event["energy_short"] = np.frombuffer(event_data_bytes[14:16], dtype=np.uint16)
-        self.metadata_event["flags"] = np.frombuffer(event_data_bytes[16:20], np.uint32)
-        self.metadata_event["num_samples"] = np.frombuffer(event_data_bytes[20:24], dtype=np.uint32)
-        self.metadata_event["waveform"] = np.frombuffer(event_data_bytes[24:], dtype=np.uint16)
+        self.decoded_values["board"] = np.frombuffer(event_data_bytes[0:2], dtype=np.uint16)
+        self.decoded_values["channel"] = np.frombuffer(event_data_bytes[2:4], dtype=np.uint16)
+        self.decoded_values["timestamp"] = np.frombuffer(event_data_bytes[4:12], dtype=np.uint64)
+        self.decoded_values["energy"] = np.frombuffer(event_data_bytes[12:14], dtype=np.uint16)
+        self.decoded_values["energy_short"] = np.frombuffer(event_data_bytes[14:16], dtype=np.uint16)
+        self.decoded_values["flags"] = np.frombuffer(event_data_bytes[16:20], np.uint32)
+        self.decoded_values["num_samples"] = np.frombuffer(event_data_bytes[20:24], dtype=np.uint32)
+        self.decoded_values["waveform"] = np.frombuffer(event_data_bytes[24:], dtype=np.uint16)
         return self._assemble_data_row()
 
     def _assemble_data_row(self):
-        timestamp = self.metadata_event["timestamp"]
-        energy = self.metadata_event["energy"]
-        energy_short = self.metadata_event["energy_short"]
-        flags = self.metadata_event["flags"]
-        waveform = self.metadata_event["waveform"]
+        timestamp = self.decoded_values["timestamp"]
+        energy = self.decoded_values["energy"]
+        energy_short = self.decoded_values["energy_short"]
+        flags = self.decoded_values["flags"]
+        waveform = self.decoded_values["waveform"]
         df_event = pd.DataFrame([np.concatenate((timestamp, energy, energy_short, flags, waveform))])
         return df_event.rename(index=str, columns={0: "TIMETAG", 1: "E_LONG", 2: "E_SHORT", 3: "FLAGS"})
 
