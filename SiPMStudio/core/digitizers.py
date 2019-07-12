@@ -13,6 +13,12 @@ class Digitizer(DataLoader):
     def format_data(self, waves=False, rows=None):
         pass
 
+    def get_event_size(self, t0_file):
+        pass
+
+    def get_event(self, event_data_bytes):
+        pass
+
 
 class CAENDT5730(Digitizer):
 
@@ -27,7 +33,6 @@ class CAENDT5730(Digitizer):
         self.int_window = None
         self.parameters = ["TIMETAG", "E_LONG", "E_SHORT"]
 
-        self.event_size = 0
         self.metadata_event = {
             "board": None,
             "channel": None,
@@ -92,7 +97,7 @@ class CAENDT5730(Digitizer):
         with open(t0_file, "rb") as file:
             first_event = file.read(24)
             [num_samples] = np.frombuffer(first_event[20:24], dtype=np.uint32)
-            self.event_size = 24 + 2 * num_samples  # number of bytes / 2
+        return 24 + 2 * num_samples  # number of bytes / 2
 
     def get_event(self, event_data_bytes):
         self.metadata_event["board"] = np.frombuffer(event_data_bytes[0:2], dtype=np.uint16)

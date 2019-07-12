@@ -52,7 +52,7 @@ def process_data(path,
                 _process_chunk(processor=processor, rows=idx, output_chunks=data_chunks)
 
         output = pd.concat(data_chunks, axis=0)
-        # _write_output(data_file=destination, output_frame=output, output_dir=output_dir)
+        _output_to_file(data_file=destination, output_frame=output, output_dir=output_dir)
 
     _output_time(time.time() - start)
 
@@ -79,12 +79,11 @@ def _process_chunk(rows, processor, output_chunks):
     output_chunks.append(processor.process())
 
 
-def _write_output(data_file, output_frame, output_dir):
-    wait = animation.Wait(animation="elipses", text="Writing Output file!")
+def _output_to_file(data_file, output_frame, output_dir):
     indices = [i for i, item in enumerate(data_file) if item == "/"]
     file_name = data_file[indices[-1]+1:]
     output_frame.columns = output_frame.columns.astype(str)
-    output_frame.to_hdf(path_or_buf=output_dir+"t1_"+file_name[:-4]+".h5", key="dataset", mode="w", table=True)
+    output_frame.to_hdf(path_or_buf=output_dir+"t2_"+file_name[:-4]+".h5", key="dataset", mode="w", table=True)
 
 
 def _output_time(delta_seconds):
