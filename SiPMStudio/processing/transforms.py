@@ -50,7 +50,7 @@ def wavelet_denoise(waves_data, wavelet="db1", levels=3, mode="soft"):
 
 def moving_average(waves_data, box_size=20):
     box = np.ones(box_size) / box_size
-    smooth_waves = np.apply_along_axis(lambda wave: np.convolve(wave, box, mode="same"), axis=1, arr=waves_data.values)
+    smooth_waves = np.apply_along_axis(lambda wave: np.convolve(wave, box, mode="same"), axis=0, arr=waves_data.values)
     return pd.DataFrame(data=smooth_waves, index=waves_data.index, columns=waves_data.columns)
 
 

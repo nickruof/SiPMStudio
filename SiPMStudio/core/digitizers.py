@@ -1,5 +1,7 @@
 from .data_loading import DataLoader
-from construct import Struct, Array, this, Int16ub, Int32ub, Int64ub
+
+import numpy as np
+import pandas as pd
 
 
 class Digitizer(DataLoader):
@@ -9,9 +11,6 @@ class Digitizer(DataLoader):
         self.metadata_parser = None
 
     def format_data(self, waves=False, rows=None):
-        pass
-
-    def update(self, params, waves):
         pass
 
 
@@ -28,21 +27,22 @@ class CAENDT5730(Digitizer):
         self.int_window = None
         self.parameters = ["TIMETAG", "E_LONG", "E_SHORT"]
 
-        self.metadata_parser = Struct(
-            "board" /  Int16ub,
-            "channel" / Int16ub,
-            "timestamp" / Int64ub,
-            "energy" / Int16ub,
-            "energy_short" / Int16ub,
-            "flags" / Int32ub,
-            "num_samples" / Int32ub,
-            "waveform" / Array(this.num_samples, Int16ub)
-        )
+        self.event_size = 0
+        self.metadata_event = {
+            "board": None,
+            "channel": None,
+            "timestamp": None,
+            "energy": None,
+            "energy_short": None,
+            "flags": None,
+            "num_samples": None,
+            "waveform": None
+        }
         super().__init__(*args, **kwargs)
 
     def initialize_data(self):
         if self.df_data is not None:
-            self.df_data = self.df_data.rename(index=str, columns={0: "TIMETAG", 1: "E_SHORT", 2: "E_LONG", 3: "FLAGS"})
+            self.df_data = self.df_data.rename(index=str, columns={0: "TIMETAG", 1: "E_LONG", 2: "E_SHORT", 3: "FLAGS"})
         else:
             raise LookupError("No Data Loaded!")
 
@@ -82,24 +82,37 @@ class CAENDT5730(Digitizer):
                 params_frame.columns = self.parameters
                 return params_frame
 
-    def update(self, params_data, waves_data):
-        if set(params_data.columns).issubset(self.df_data.columns):
-            self.df_data.update(params_data)
-        else:
-            print(self.df_data.columns, params_data.columns)
-            raise LookupError("Update Error, params columns don't match!")
-        if set(waves_data.columns).issubset(self.df_data.columns):
-            self.df_data.update(waves_data)
-        else:
-            print(waves_data.columns)
-            raise LookupError("Update Error, waves columns don't match!")
-
     def input_settings(self, settings):
         self.id = settings["id"]
         self.v_range = settings["v_range"]
         self.e_cal = settings["e_cal"]
         self.int_window = settings["int_window"]
 
+    def get_event_size(self, t0_file):
+        with open(t0_file, "rb") as file:
+            first_event = file.read(24)
+            [num_samples] = np.frombuffer(first_event[20:24], dtype=np.uint32)
+            self.event_size = 24 + 2 * num_samples  # number of bytes / 2
+
+    def get_event(self, event_data_bytes):
+        self.metadata_event["board"] = np.frombuffer(event_data_bytes[0:2], dtype=np.uint16)
+        self.metadata_event["channel"] = np.frombuffer(event_data_bytes[2:4], dtype=np.uint16)
+        self.metadata_event["timestamp"] = np.frombuffer(event_data_bytes[4:12], dtype=np.uint64)
+        self.metadata_event["energy"] = np.frombuffer(event_data_bytes[12:14], dtype=np.uint16)
+        self.metadata_event["energy_short"] = np.frombuffer(event_data_bytes[14:16], dtype=np.uint16)
+        self.metadata_event["flags"] = np.frombuffer(event_data_bytes[16:20], np.uint32)
+        self.metadata_event["num_samples"] = np.frombuffer(event_data_bytes[20:24], dtype=np.uint32)
+        self.metadata_event["waveform"] = np.frombuffer(event_data_bytes[24:], dtype=np.uint16)
+        return self._assemble_data_row()
+
+    def _assemble_data_row(self):
+        timestamp = self.metadata_event["timestamp"]
+        energy = self.metadata_event["energy"]
+        energy_short = self.metadata_event["energy_short"]
+        flags = self.metadata_event["flags"]
+        waveform = self.metadata_event["waveform"]
+        df_event = pd.DataFrame([np.concatenate((timestamp, energy, energy_short, flags, waveform))])
+        return df_event.rename(index=str, columns={0: "TIMETAG", 1: "E_LONG", 2: "E_SHORT", 3: "FLAGS"})
+
     def parse_xml(self, xmlfile):
         pass
-
