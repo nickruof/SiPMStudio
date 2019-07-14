@@ -83,7 +83,12 @@ def _output_to_file(data_file, output_frame, output_dir):
     indices = [i for i, item in enumerate(data_file) if item == "/"]
     file_name = data_file[indices[-1]+1:]
     output_frame.columns = output_frame.columns.astype(str)
-    output_frame.to_hdf(path_or_buf=output_dir+"t2_"+file_name[:-4]+".h5", key="dataset", mode="w", table=True)
+    new_file_name = ""
+    if ("t2" in file_name) & (file_name.endswith(".h5")):
+        new_file_name = file_name
+    else:
+        new_file_name = "t2_"+file_name[:-4]+".h5"
+    output_frame.to_hdf(path_or_buf=output_dir+new_file_name, key="dataset", mode="w", table=True)
 
 
 def _output_time(delta_seconds):

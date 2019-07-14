@@ -7,17 +7,17 @@ import SiPMStudio.core.digitizers as digitizers
 import SiPMStudio.io.file_settings as file_settings
 
 from SiPMStudio.analysis.dark import spectrum_peaks
-from SiPMStudio.plots.plots import pc_spectrum
+from SiPMStudio.plots.plotting import pc_spectrum
 
-import SiPMStudio.plots.plots as sipm_plt
+import SiPMStudio.plots.plotting as sipm_plt
 import SiPMStudio.analysis.dark as sith
 
 
-def locate_spectrum_peaks(hist_data, bins=2000):
-    plt.figure()
-    [n_hist, bin_edges] = pc_spectrum(hist_array=[hist_data], n_bins=bins, log=True)
-    plt.show()
-    plt.close()
+def locate_spectrum_peaks(hist_data, bins=500):
+    fig, ax = plt.subplots()
+    [n_hist, bin_edges] = pc_spectrum(ax, hist_array=[hist_data], n_bins=bins, log=True)
+    fig.show()
+    plt.close(fig)
 
     retry = True
     peaks = []

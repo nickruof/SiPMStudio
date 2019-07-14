@@ -13,6 +13,8 @@ from scipy.stats import expon
 from scipy.signal import find_peaks
 from functools import partial
 
+sns.set_style("ticks")
+
 
 def plot_butter_response(ax, digitizer, lowcut, highcut, order=5):
     (b, a) = butter_bandpass(lowcut, highcut, digitizer.sample_rate, order=order)
@@ -86,11 +88,12 @@ def waveform_plots(waveforms, get_peaks=False, min_dist=None, min_height=None, w
 
 
 def plot_waveforms(ax, waveforms, linewidth=0.01):
-    for waveform in waveforms.values:
-        ax.plot(waveform, color=sns.color_palette()[0], linewidth=linewidth)
+    times = np.repeat([range(0, 2*waveforms.shape[1], 2)], waveforms.shape[0], axis=0)
+    ax.plot(times.T, waveforms.values.T, color=sns.color_palette()[0], linewidth=linewidth, alpha=0.075)
     ax.set_xlabel("Time (ns)")
     ax.set_ylabel("Voltage (V)")
-    ax.set_xlim([0, 1000])
+    ax.set_xlim([0, 100])
+    ax.set_ylim([np.amin(waveforms.values), np.amax(waveforms.values)])
 
 
 def pc_spectrum(ax, hist_array, n_bins=2000, log=False, density=False, labels=None):

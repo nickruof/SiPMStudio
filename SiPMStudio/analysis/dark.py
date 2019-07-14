@@ -66,18 +66,18 @@ def spectrum_peaks(params_data, waves_data=None, n_bins=2000, hist_range=None, m
     peaks = []
     bin_edges = []
     if display:
-        plt.figure()
-        [bin_vals, bin_edges, _patches] = plots_base.plot_hist([params_data], bins=n_bins, x_range=hist_range, density=False)
+        fig, ax = plt.subplots()
+        [bin_vals, bin_edges, _patches] = plots_base.plot_hist(ax, [params_data], bins=n_bins, x_range=hist_range, density=False)
         bin_width = bin_edges[0][1] - bin_edges[0][0]
         peaks, _properties = find_peaks(bin_vals[0], height=min_height, distance=min_dist, width=width)
         print(bin_width, min_dist/bin_width)
         print(str(len(peaks)) + " peaks found!")
         bin_centers = (bin_edges[0][:-1]+bin_edges[0][1:])/2
-        plt.plot(bin_centers[peaks], bin_vals[0][peaks], "+r")
-        plt.yscale("log")
-        plt.show()
+        ax.plot(bin_centers[peaks], bin_vals[0][peaks], "+r")
+        ax.set_yscale("log")
+        fig.show()
     else:
-        [bin_vals, bin_edges, _patches] = plots_base.plot_hist([params_data], bins=n_bins, x_range=hist_range, density=False)
+        [bin_vals, bin_edges, _patches] = plots_base.plot_hist(ax, [params_data], bins=n_bins, x_range=hist_range, density=False)
         bin_width = bin_edges[0][1] - bin_edges[0][0]
         peaks, _properties = find_peaks(bin_vals[0], height=min_height, distance=min_dist, width=width)
 
