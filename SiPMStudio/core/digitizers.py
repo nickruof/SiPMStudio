@@ -65,7 +65,7 @@ class CAENDT5730(Digitizer):
                 return waves_frame
             else:
                 params_frame = self.df_data.iloc[rows[0]:rows[1], :3]
-                params_frame.columns = self.parameters
+                params_frame.columns = self.parameters[:3]
                 return params_frame
         elif len(rows) == 1:
             if waves:

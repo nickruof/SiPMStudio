@@ -56,6 +56,12 @@ def collect_files(path, digitizer, data_dir="UNFILTERED"):
     return run_files, wave_files
 
 
+def list_files(path):
+    all_files = [file for file in os.listdir(path) if os.path.isfile(os.path.join(path, file))]
+    h5_files = [file for file in all_files if file.endswith(".h5")]
+    return h5_files
+
+
 def time_interval(params_data, waves_data=None):
     interval = params_data["TIMETAG"].iloc[-1] - params_data["TIMETAG"].iloc[0]
     interval = interval * 1.0e-12
@@ -201,11 +207,12 @@ def delay_times(params_data, waves_data, min_height=0.5, min_dist=50, width=0):
     all_dts = np.delete(all_dts, -1)
     return all_dts
 
+# def triggered_heights(waves_data):
 
-def heights(wave_data, min_height, min_dist, width=0):
+def heights(waves_data, min_height, min_dist, width=0):
     all_heights = []
 
-    for wave in wave_data.values:
+    for wave in waves_data.values:
         peaks, _properties = find_peaks(x=wave, height=min_height, distance=min_dist, width=width)
         if len(peaks) > 0:
             for height in wave[peaks]:

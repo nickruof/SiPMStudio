@@ -38,7 +38,7 @@ def process_data(path,
         destination = path+"/"+file
         print("Loading: "+file)
         processor.digitizer.load_data(df_data=destination)
-        chunk_idx = _get_chunks(file=destination, digitizer=processor.digitizer, chunksize=chunk)
+        chunk_idx = _get_chunks(digitizer=processor.digitizer, chunksize=chunk)
         if multiprocess:
             wait = animation.Wait(animation="elipses", text="Multiprocessing")
             with ThreadPool(NCPU) as p:
@@ -57,13 +57,13 @@ def process_data(path,
     _output_time(time.time() - start)
 
 
-def _get_chunks(file, digitizer, chunksize):
+def _get_chunks(digitizer, chunksize):
     num_chunks = 1
     if chunksize is not None:
-        num_rows = sum(1 for line in open(file))
+        num_rows = sum(1 for row in digitizer.df_data.values)
         num_chunks = math.ceil(num_rows / chunksize)
     else:
-        num_chunks = sum(1 for line in open(file))
+        num_chunks = sum(1 for row in digitizer.df_data.values)
 
     row_list = []
     for i in range(num_chunks):
@@ -86,9 +86,11 @@ def _output_to_file(data_file, output_frame, output_dir):
     new_file_name = ""
     if ("t2" in file_name) & (file_name.endswith(".h5")):
         new_file_name = file_name
+    elif ("t1" in file_name) & (file_name.endswith(".h5")):
+        new_file_name = file_name.replace("t1", "t2")
     else:
         new_file_name = "t2_"+file_name[:-4]+".h5"
-    output_frame.to_hdf(path_or_buf=output_dir+new_file_name, key="dataset", mode="w", table=True)
+    output_frame.to_hdf(path_or_buf=output_dir+"/"+new_file_name, key="dataset", mode="w", table=True)
 
 
 def _output_time(delta_seconds):

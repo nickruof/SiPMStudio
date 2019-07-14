@@ -92,11 +92,11 @@ def plot_waveforms(ax, waveforms, linewidth=0.01):
     ax.plot(times.T, waveforms.values.T, color=sns.color_palette()[0], linewidth=linewidth, alpha=0.075)
     ax.set_xlabel("Time (ns)")
     ax.set_ylabel("Voltage (V)")
-    ax.set_xlim([0, 100])
+    ax.set_xlim([20, 150])
     ax.set_ylim([np.amin(waveforms.values), np.amax(waveforms.values)])
 
 
-def pc_spectrum(ax, hist_array, n_bins=2000, log=False, density=False, labels=None):
+def pc_spectrum(ax, hist_array, n_bins=120, log=False, density=False, labels=None):
     bins = np.linspace(start=min(hist_array[-1]), stop=max(hist_array[-1]), num=n_bins)
     [n, bins, patches] = plots_base.plot_hist(ax, hist_array, bins, None, density, labels)
     plt.xlabel("ADC")

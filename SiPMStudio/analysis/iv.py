@@ -1,10 +1,7 @@
 from SiPMStudio.plots import plots_base
 
-import seaborn as sns
-
 
 def plot_iv(ax, voltage, current):
-    sns.set_style("whitegrid")
-    plots_base.line_plot(ax, voltage, current)
+    plots_base.interp_plot(ax, voltage, current, n_points=100)
     ax.set_xlabel("Bias Voltage (V)")
     ax.set_ylabel("Current (A)")

@@ -1,5 +1,6 @@
 import numpy as np
 import seaborn as sns
+from scipy.interpolate import interp1d
 sns.set_style("ticks")
 
 
@@ -47,3 +48,12 @@ def _hist_outline(heights, bin_edges):
 def line_plot(ax, x_values, y_values):
     ax.scatter(x_values, y_values)
     ax.plot(x_values, y_values)
+
+
+def interp_plot(ax, x_values, y_values, kind="cubic", n_points=None):
+    if n_points is None:
+        n_points = 100
+    interp_func = interp1d(x_values, y_values, kind=kind)
+    x_plot = np.linspace(min(x_values), max(x_values), n_points)
+    y_plot = interp_func(x_plot)
+    ax.plot(x_plot, y_plot)
