@@ -207,7 +207,10 @@ def delay_times(params_data, waves_data, min_height=0.5, min_dist=50, width=0):
     all_dts = np.delete(all_dts, -1)
     return all_dts
 
-# def triggered_heights(waves_data):
+
+def triggered_heights(waves_data, triggered_index=24):
+    return waves_data.iloc[:, triggered_index]
+
 
 def heights(waves_data, min_height, min_dist, width=0):
     all_heights = []

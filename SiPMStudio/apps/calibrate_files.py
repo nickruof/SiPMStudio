@@ -7,6 +7,7 @@ import SiPMStudio.core.digitizers as digitizers
 import SiPMStudio.io.file_settings as file_settings
 
 from SiPMStudio.analysis.dark import spectrum_peaks
+from SiPMStudio.analysis.dark import triggered_heights
 from SiPMStudio.plots.plotting import pc_spectrum
 
 import SiPMStudio.plots.plotting as sipm_plt
@@ -39,6 +40,12 @@ def locate_spectrum_peaks(hist_data, bins=500):
         else:
             break
     return peaks
+
+
+def locate_triggered_peaks(waves_data):
+    heights = triggered_heights(waves_data)
+    peak_locs = locate_spectrum_peaks(heights, 400)
+    return peak_locs
 
 
 def locate_waveform_peaks(waves_data):
@@ -111,7 +118,7 @@ def main():
     waves_data = digitizer.format_data(waves=True)
 
     pulse_charge_peaks = locate_spectrum_peaks(params_data["E_SHORT"])
-    pulse_height_peaks = locate_waveform_peaks(waves_data)
+    pulse_height_peaks = locate_triggered_peaks(waves_data)
     output_to_json(output_path, file_name, "waves", pulse_charge_peaks, pulse_height_peaks)
 
 
