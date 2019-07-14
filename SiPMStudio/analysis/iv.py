@@ -1,18 +1,10 @@
-from SiPMStudio.core.data_loading import Keithley2450
+from SiPMStudio.plots import plots_base
 
 import seaborn as sns
 
 
-def iv_curve(scope, data):
-    scope.load_data(data)
-    return scope.voltage, scope.current
-
-
-def plot_iv(current, voltage):
+def plot_iv(ax, voltage, current):
     sns.set_style("whitegrid")
-    plt.figure()
-    plt.rc('text', usetex=True)
-    plt.scatter(voltage, current)
-    plt.plot(voltage, current)
-    plt.xlabel("Bias Voltage (V)")
-    plt.ylabel("Current (Micro Amps)")
+    plots_base.line_plot(ax, voltage, current)
+    ax.set_xlabel("Bias Voltage (V)")
+    ax.set_ylabel("Current (A)")

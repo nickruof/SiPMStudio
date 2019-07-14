@@ -10,50 +10,50 @@ from scipy.optimize import curve_fit
 from scipy.signal import find_peaks
 
 from SiPMStudio.processing.functions import multi_gauss
-import SiPMStudio.plots.plots as sipm_plt
-from SiPMStudio.plots.plots import plot_delay_times
+import SiPMStudio.plots.plots_base as plots_base
+import SiPMStudio.plots.plotting as sipm_plt
 from SiPMStudio.io.file_settings import read_file
 
 warnings.filterwarnings("ignore", "PeakPropertyWarning: some peaks have a width of 0")
 
 
-def collect_files(path, data_dir="UNFILTERED"):
+def collect_files(path, digitizer, data_dir="UNFILTERED"):
     dirs_array = []
     file_array = []
     for dirpath, dirnames, filenames in os.walk(path):
         if dirnames:
             dirs_array.append(dirnames)
+
     runs = []
     waves = []
 
-    for name in dirs_array[0]:
-        if name.startswith("runs_"):
+    for name in dirs_array[1]:
+        if "runs_" in name:
             runs.append(name)
-        elif name.startswith("waves_"):
+        elif "waves_" in name:
             waves.append(name)
 
-    for run in runs:
-        data_path = path+run+"/"+data_dir
-        files = os.listdir(data_path)
-        file_targets = []
-        os.chdir(data_path)
-        for file in files:
-            if os.path.getsize(data_path+"/"+file) > 50:
-                runs.append(data_path+"/"+file)
-            else:
-                pass
-    for wave in waves:
-        data_path = path+wave+"/"+data_dir
-        files = os.listdir(data_path)
-        file_targets = []
-        os.chdir(data_path)
-        for file in files:
-            if os.path.getsize(data_path+"/"+file) > 50:
-                waves.append(data_path+"/"+file)
-            else:
-                pass
+    run_files = []
+    wave_files = []
 
-    return runs, waves
+    for run in runs:
+        data_path = path+"/DAQ/"+run+"/"+data_dir
+        files = os.listdir(data_path)
+        file_targets = []
+        os.chdir(data_path)
+        for file in files:
+            if digitizer.file_header in file:
+                run_files.append(data_path+"/"+file)
+    for wave in waves:
+        data_path = path+"/DAQ/"+wave+"/"+data_dir
+        files = os.listdir(data_path)
+        file_targets = []
+        os.chdir(data_path)
+        for file in files:
+            if digitizer.file_header in file:
+                wave_files.append(data_path+"/"+file)
+
+    return run_files, wave_files
 
 
 def time_interval(params_data, waves_data=None):
@@ -67,7 +67,7 @@ def spectrum_peaks(params_data, waves_data=None, n_bins=2000, hist_range=None, m
     bin_edges = []
     if display:
         plt.figure()
-        [bin_vals, bin_edges, _patches] = sipm_plt.plot_hist([params_data], bins=n_bins, x_range=hist_range, density=False)
+        [bin_vals, bin_edges, _patches] = plots_base.plot_hist([params_data], bins=n_bins, x_range=hist_range, density=False)
         bin_width = bin_edges[0][1] - bin_edges[0][0]
         peaks, _properties = find_peaks(bin_vals[0], height=min_height, distance=min_dist, width=width)
         print(bin_width, min_dist/bin_width)
@@ -77,7 +77,7 @@ def spectrum_peaks(params_data, waves_data=None, n_bins=2000, hist_range=None, m
         plt.yscale("log")
         plt.show()
     else:
-        [bin_vals, bin_edges, _patches] = sipm_plt.plot_hist([params_data], bins=n_bins, x_range=hist_range, density=False)
+        [bin_vals, bin_edges, _patches] = plots_base.plot_hist([params_data], bins=n_bins, x_range=hist_range, density=False)
         bin_width = bin_edges[0][1] - bin_edges[0][0]
         peaks, _properties = find_peaks(bin_vals[0], height=min_height, distance=min_dist, width=width)
 
@@ -160,7 +160,7 @@ def dark_count_rate(path, file_name, sipm, bounds=None, params_data=None, waves_
 
     if display:
         plt.figure()
-        plot_delay_times(dts=all_dts, fit=True)
+        sipm_plt.delay_times(dts=all_dts, fit=True)
         plt.show()
         plt.close()
 
