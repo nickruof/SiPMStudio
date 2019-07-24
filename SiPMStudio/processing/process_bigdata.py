@@ -2,12 +2,8 @@ import os, time
 import math
 import copy
 import tqdm
-import animation
 import pandas as pd
 import multiprocessing as mp
-
-from functools import partial
-from pathos.threading import ThreadPool
 
 
 def process_data(path,
@@ -15,15 +11,12 @@ def process_data(path,
                 processor,
                 digitizer,
                 output_dir=None,
-                overwrite=True,
                 verbose=False,
                 chunk=2000):
 
     print("Starting SiPMStudio processing ... ")
     print("Input Path: ", path)
     print("Input Files: ", data_files)
-
-    NCPU = mp.cpu_count()
 
     start = time.time()
     output_dir = os.getcwd() if output_dir is None else output_dir
@@ -32,13 +25,13 @@ def process_data(path,
 
     processor.digitizer = copy.deepcopy(digitizer)
     processor.file = path+"/"+"settings.json"
-    data_chunks = []
 
     for file in data_files:
         destination = path+"/"+file
         print("Loading: "+file)
         digitizer.load_data(df_data=destination, chunksize=chunk)
-        for i, df_chunk in enumerate(processor.digitizer.df_data):
+        num_chunks = _get_num_chunks(digitizer, chunk)
+        for i, df_chunk in enumerate(tqdm.tqdm(processor.digitizer.df_data, total=num_chunks)):
             processor.digitizer.load_data(df_chunk)
             output_df = _process_chunk(processor=processor, rows=None)
             _output_to_file(data_file=destination, output_frame=output_df, output_dir=output_dir, write_allocs=i)
@@ -47,7 +40,7 @@ def process_data(path,
     _output_time(time.time() - start)
 
 
-def _get_chunks(digitizer, chunksize):
+def _get_num_chunks(digitizer, chunksize):
     num_chunks = 1
     if chunksize is not None:
         num_rows = sum(1 for row in digitizer.df_data.to_numpy())
@@ -55,13 +48,7 @@ def _get_chunks(digitizer, chunksize):
     else:
         num_chunks = sum(1 for row in digitizer.df_data.to_numpy())
 
-    row_list = []
-    for i in range(num_chunks):
-        if (i+1)*chunksize < digitizer.df_data.shape[0]:
-            row_list.append([i*chunksize, (i+1)*chunksize])
-        else:
-            row_list.append([i*chunksize])
-    return row_list
+    return num_chunks
 
 
 def _process_chunk(rows, processor):
