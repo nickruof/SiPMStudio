@@ -3,16 +3,9 @@ import math
 import copy
 import tqdm
 import pandas as pd
-import multiprocessing as mp
 
 
-def process_data(path,
-                data_files,
-                processor,
-                digitizer,
-                output_dir=None,
-                verbose=False,
-                chunk=2000):
+def process_bigdata(path, data_files, processor, digitizer, output_dir=None, verbose=False, chunk=2000):
 
     print("Starting SiPMStudio processing ... ")
     print("Input Path: ", path)
