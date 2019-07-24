@@ -15,6 +15,7 @@ class Processor(ABC):
     def __init__(self, settings=None):
         self.file = ""
         self.proc_list = []
+        self.df_data = None
         self.digitizer = None
         self.calcs = []
         self.waves = []
@@ -59,7 +60,7 @@ class Processor(ABC):
             self.proc_list.append(
                 Transformer(getattr(pt, fun_name), self.settings[fun_name]))
         else:
-            raise TypeError("ERROR! unknown function: ", fun_name)
+            raise LookupError("ERROR! unknown function: ", fun_name)
 
 
 class ProcessorBase(ABC):

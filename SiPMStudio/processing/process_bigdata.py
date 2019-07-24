@@ -1,5 +1,6 @@
 import os, time
 import math
+import copy
 import tqdm
 import animation
 import pandas as pd
@@ -11,11 +12,10 @@ from pathos.threading import ThreadPool
 
 def process_data(path,
                 data_files,
-                processor, 
-                digitizer, 
-                output_dir=None, 
+                processor,
+                digitizer,
+                output_dir=None,
                 overwrite=True,
-                multiprocess=True, 
                 verbose=False,
                 chunk=2000):
 
@@ -30,30 +30,19 @@ def process_data(path,
 
     # Declare an output file and overwriting options here
 
-    processor.digitizer = digitizer
+    processor.digitizer = copy.deepcopy(digitizer)
     processor.file = path+"/"+"settings.json"
     data_chunks = []
 
     for file in data_files:
         destination = path+"/"+file
         print("Loading: "+file)
-        processor.digitizer.load_data(df_data=destination)
-        chunk_idx = _get_chunks(digitizer=processor.digitizer, chunksize=chunk)
-        if multiprocess:
-            wait = animation.Wait(animation="elipses", text="Multiprocessing")
-            with ThreadPool(NCPU) as p:
-                wait.start()
-                p.map(partial(_process_chunk, processor=processor), chunk_idx)
-                wait.stop()
-            _output_time(time.time()-start)
-        else:
-            print("Processing "+file)
-            for idx in tqdm.tqdm(chunk_idx, total=len(chunk_idx)):
-                _process_chunk(processor=processor, rows=idx, output_chunks=data_chunks)
-
-        output = pd.concat(data_chunks, axis=0)
+        digitizer.load_data(df_data=destination, chunksize=chunk)
+        for i, df_chunk in enumerate(processor.digitizer.df_data):
+            processor.digitizer.load_data(df_chunk)
+            output_df = _process_chunk(processor=processor, rows=None)
+            _output_to_file(data_file=destination, output_frame=output_df, output_dir=output_dir, write_allocs=i)
         processor.digitizer.clear_data()
-        _output_to_file(data_file=destination, output_frame=output, output_dir=output_dir)
 
     _output_time(time.time() - start)
 
@@ -75,12 +64,12 @@ def _get_chunks(digitizer, chunksize):
     return row_list
 
 
-def _process_chunk(rows, processor, output_chunks):
+def _process_chunk(rows, processor):
     processor.set_processor(rows=rows)
-    output_chunks.append(processor.process())
+    return processor.process()
 
 
-def _output_to_file(data_file, output_frame, output_dir):
+def _output_to_file(data_file, output_frame, output_dir, write_allocs=0):
     indices = [i for i, item in enumerate(data_file) if item == "/"]
     file_name = data_file[indices[-1]+1:]
     output_frame.columns = output_frame.columns.astype(str)
@@ -91,7 +80,12 @@ def _output_to_file(data_file, output_frame, output_dir):
         new_file_name = file_name.replace("t1", "t2")
     else:
         new_file_name = "t2_"+file_name[:-4]+".h5"
-    output_frame.to_hdf(path_or_buf=output_dir+"/"+new_file_name, key="dataset", mode="w", table=True)
+
+    if write_allocs == 0:
+        output_frame.to_hdf(path_or_buf=output_dir+"/"+new_file_name, key="dataset", mode="w", table=True)
+    else:
+        store = pd.HDFStore(output_dir+"/"+new_file_name)
+        store.append(key="dataset", value=output_frame, format="table", data_columns=True)
 
 
 def _output_time(delta_seconds):

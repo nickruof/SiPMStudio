@@ -26,7 +26,8 @@ def collect_files(path, digitizer, data_dir="UNFILTERED"):
 
     runs = []
     waves = []
-
+    if len(dirs_array[1]) == 0:
+        print("No Files Found in "+str(path))
     for name in dirs_array[1]:
         if "runs_" in name:
             runs.append(name)
@@ -143,7 +144,7 @@ def dark_count_rate(path, file_name, sipm, bounds=None, params_data=None, waves_
 
     rate = []
     all_times = []
-    for i, wave in enumerate(waves_data.values):
+    for i, wave in enumerate(waves_data.to_numpy()):
         peaks, _properties = find_peaks(x=wave, height=0.5, distance=50, width=4)
         rate.append(len(peaks) / (len(wave) * 2e-9))
         if len(peaks) > 0:
@@ -197,7 +198,7 @@ def cross_talk(path, file_name, sipm, settings_option="pc_peaks", params_data=No
 
 def delay_times(params_data, waves_data, min_height=0.5, min_dist=50, width=0):
     all_times = []
-    for i, wave in enumerate(waves_data.values):
+    for i, wave in enumerate(waves_data.to_numpy()):
         peaks, _properties = find_peaks(x=wave, height=min_height, distance=min_dist, width=width)
         if len(peaks) > 0:
             times = np.add(params_data.iloc[i, 0]*10**-3, 2*peaks)
@@ -215,7 +216,7 @@ def triggered_heights(waves_data, triggered_index=24):
 def heights(waves_data, min_height, min_dist, width=0):
     all_heights = []
 
-    for wave in waves_data.values:
+    for wave in waves_data.to_numpy():
         peaks, _properties = find_peaks(x=wave, height=min_height, distance=min_dist, width=width)
         if len(peaks) > 0:
             for height in wave[peaks]:
@@ -233,7 +234,7 @@ def delay_time_vs_height(params_data, wave_data, min_height, min_dist, width=0):
     for i, wave in wave_data.iterrows():
         peaks, _properties = find_peaks(x=wave, height=min_height, distance=min_dist, width=width)
         times = np.add(params_data.iloc[i, 0]*10**-3, 2*peaks)
-        peak_heights = wave_data.iloc[i, :].values[peaks]
+        peak_heights = wave_data.iloc[i, :].to_numpy()[peaks]
         all_times = np.append(all_times, [times])
         all_heights = np.append(all_heights, [peak_heights])
     if len(all_times) == 0 or len(all_heights) == 0:

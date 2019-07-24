@@ -6,12 +6,16 @@ import matplotlib.pyplot as plt
 import SiPMStudio.core.digitizers as digitizers
 import SiPMStudio.io.file_settings as file_settings
 
+from SiPMStudio.processing.transforms import normalize_waves
+from SiPMStudio.processing.processor import Processor
+from SiPMStudio.processing.process_data import process_data
+
+import SiPMStudio.analysis.dark as sith
 from SiPMStudio.analysis.dark import spectrum_peaks
 from SiPMStudio.analysis.dark import triggered_heights
-from SiPMStudio.plots.plotting import pc_spectrum
 
+from SiPMStudio.plots.plotting import pc_spectrum
 import SiPMStudio.plots.plotting as sipm_plt
-import SiPMStudio.analysis.dark as sith
 
 
 def locate_spectrum_peaks(hist_data, bins=500):
@@ -100,14 +104,13 @@ def output_to_json(output_dir, file_name, file_type="waves", pc_peaks=None, ph_p
 def main():
     file_name = ""
     output_path = ""
+
     if len(sys.argv) == 3:
         file_name = sys.argv[1]
         output_path = sys.argv[2]
-    elif len(sys.argv) ==2:
-        input_option = str(sys.argv[1])
-        index = input_option.rfind("/")
-        output_path = input_option[:index]
-        file_name = input_option[index+1:]
+    elif len(sys.argv) == 2:
+        file_name = sys.argv(1)
+        output_path = os.getcwd()
     else:
         print("Specify <file_name> <output_path>(optional)!")
 
@@ -119,7 +122,12 @@ def main():
 
     pulse_charge_peaks = locate_spectrum_peaks(params_data["E_SHORT"])
     pulse_height_peaks = locate_triggered_peaks(waves_data)
-    output_to_json(output_path, file_name, "waves", pulse_charge_peaks, pulse_height_peaks)
+
+    norm_proc = Processor()
+    norm_proc.add("normalize_waves", {"peak_locs": pulse_height_peaks})
+    input_path = str(sys.argv[1])
+    process_data(path, [file_name], norm_proc, digitizer, output_dir=output_path, multiprocess=False)
+    # output_to_json(output_path, file_name, "waves", pulse_charge_peaks, pulse_height_peaks)
 
 
 if __name__ == "__main__":
