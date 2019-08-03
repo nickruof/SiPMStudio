@@ -3,16 +3,17 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import os
 import warnings
+import pickle as pk
 
 from scipy.sparse import diags
 from scipy.stats import expon
 from scipy.optimize import curve_fit
 from scipy.signal import find_peaks
 
+from SiPMStudio.processing.functions import gaussian
 from SiPMStudio.processing.functions import multi_gauss
 import SiPMStudio.plots.plots_base as plots_base
 import SiPMStudio.plots.plotting as sipm_plt
-from SiPMStudio.io.file_settings import read_file
 
 warnings.filterwarnings("ignore", "PeakPropertyWarning: some peaks have a width of 0")
 
@@ -69,7 +70,10 @@ def time_interval(params_data, waves_data=None):
     return interval
 
 
-def spectrum_peaks(params_data, waves_data=None, n_bins=2000, hist_range=None, min_dist=0.0, min_height=0.0, width=0.0, display=False):
+def spectrum_peaks(params_data, waves_data=None, n_bins=500, hist_range=None, min_dist=0.0, min_height=0.0, width=0.0, display=False):
+
+    # TODO: Find better way to quantify min_dist and min_height guesses
+
     peaks = []
     bin_edges = []
     if display:
@@ -80,7 +84,16 @@ def spectrum_peaks(params_data, waves_data=None, n_bins=2000, hist_range=None, m
         print(bin_width, min_dist/bin_width)
         print(str(len(peaks)) + " peaks found!")
         bin_centers = (bin_edges[0][:-1]+bin_edges[0][1:])/2
-        ax.plot(bin_centers[peaks], bin_vals[0][peaks], "+r")
+        gauss_mus = []
+        gauss_amps = []
+        for peak in peaks:
+            x_region = bin_centers[0][peak-3:peak+3]
+            y_region = bin_vals[0][peak-3:peak+3]
+            coeffs, covs = curve_fit(gaussian, x_region, y_region, [bin_centers[peak], 10, bin_vals[0][peak]])
+            gauss_mus.append(coeffs[0])
+            gauss_amps.append(coeffs[2])
+
+        ax.plot(gauss_mus, gauss_amps, "+r")
         ax.set_yscale("log")
         fig.show()
     else:
@@ -125,15 +138,14 @@ def fit_multi_gauss(params_data, waves_data=None, min_dist=0.0, min_height=0.0, 
     return popt
 
 
-def gain(digitizer, path, file_name, sipm, sum_len=1, settings_option="peaks", params_data=None, waves_data=None):
-    diffs = []
-    gain_average = 1
-    peaks = np.array(read_file(path, file_name, file_type="runs")[settings_option])
-    for i in range(len(peaks)-1):
-        diffs.append(peaks[i+1]-peaks[i])
-    gain_average = sum(diffs[0:sum_len]) / float(len(diffs[0:sum_len]))
+def gain(digitizer, sipm, pickled_peaks, params_data=None, waves_data=None):
+    pc_peaks = []
+    with open(pickled_peaks, "rb") as pickle_file:
+        pc_peaks = pk.load(pickle_file)
+    diffs = pc_peaks[1:] - pc_peaks[:-1]
+    gain_average = np.mean(diffs)
     sipm.gain.append(gain_average)
-    gain_magnitude = gain_average * digitizer.e_cal/1.6e-19
+    gain_magnitude = gain_average * 1000/1.6e-19
     sipm.gain_magnitude.append(gain_magnitude)    
     return gain_average, gain_magnitude
 
@@ -178,25 +190,17 @@ def excess_charge_factor(sipm, params_data=None, waves_data=None):
     return np.divide(sipm.pulse_rate, sipm.dcr_fit)
 
 
-def cross_talk(path, file_name, sipm, settings_option="pc_peaks", params_data=None, waves_data=None):
-
-    # TODO: prevent dependency on CoMPASS output variables
-
-    peaks = np.array(read_file(path, file_name, file_type="waves")[settings_option])
-    energy_data = params_data["E_SHORT"]
+def cross_talk(sipm, label, params_data=None, waves_data=None):
+    energy_data = params_data[label]
     counts = pd.Series(data=[1]*energy_data.shape[0])
-    half_pe = peaks[0] - sipm.gain[-1]/2
-    one_half_pe = peaks[1] - sipm.gain[-1]/2
-    # bins = list(range(int(max(params_data["E_SHORT"]))))
-    # bin_vals, _bin_edges = np.histogram(params_data["E_SHORT"], bins=bins)
-    total_counts1 = counts[energy_data >= half_pe].sum()
-    total_counts2 = counts[energy_data >= one_half_pe].sum()
+    total_counts1 = counts[energy_data >= 0.5].sum()
+    total_counts2 = counts[energy_data >= 1.0].sum()
     prob = total_counts2 / total_counts1
     sipm.cross_talk.append(prob)
     return prob
 
 
-def delay_times(params_data, waves_data, min_height=0.5, min_dist=50, width=0):
+def delay_times(params_data, waves_data, min_height=0.5, min_dist=50, width=4):
     all_times = []
     for i, wave in enumerate(waves_data.to_numpy()):
         peaks, _properties = find_peaks(x=wave, height=min_height, distance=min_dist, width=width)
@@ -226,12 +230,12 @@ def heights(waves_data, min_height, min_dist, width=0):
     return all_heights
 
 
-def delay_time_vs_height(params_data, wave_data, min_height, min_dist, width=0):
+def delay_time_vs_height(params_data, waves_data, min_height, min_dist, width=0):
     all_dts = []
     all_heights = []
     all_times = []
 
-    for i, wave in wave_data.iterrows():
+    for i, wave in enumerate(waves_data.to_numpy()):
         peaks, _properties = find_peaks(x=wave, height=min_height, distance=min_dist, width=width)
         times = np.add(params_data.iloc[i, 0]*10**-3, 2*peaks)
         peak_heights = wave_data.iloc[i, :].to_numpy()[peaks]

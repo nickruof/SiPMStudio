@@ -3,6 +3,5 @@ scipy
 matplotlib
 seaborn
 pandas
-pywt
 statsmodels
-construct
+tqdm

@@ -9,9 +9,6 @@ class Digitizer(DataLoader):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-    def __deepcopy__(self):
-        pass
-
     def format_data(self, waves=False, rows=None):
         pass
 
@@ -47,9 +44,6 @@ class CAENDT5730(Digitizer):
             "waveform": []
         }
         super().__init__(*args, **kwargs)
-
-    def __deepcopy__(self):
-        return CAENDT5730()
 
     def initialize_data(self):
         if self.df_data is not None:

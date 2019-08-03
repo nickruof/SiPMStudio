@@ -7,8 +7,6 @@ from scipy.signal import filtfilt
 from statsmodels.robust import mad
 
 from SiPMStudio.processing.functions import butter_bandpass
-from SiPMStudio.io.file_settings import read_file
-
 # TODO: come up with way to store waveform timing information and check DataFrame initialisation speed
 
 
