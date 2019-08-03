@@ -4,9 +4,12 @@ import numpy as np
 
 def process_metadata(metadata_files, digitizer, output_dir=None, verbose=False):
 
-    if verbose:
-        print("Processing Metadata! ...")
-        print("Number of Files to Process: "+str(len(metadata_files)))
+    # TODO: make more memory efficient to reduce python application memory size
+
+    print("Processing Metadata! ...")
+    print("Number of Files to Process: "+str(len(metadata_files)))
+    output_dir = os.getcwd() if output_dir is None else output_dir
+    print("Output Path: ", output_dir)
 
     for file_name in tqdm.tqdm(metadata_files, total=len(metadata_files)):
         event_rows = []

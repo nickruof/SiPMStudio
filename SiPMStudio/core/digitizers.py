@@ -120,7 +120,7 @@ class CAENDT5730(Digitizer):
         return [timestamp, energy, energy_short, flags], waveform
 
     def create_dataframe(self, array):
-        waveform_labels = [str(item) for item in list(range(self.decoded_values["num_samples"]-1))]
+        waveform_labels = [str(item) for item in list(range(self.decoded_values["num_samples"]))]
         column_labels = self.parameters + waveform_labels
         dataframe = pd.DataFrame(data=array, columns=column_labels, dtype=float)
         return dataframe
