@@ -31,7 +31,7 @@ def process_data(path, data_files, processor, digitizer, overwrite=False, output
         print("Processing: "+file)
         store = pd.HDFStore(destination)
         num_rows = store.get_storer("dataset").shape[0]
-        df_storage = pd.DataFrame()
+        df_storage = []
         for i in tqdm.tqdm(range(num_rows//chunk + 1)):
             df_chunk = store.select("dataset", start=i*chunk, stop=(i+1)*chunk)
             processor.digitizer.load_data(df_chunk)
@@ -52,20 +52,25 @@ def _process_chunk(processor, rows=None):
     return processor.process()
 
 
-def _output_chunk(data_file, chunk_frame, output_frame, output_dir, read_write, prefix="t2"):
+def _output_chunk(data_file, chunk_frame, storage, output_dir, read_write, prefix="t2"):
     if read_write[1] == 1:
         _output_to_file(data_file, chunk_frame, output_dir, prefix)
     else:
-        if output_frame.shape[0] >= read_write[0]*read_write[1]:
-            _output_to_file(data_file, output_frame, output_dir, prefix)
-            output_frame = output_frame.iloc[0:0]
+        if len(storage) >= read_write[1]:
+            _output_to_file(data_file, storage, output_dir, prefix)
+            storage.clear()
         else:
-            output_frame.append(chunk_frame)
+            storage.append(chunk_frame)
 
 
-def _output_to_file(data_file, output_frame, output_dir, prefix="t2"):
+def _output_to_file(data_file, storage, output_dir, prefix="t2"):
     indices = [i for i, item in enumerate(data_file) if item == "/"]
     file_name = data_file[indices[-1]+1:]
+    output_frame = None
+    if isinstance(storage, list):
+        output_frame = pd.concat(storage)
+    else:
+        output_frame = storage
     output_frame.columns = output_frame.columns.astype(str)
     new_file_name = ""
     if (prefix in file_name) & (file_name.endswith(".h5")):
