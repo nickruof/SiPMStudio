@@ -87,6 +87,33 @@ def waveform_plots(waveforms, get_peaks=False, min_dist=None, min_height=None, w
         plt.plot(peak_times, peak_heights, "r+")
 
 
+def height_scan(waveforms, bins):
+    index_number = 0
+
+    def key_event(event, figure, axes):
+        nonlocal index_number
+
+        if event.key == "right":
+            index_number = index_number + 1
+        elif event.key == "left":
+            index_number = index_number - 1
+            if index_number < 0:
+                index_number = 0
+        else:
+            return
+        plt.clf()
+        plots_base.plot_hist(axes, [waveforms.iloc[:, index_number]], bins=bins)
+        axes.set_xlabel("Waveform Number")
+        axes.set_title("Waveform Index: "+str(index_number))
+        figure.canvas.draw()
+
+    fig, ax = plt.subplots()
+    fig.canvas.mpl_connect("key_press_event", partial(key_event, figure=fig, axes=ax))
+    plots_base.plot_hist(ax, [waveforms.iloc[:, 0]], bins=bins)
+    ax.set_xlabel("Waveform Number")
+    ax.set_title("Waveform Index: " + str(index_number))
+
+
 def plot_waveforms(ax, waveforms, linewidth=0.01):
     times = np.repeat([range(0, 2*waveforms.shape[1], 2)], waveforms.shape[0], axis=0)
     ax.plot(times.T, waveforms.values.T, color=sns.color_palette()[0], linewidth=linewidth, alpha=0.075)

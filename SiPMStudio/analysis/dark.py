@@ -87,8 +87,14 @@ def spectrum_peaks(params_data, waves_data=None, n_bins=500, hist_range=None, mi
         gauss_mus = []
         gauss_amps = []
         for peak in peaks:
-            x_region = bin_centers[0][peak-3:peak+3]
-            y_region = bin_vals[0][peak-3:peak+3]
+            start = peak - 3
+            stop = peak + 3
+            if start < 0:
+                start = 0
+            if stop > len(bin_centers) - 1:
+                stop = len(bin_centers) - 1
+            x_region = bin_centers[start:stop]
+            y_region = bin_vals[0][start:stop]
             coeffs, covs = curve_fit(gaussian, x_region, y_region, [bin_centers[peak], 10, bin_vals[0][peak]])
             gauss_mus.append(coeffs[0])
             gauss_amps.append(coeffs[2])

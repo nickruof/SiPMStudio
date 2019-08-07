@@ -36,7 +36,7 @@ def process_data(path, data_files, processor, digitizer, overwrite=False, output
             df_chunk = store.select("dataset", start=i*chunk, stop=(i+1)*chunk)
             processor.digitizer.load_data(df_chunk)
             output_df = _process_chunk(processor=processor)
-            _output_chunk(destination, output_df, df_storage, output_dir, [chunk, write_size])
+            _output_chunk(destination, output_df, df_storage, output_dir, write_size)
         processor.digitizer.clear_data()
         digitizer.clear_data()
         store.close()
@@ -52,11 +52,11 @@ def _process_chunk(processor, rows=None):
     return processor.process()
 
 
-def _output_chunk(data_file, chunk_frame, storage, output_dir, read_write, prefix="t2"):
-    if read_write[1] == 1:
+def _output_chunk(data_file, chunk_frame, storage, output_dir, write_size, prefix="t2"):
+    if write_size == 1:
         _output_to_file(data_file, chunk_frame, output_dir, prefix)
     else:
-        if len(storage) >= read_write[1]:
+        if len(storage) >= write_size:
             _output_to_file(data_file, storage, output_dir, prefix)
             storage.clear()
         else:
@@ -109,3 +109,4 @@ def _output_time(delta_seconds):
     seconds = round(temp_seconds, 1)
     print(" ")
     print("Time elapsed: "+str(hours)+"h "+str(minutes)+"m "+str(seconds)+"s ")
+    print(" ")

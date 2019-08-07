@@ -2,6 +2,7 @@ import os
 import sys
 import numpy as np
 import matplotlib.pyplot as plt
+import pickle as pk
 
 import SiPMStudio.core.digitizers as digitizers
 import SiPMStudio.io.file_settings as file_settings
@@ -17,7 +18,7 @@ from SiPMStudio.plots.plotting import pc_spectrum
 import SiPMStudio.plots.plotting as sipm_plt
 
 
-def locate_spectrum_peaks(hist_data, bin_width):
+def locate_spectrum_peaks(hist_data, bin_width=1.0, file_name=None, output_path=None):
     bins = int(round(max(hist_data) / bin_width))
     fig, ax = plt.subplots()
     [n_hist, bin_edges] = pc_spectrum(ax, hist_array=[hist_data], n_bins=bins, log=True)
@@ -43,12 +44,18 @@ def locate_spectrum_peaks(hist_data, bin_width):
             retry = False
         else:
             break
+        if (file_name is not None) & (output_path is not None):
+            pk.dump(peaks, open(output_path+"/"+file_name[-3]+"heights.pk", "wb"))
     return peaks
 
 
-def locate_triggered_peaks(waves_data):
-    heights = triggered_heights(waves_data)
-    peak_locs = locate_spectrum_peaks(heights, 0.1)
+def locate_triggered_peaks(waves_data, bin_width=0.1):
+    bins = int(round(max(hist_data) / bin_width))
+    sipm_plt.height_scan(waves_data.iloc[:, 0:100], bins)
+    plt.show()
+    index = int(input("Input a trigger index location: "))
+    heights = triggered_heights(waves_data, index)
+    peak_locs = locate_spectrum_peaks(heights, bin_width)
     return peak_locs
 
 
@@ -123,13 +130,13 @@ def main():
     params_data = digitizer.format_data(waves=False)
     waves_data = digitizer.format_data(waves=True)
 
-    pulse_charge_peaks = locate_spectrum_peaks(params_data["ENERGY"], 1)
-    # pulse_height_peaks = locate_triggered_peaks(waves_data)
+    pulse_charge_peaks = locate_spectrum_peaks(params_data["ENERGY"], 1, file_name, output_path)
+    pulse_height_peaks = locate_triggered_peaks(waves_data)
 
     norm_proc = Processor()
     norm_proc.add("normalize_energy", {"pc_peaks": pulse_charge_peaks, "label": "ENERGY"})
-    # norm_proc.add("normalize_waves", {"peak_locs": pulse_height_peaks})
-    process_data(input_path, [file_name], norm_proc, digitizer, output_dir=output_path, multiprocess=False)
+    norm_proc.add("normalize_waves", {"peak_locs": pulse_height_peaks})
+    process_data(input_path, [file_name], norm_proc, digitizer, output_dir=output_path)
     # output_to_json(output_path, file_name, "waves", pulse_charge_peaks, pulse_height_peaks)
 
 
