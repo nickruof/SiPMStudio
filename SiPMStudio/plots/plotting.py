@@ -116,11 +116,11 @@ def height_scan(waveforms, bins):
 
 def plot_waveforms(ax, waveforms, linewidth=0.01):
     times = np.repeat([range(0, 2*waveforms.shape[1], 2)], waveforms.shape[0], axis=0)
-    ax.plot(times.T, waveforms.values.T, color=sns.color_palette()[0], linewidth=linewidth, alpha=0.075)
+    ax.plot(times.T, waveforms.to_numpy().T, color=sns.color_palette()[0], linewidth=linewidth, alpha=0.075)
     ax.set_xlabel("Time (ns)")
     ax.set_ylabel("Voltage (V)")
     ax.set_xlim([20, 150])
-    ax.set_ylim([np.amin(waveforms.values), np.amax(waveforms.values)])
+    ax.set_ylim([np.amin(waveforms.to_numpy()), np.amax(waveforms.to_numpy())])
 
 
 def pc_spectrum(ax, hist_array, n_bins=120, log=False, density=False, labels=None):

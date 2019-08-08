@@ -17,8 +17,10 @@ def process_data(path, data_files, processor, digitizer, overwrite=False, output
         file_sizes.append(str(memory_size)+" MB")
     print("File Sizes: ", file_sizes)
     if overwrite is True:
-        for file_name in _list_files(output_dir):
-            os.remove(output_dir+"/"+file_name)
+        for file_name in data_files:
+            destination = output_dir+"/"+file_name.replace("t1", "t2")
+            if os.path.isfile(destination):
+                os.remove(destination)
 
     digitizer_type = digitizer.__class__
     processor.digitizer = digitizer_type()
@@ -43,7 +45,7 @@ def process_data(path, data_files, processor, digitizer, overwrite=False, output
 
     print("Processing Finished! ...")
     print("Output Path: ", output_dir)
-    print("Output Files: ", _list_files(output_dir))
+    print("Output Files: ", [file.replace("t1", "t2") for file in data_files])
     _output_time(time.time() - start)
 
 

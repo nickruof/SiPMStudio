@@ -1,6 +1,7 @@
 import os
 import sys
 import numpy as np
+import pandas as pd
 import matplotlib.pyplot as plt
 import pickle as pk
 
@@ -22,8 +23,7 @@ def locate_spectrum_peaks(hist_data, bin_width=1.0, file_name=None, output_path=
     bins = int(round(max(hist_data) / bin_width))
     fig, ax = plt.subplots()
     [n_hist, bin_edges] = pc_spectrum(ax, hist_array=[hist_data], n_bins=bins, log=True)
-    fig.show()
-    plt.close(fig)
+    plt.show()
 
     retry = True
     peaks = []
@@ -32,26 +32,30 @@ def locate_spectrum_peaks(hist_data, bin_width=1.0, file_name=None, output_path=
         min_height = float(input("guess minimum peak height "))
         peaks = spectrum_peaks(params_data=hist_data, n_bins=bins,
                                min_dist=min_distance, min_height=min_height, display=True)
-        remove_peaks = input("Remove Peaks? y/n ")
-        if remove_peaks == "y":
-            what_peaks = input("Input peaks to delete! ")
-            peak_nums = [int(num) for num in what_peaks.split(" ")]
-            peaks = np.delete(peaks, peak_nums)
         again = input("do it again! y/n ")
         if again == "y":
             retry = True
         elif again == "n":
             retry = False
+            peaks = spectrum_peaks(params_data=hist_data, n_bins=bins,
+                                   min_dist=min_distance, min_height=min_height, display=True, fit_peaks=True)
+            remove_peaks = input("Remove Peaks? y/n ")
+            if remove_peaks == "y":
+                what_peaks = input("Input peaks to delete! ")
+                peak_nums = [int(num) for num in what_peaks.split(" ")]
+                peaks = np.delete(peaks, peak_nums)
         else:
             break
-        if (file_name is not None) & (output_path is not None):
-            pk.dump(peaks, open(output_path+"/"+file_name[-3]+"heights.pk", "wb"))
+    if (file_name is not None) and (output_path is not None):
+        pk.dump(peaks, open(output_path+"/"+file_name[:-3]+"_heights.pk", "wb"))
     return peaks
 
 
 def locate_triggered_peaks(waves_data, bin_width=0.1):
-    bins = int(round(max(hist_data) / bin_width))
-    sipm_plt.height_scan(waves_data.iloc[:, 0:100], bins)
+    maximum_value = max(map(max, waves_data.to_numpy()))
+    bins = int(round(maximum_value / bin_width))
+    fig, ax = plt.subplots()
+    sipm_plt.plot_waveforms(ax, waves_data.iloc[:, 0:100])
     plt.show()
     index = int(input("Input a trigger index location: "))
     heights = triggered_heights(waves_data, index)
@@ -134,9 +138,13 @@ def main():
     pulse_height_peaks = locate_triggered_peaks(waves_data)
 
     norm_proc = Processor()
-    norm_proc.add("normalize_energy", {"pc_peaks": pulse_charge_peaks, "label": "ENERGY"})
-    norm_proc.add("normalize_waves", {"peak_locs": pulse_height_peaks})
-    process_data(input_path, [file_name], norm_proc, digitizer, output_dir=output_path)
+    norm_proc.add(fun_name="baseline_subtract", settings={})
+    norm_proc.add(fun_name="savgol", settings={"window": 15, "order": 2})
+    norm_proc.add(fun_name="normalize_energy", settings={"pc_peaks": pulse_charge_peaks, "label": "ENERGY"})
+    norm_proc.add(fun_name="normalize_waves", settings={"peak_locs": pulse_height_peaks})
+    t1_file = file_name.replace("t2", "t1")
+    t1_path = input_path.replace("t2", "t1")
+    process_data(t1_path, [t1_file], norm_proc, digitizer, output_dir=output_path, overwrite=True, write_size=5)
     # output_to_json(output_path, file_name, "waves", pulse_charge_peaks, pulse_height_peaks)
 
 

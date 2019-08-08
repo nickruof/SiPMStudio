@@ -52,8 +52,7 @@ def moving_average(waves_data, box_size=20):
     return pd.DataFrame(data=smooth_waves, index=waves_data.index, columns=waves_data.columns)
 
 
-def normalize_waves(waves_data, peak_locs):  # path, file_name, settings_option="ph_peaks"):
-    # peak_locs = np.array(read_file(path, file_name, file_type="waves")[settings_option])
+def normalize_waves(waves_data, peak_locs):
     diffs = peak_locs[1:] - peak_locs[:-1]
     average_diff = np.mean(diffs)
     norm_data = waves_data.to_numpy() - peak_locs[0]

@@ -19,7 +19,7 @@ class DataLoader(ABC):
             elif df_data.endswith(".h5"):
                 self.df_data = pd.read_hdf(df_data, key="dataset", chunksize=chunksize)
             else:
-                raise IOError("File Type Not Found!")
+                raise FileNotFoundError("File Type Not Found!")
 
         elif df_data is None:
             pass
