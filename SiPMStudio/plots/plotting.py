@@ -151,18 +151,18 @@ def gain(ax, sipm, lin_fit=False):
     ax.set_ylabel("Gain")
 
     if lin_fit:
-        (slope, intercept, _rvalue, _pvalue, _stderr) = linregress(x=sipm.bias, y=sipm.gain)
+        (slope, intercept, _rvalue, _pvalue, _stderr) = linregress(x=sipm.bias, y=sipm.gain_magnitude)
         x = np.linspace(sipm.bias[0], sipm.bias[-1], 100)
         y = np.multiply(slope, x)
         y = np.add(y, intercept)
         ax.plot(x, y, "r")
-        ax.legend(["Breakdown Voltage: " + str(round(intercept, 1)) + " V"])
+        ax.legend(["Breakdown Voltage: " + str(round(-intercept/slope, 1)) + " V"])
 
 
 def dcr(ax, sipm):
-    plots_base.line_plot(ax, sipm.bias, sipm.dark_rate)
+    plots_base.line_plot(ax, sipm.bias, sipm.dcr_fit)
     ax.set_xlabel("Bias Voltage (V)")
-    ax.set_ylabel("Dark Count Rate")
+    ax.set_ylabel("Dark Count Rate (Hz)")
 
 
 def cross_talk(ax, sipm):

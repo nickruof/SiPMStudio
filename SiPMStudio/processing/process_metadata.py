@@ -1,5 +1,8 @@
+import time
 import tqdm
 import numpy as np
+
+from SiPMStudio.processing.process_data import _output_time
 
 
 def process_metadata(metadata_files, digitizer, output_dir=None, verbose=False):
@@ -10,6 +13,8 @@ def process_metadata(metadata_files, digitizer, output_dir=None, verbose=False):
     print("Number of Files to Process: "+str(len(metadata_files)))
     output_dir = os.getcwd() if output_dir is None else output_dir
     print("Output Path: ", output_dir)
+
+    start = time.time()
 
     for file_name in tqdm.tqdm(metadata_files, total=len(metadata_files)):
         event_rows = []
@@ -25,6 +30,8 @@ def process_metadata(metadata_files, digitizer, output_dir=None, verbose=False):
         all_data = np.concatenate((event_rows, waveform_rows), axis=1)
         output_dataframe = digitizer.create_dataframe(all_data)
         _output_to_file(file_name, output_dir, output_dataframe, digitizer)
+
+    _output_time(time.time() - start)
 
 
 def _output_to_file(data_file, output_path, input_dataframe, digitizer):

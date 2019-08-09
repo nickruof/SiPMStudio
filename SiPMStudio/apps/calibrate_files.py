@@ -52,7 +52,7 @@ def locate_spectrum_peaks(hist_data, bin_width=1.0, file_name=None, output_path=
 
 
 def locate_triggered_peaks(waves_data, bin_width=0.1):
-    maximum_value = max(map(max, waves_data.to_numpy()))
+    maximum_value = 3000
     bins = int(round(maximum_value / bin_width))
     fig, ax = plt.subplots()
     sipm_plt.plot_waveforms(ax, waves_data.iloc[:, 0:100])

@@ -150,9 +150,9 @@ def fit_multi_gauss(params_data, waves_data=None, min_dist=0.0, min_height=0.0, 
     return popt
 
 
-def gain(digitizer, sipm, pickled_peaks, params_data=None, waves_data=None):
+def gain(digitizer, sipm, file_name, params_data=None, waves_data=None):
     pc_peaks = []
-    with open(pickled_peaks, "rb") as pickle_file:
+    with open(file_name, "rb") as pickle_file:
         pc_peaks = pk.load(pickle_file)
     diffs = pc_peaks[1:] - pc_peaks[:-1]
     gain_average = np.mean(diffs)
@@ -162,7 +162,7 @@ def gain(digitizer, sipm, pickled_peaks, params_data=None, waves_data=None):
     return gain_average, gain_magnitude
 
 
-def dark_count_rate(path, file_name, sipm, bounds=None, params_data=None, waves_data=None, display=False):
+def dark_count_rate(sipm, bounds=None, params_data=None, waves_data=None, display=False):
 
     # TODO: Replace hard coded sampling rate of CAENDT5730 with something more generic
 
@@ -203,10 +203,10 @@ def excess_charge_factor(sipm, params_data=None, waves_data=None):
 
 
 def cross_talk(sipm, label, params_data=None, waves_data=None):
-    energy_data = params_data[label]
-    counts = pd.Series(data=[1]*energy_data.shape[0])
-    total_counts1 = counts[energy_data >= 0.5].sum()
-    total_counts2 = counts[energy_data >= 1.0].sum()
+    energy_data = params_data[label].to_numpy()
+    counts = np.array(list([1]*params_data.shape[0]))
+    total_counts1 = np.sum(counts[energy_data >= 0.5])
+    total_counts2 = np.sum(counts[energy_data >= 1.0])
     prob = total_counts2 / total_counts1
     sipm.cross_talk.append(prob)
     return prob
