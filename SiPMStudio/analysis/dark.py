@@ -27,8 +27,10 @@ def collect_files(path, digitizer, data_dir="UNFILTERED"):
 
     runs = []
     waves = []
-    if len(dirs_array[1]) == 0:
-        print("No Files Found in "+str(path))
+    if len(dirs_array) == 0:
+        raise LookupError("No Directories Found!")
+    elif len(dirs_array[1]) == 0:
+        raise FileNotFoundError("No Files Found in the Directory!")
     for name in dirs_array[1]:
         if "runs_" in name:
             runs.append(name)

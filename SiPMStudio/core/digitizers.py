@@ -96,19 +96,19 @@ class CAENDT5730(Digitizer):
 
     def get_event_size(self, t0_file):
         with open(t0_file, "rb") as file:
-            first_event = file.read(30)
-            [num_samples] = np.frombuffer(first_event[26:30], dtype=np.uint32)
-        return 30 + 2 * num_samples  # number of bytes / 2
+            first_event = file.read(24)
+            [num_samples] = np.frombuffer(first_event[20:24], dtype=np.uint32)
+        return 24 + 2 * num_samples  # number of bytes / 2
 
     def get_event(self, event_data_bytes):
         self.decoded_values["board"] = np.frombuffer(event_data_bytes[0:2], dtype=np.uint16)[0]
         self.decoded_values["channel"] = np.frombuffer(event_data_bytes[2:4], dtype=np.uint16)[0]
         self.decoded_values["timestamp"] = np.frombuffer(event_data_bytes[4:12], dtype=np.uint64)[0]
-        self.decoded_values["energy"] = np.frombuffer(event_data_bytes[12:20], dtype=np.float64)[0]
-        self.decoded_values["energy_short"] = np.frombuffer(event_data_bytes[20:22], dtype=np.uint16)[0]
-        self.decoded_values["flags"] = np.frombuffer(event_data_bytes[22:26], np.uint32)[0]
-        self.decoded_values["num_samples"] = np.frombuffer(event_data_bytes[26:30], dtype=np.uint32)[0]
-        self.decoded_values["waveform"] = np.frombuffer(event_data_bytes[30:], dtype=np.uint16)
+        self.decoded_values["energy"] = np.frombuffer(event_data_bytes[12:14], dtype=np.uint16)[0]
+        self.decoded_values["energy_short"] = np.frombuffer(event_data_bytes[14:16], dtype=np.uint16)[0]
+        self.decoded_values["flags"] = np.frombuffer(event_data_bytes[16:20], np.uint32)[0]
+        self.decoded_values["num_samples"] = np.frombuffer(event_data_bytes[20:24], dtype=np.uint32)[0]
+        self.decoded_values["waveform"] = np.frombuffer(event_data_bytes[24:], dtype=np.uint16)
         return self._assemble_data_row()
 
     def _assemble_data_row(self):
