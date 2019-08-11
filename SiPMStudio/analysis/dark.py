@@ -174,23 +174,24 @@ def dark_count_rate(sipm, bounds=None, params_data=None, waves_data=None, displa
         peaks, _properties = find_peaks(x=wave, height=0.8, distance=30, width=10)
         rate.append(len(peaks) / (len(wave) * 2e-9))
         if len(peaks) >= 2:
-            time = 2 * (peaks[1] - peaks[2])
+            time = 2 * (peaks[1] - peaks[0])
             all_dts.append(time)
 
     # pulse_rate
-    average_pulse_rate = sum(rate) / len(rate)
+    average_pulse_rate = np.mean(rate)
     sipm.pulse_rate.append(average_pulse_rate)
 
     # exponential fit to delay time histogram
     if bounds is None:
         bounds = [0, 1e5]
+    all_dts = np.array(all_dts)
     dts_fit = all_dts[(all_dts > bounds[0]) & (all_dts < bounds[1])]
     exp_fit = expon.fit(dts_fit)
     sipm.dcr_fit.append(1/(exp_fit[1]*1e-9))
 
     if display:
-        plt.figure()
-        sipm_plt.delay_times(dts=all_dts, fit=True)
+        fig, ax = plt.subplots()
+        sipm_plt.delay_times(ax, dts=all_dts, fit=True)
         plt.show()
         plt.close()
 
