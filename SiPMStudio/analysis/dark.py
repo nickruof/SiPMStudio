@@ -169,22 +169,19 @@ def dark_count_rate(sipm, bounds=None, params_data=None, waves_data=None, displa
     # TODO: Replace hard coded sampling rate of CAENDT5730 with something more generic
 
     rate = []
-    all_times = []
+    all_dts = []
     for i, wave in enumerate(waves_data.to_numpy()):
         peaks, _properties = find_peaks(x=wave, height=0.8, distance=30, width=10)
         rate.append(len(peaks) / (len(wave) * 2e-9))
-        if len(peaks) > 0:
-            times = map(lambda x: 2*x + params_data.iloc[i, 0]*10**-3, peaks)
-            all_times = all_times + list(times)
+        if len(peaks) >= 2:
+            time = 2 * (peaks[1] - peaks[2])
+            all_dts.append(time)
 
     # pulse_rate
     average_pulse_rate = sum(rate) / len(rate)
     sipm.pulse_rate.append(average_pulse_rate)
 
     # exponential fit to delay time histogram
-    M_diag = diags([-1, 1], [0, 1], shape=(len(all_times), len(all_times)))
-    all_dts = M_diag @ all_times
-    all_dts = np.delete(all_dts, -1)
     if bounds is None:
         bounds = [0, 1e5]
     dts_fit = all_dts[(all_dts > bounds[0]) & (all_dts < bounds[1])]
