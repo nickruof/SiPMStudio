@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 
 
-class sipm:
+class Sipm:
 
     def __init__(self, name, area):
         self.brand = name
@@ -32,7 +32,7 @@ class sipm:
         return data
 
 
-class photodiode:
+class Photodiode:
 
     def __init__(self, name, area):
         self.brand = name
@@ -55,7 +55,7 @@ class photodiode:
             return np.interp(x=wavelength, xp=self.responsivity["wavelength"], fp=self.responsivity["responsivity"])
 
 
-class led:
+class Led:
     def __init__(self, name, wavelength):
         self.name = name
         self.wavelength = wavelength

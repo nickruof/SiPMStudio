@@ -17,7 +17,6 @@ def experiment(path, files, settings_files, measurement_array, digitizer, output
 
     print("Running Experiment ...")
     print("Input Path: ", path)
-    print("Files: ", files)
     output_dir = os.getcwd() if output_dir is None else output_dir
     print("Output Path: ", output_dir)
     print("Input Files: ", files)

@@ -1,7 +1,7 @@
 import os
 import sys
 import numpy as np
-import pandas as pd
+import animation
 import matplotlib.pyplot as plt
 import pickle as pk
 
@@ -128,18 +128,25 @@ def main():
     else:
         print("Specify <file_name> <output_path>(optional)!")
 
+    if not os.path.isfile(file_name):
+        raise FileNotFoundError("File: "+str(file_name)+" not found!")
+
+    wait = animation.Wait(text="Loading File: "+file_name+" ")
+    print(" ")
+    wait.start()
     digitizer = digitizers.CAENDT5730(df_data=file_name)
     digitizer.v_range = 2.0
     digitizer.e_cal = 2.0e-15
     params_data = digitizer.format_data(waves=False)
     waves_data = digitizer.format_data(waves=True)
+    wait.stop()
+    print(" ")
 
     pulse_charge_peaks = locate_spectrum_peaks(params_data["ENERGY"], 1, file_name, output_path)
     pulse_height_peaks = locate_triggered_peaks(waves_data)
 
     norm_proc = Processor()
     norm_proc.add(fun_name="baseline_subtract", settings={})
-    norm_proc.add(fun_name="savgol", settings={"window": 15, "order": 2})
     norm_proc.add(fun_name="normalize_energy", settings={"pc_peaks": pulse_charge_peaks, "label": "ENERGY"})
     norm_proc.add(fun_name="normalize_waves", settings={"peak_locs": pulse_height_peaks})
     t1_file = file_name.replace("t2", "t1")

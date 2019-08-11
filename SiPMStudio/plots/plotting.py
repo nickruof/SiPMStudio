@@ -73,7 +73,7 @@ def waveform_plots(waveforms, get_peaks=False, min_dist=None, min_height=None, w
                                             height=min_height, distance=min_dist, width=width)
             peak_heights = waveforms.iloc[waveform_number, :].values[peaks]
             peak_times = time[peaks]
-            plt.plot(peak_times, peak_heights, "r.")
+            plt.plot(peak_times, peak_heights, "r+")
         fig.canvas.draw()
 
     fig = plt.figure()

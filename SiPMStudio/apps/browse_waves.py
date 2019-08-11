@@ -3,7 +3,7 @@ import sys
 import matplotlib.pyplot as plt
 
 import SiPMStudio.core.digitizers as digitizers
-import SiPMStudio.plots.plots as sipm_plt
+import SiPMStudio.plots.plotting as sipm_plt
 import SiPMStudio.analysis.dark as sith
 import SiPMStudio.io.file_settings as file_settings
 from SiPMStudio.processing.transforms import moving_average
@@ -70,17 +70,6 @@ def main():
     # plt.figure(2)
     # sipm_plt.ph_spectrum(heights, log=True)
     # plt.show()
-
-    file_type = "waves"
-    if not os.path.exists(output_dir+"/settings.json"):
-        file_settings.create_json(output_dir)
-    if file_settings.file_exists(output_dir, file_name, file_type):
-        file_settings.update_json(output_dir, file_type, file_name, "wave_peaks",
-                              {"min_dist": min_distance, "min_height": min_height, "width": width})
-    else:
-        file_settings.add_file(output_dir, file_name, file_type)
-        file_settings.update_json(output_dir, file_type, file_name, "wave_peaks",
-                              {"min_dist": min_distance, "min_height": min_height, "width": width})
 
 
 if __name__ == "__main__":

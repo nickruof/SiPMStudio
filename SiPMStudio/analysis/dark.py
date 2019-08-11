@@ -159,7 +159,7 @@ def gain(digitizer, sipm, file_name, params_data=None, waves_data=None):
     diffs = pc_peaks[1:] - pc_peaks[:-1]
     gain_average = np.mean(diffs)
     sipm.gain.append(gain_average)
-    gain_magnitude = gain_average * 1000/1.6e-19
+    gain_magnitude = gain_average * digitizer.e_cal/1.6e-19
     sipm.gain_magnitude.append(gain_magnitude)    
     return gain_average, gain_magnitude
 
@@ -171,7 +171,7 @@ def dark_count_rate(sipm, bounds=None, params_data=None, waves_data=None, displa
     rate = []
     all_times = []
     for i, wave in enumerate(waves_data.to_numpy()):
-        peaks, _properties = find_peaks(x=wave, height=0.5, distance=50, width=4)
+        peaks, _properties = find_peaks(x=wave, height=0.8, distance=30, width=10)
         rate.append(len(peaks) / (len(wave) * 2e-9))
         if len(peaks) > 0:
             times = map(lambda x: 2*x + params_data.iloc[i, 0]*10**-3, peaks)
@@ -206,11 +206,12 @@ def excess_charge_factor(sipm, params_data=None, waves_data=None):
 
 def cross_talk(sipm, label, params_data=None, waves_data=None):
     energy_data = params_data[label].to_numpy()
-    counts = np.array(list([1]*params_data.shape[0]))
-    total_counts1 = np.sum(counts[energy_data >= 0.5])
-    total_counts2 = np.sum(counts[energy_data >= 1.0])
+    counts_05 = np.ones(len(energy_data[energy_data > 0.5]))
+    counts_15 = np.ones(len(energy_data[energy_data > 1.5]))
+    total_counts1 = np.sum(counts_05)
+    total_counts2 = np.sum(counts_15)
     prob = total_counts2 / total_counts1
-    sipm.cross_talk.append(prob)
+    sipm.cross_talk.append(prob*100)
     return prob
 
 
@@ -225,6 +226,21 @@ def delay_times(params_data, waves_data, min_height=0.5, min_dist=50, width=4):
     all_dts = M_diag @ all_times
     all_dts = np.delete(all_dts, -1)
     return all_dts
+
+
+def trigger_delay_times(waves_data, params_data=None, min_height=0.5, min_dist=50, width=4):
+    all_times = []
+    all_heights = []
+    dict_cut = False
+    for i, wave in enumerate(waves_data.to_numpy()):
+        peaks, _properties = find_peaks(x=wave, height=min_height, distance=min_dist, width=width)
+        if len(peaks) >= 2:
+            all_times.append(2*(peaks[1] - peaks[0]))
+            all_heights.append(wave[peaks[1]])
+        else:
+            all_times.append(0)
+            all_heights.append(0)
+    return np.array(all_times), np.array(all_heights)
 
 
 def triggered_heights(waves_data, triggered_index=24):
