@@ -5,6 +5,7 @@ import pandas as pd
 
 def process_data(path, data_files, processor, digitizer, overwrite=False, output_dir=None, verbose=False, chunk=2000, write_size=1):
 
+    print(" ")
     print("Starting SiPMStudio processing ... ")
     print("Input Path: ", path)
     output_dir = os.getcwd() if output_dir is None else output_dir

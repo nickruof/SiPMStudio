@@ -18,7 +18,7 @@ def adc_to_volts(waves_data, digitizer):
 
 
 def baseline_subtract(waves_data):
-    baseline = np.mean(waves_data.to_numpy(), axis=1)
+    baseline = np.mean(waves_data.to_numpy()[:, 0:45], axis=1)
     baselines_vector = baseline.reshape((baseline.shape[0], 1))
     processed_waveforms = waves_data.to_numpy() - baselines_vector
     return pd.DataFrame(data=processed_waveforms, index=waves_data.index, columns=waves_data.columns)

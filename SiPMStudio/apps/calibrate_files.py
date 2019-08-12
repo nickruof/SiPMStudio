@@ -20,7 +20,7 @@ import SiPMStudio.plots.plotting as sipm_plt
 
 
 def locate_spectrum_peaks(hist_data, bin_width=1.0, file_name=None, output_path=None):
-    bins = int(round(max(hist_data) / bin_width))
+    bins = int(round((max(hist_data)-min(hist_data)) / bin_width))
     fig, ax = plt.subplots()
     [n_hist, bin_edges] = pc_spectrum(ax, hist_array=[hist_data], n_bins=bins, log=True)
     plt.show()
@@ -51,13 +51,11 @@ def locate_spectrum_peaks(hist_data, bin_width=1.0, file_name=None, output_path=
         else:
             break
     if (file_name is not None) and (output_path is not None):
-        pk.dump(peaks, open(output_path+"/"+file_name[:-3]+"_heights.pk", "wb"))
+        pk.dump(peaks, open(output_path+"/"+file_name[:-3].replace("t1", "t2")+"_heights.pk", "wb"))
     return peaks
 
 
-def locate_triggered_peaks(waves_data, bin_width=0.1):
-    maximum_value = 3000
-    bins = int(round(maximum_value / bin_width))
+def locate_triggered_peaks(waves_data, bin_width=1):
     fig, ax = plt.subplots()
     sipm_plt.plot_waveforms(ax, waves_data.iloc[:, 0:100])
     plt.show()
@@ -150,11 +148,11 @@ def main():
     pulse_height_peaks = locate_triggered_peaks(waves_data)
 
     norm_proc = Processor()
+    norm_proc.add(fun_name="normalize_waves", settings={"peak_locs": pulse_height_peaks})
     norm_proc.add(fun_name="baseline_subtract", settings={})
     norm_proc.add(fun_name="normalize_energy", settings={"pc_peaks": pulse_charge_peaks, "label": "ENERGY"})
-    norm_proc.add(fun_name="normalize_waves", settings={"peak_locs": pulse_height_peaks})
-    t1_file = file_name.replace("t2", "t1")
-    t1_path = input_path.replace("t2", "t1")
+    t1_file = file_name
+    t1_path = "/Volumes/TOSHIBA_EXT/SiPM_Data/ketek_dark/t1_files"
     process_data(t1_path, [t1_file], norm_proc, digitizer, output_dir=output_path, overwrite=True, write_size=5)
     # output_to_json(output_path, file_name, "waves", pulse_charge_peaks, pulse_height_peaks)
 
