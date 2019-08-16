@@ -164,18 +164,24 @@ def gain(digitizer, sipm, file_name, params_data=None, waves_data=None):
     return gain_average, gain_magnitude
 
 
-def dark_count_rate(sipm, bounds=None, params_data=None, waves_data=None, display=False):
+def dark_count_rate(sipm, bounds=None, params_data=None, waves_data=None, low_counts=False, display=False):
 
     # TODO: Replace hard coded sampling rate of CAENDT5730 with something more generic
 
     rate = []
     all_dts = []
-    for i, wave in enumerate(waves_data.to_numpy()):
-        peaks, _properties = find_peaks(x=wave, height=0.8, distance=30, width=10)
-        rate.append(len(peaks) / (len(wave) * 2e-9))
-        if len(peaks) >= 2:
-            time = 2 * (peaks[1] - peaks[0])
-            all_dts.append(time)
+    if low_counts:
+        all_dts = delay_times(params_data, waves_data, 0.5, 50, 10)
+        for i, wave in enumerate(waves_data.to_numpy()):
+            peaks, _properties = find_peaks(x=wave, height=0.5, distance=50, width=10)
+            rate.append(len(peaks) / (len(wave) * 2e-9))
+    else:
+        for i, wave in enumerate(waves_data.to_numpy()):
+            peaks, _properties = find_peaks(x=wave, height=0.5, distance=50, width=10)
+            rate.append(len(peaks) / (len(wave) * 2e-9))
+            if len(peaks) >= 2:
+                time = 2 * (peaks[1] - peaks[0])
+                all_dts.append(time)
 
     # pulse_rate
     average_pulse_rate = np.mean(rate)
@@ -213,7 +219,7 @@ def cross_talk(sipm, label, params_data=None, waves_data=None):
     return prob
 
 
-def delay_times(params_data, waves_data, min_height=0.5, min_dist=50, width=4):
+def delay_times(params_data, waves_data, min_height=0.5, min_dist=50, width=10):
     all_times = []
     for i, wave in enumerate(waves_data.to_numpy()):
         peaks, _properties = find_peaks(x=wave, height=min_height, distance=min_dist, width=width)
@@ -258,7 +264,7 @@ def heights(waves_data, min_height, min_dist, width=0):
     return all_heights
 
 
-def delay_time_vs_height(params_data, waves_data, min_height, min_dist, width=0):
+def delay_time_vs_height(params_data, waves_data, min_height=0.5, min_dist=50, width=4):
     all_dts = []
     all_heights = []
     all_times = []
@@ -266,7 +272,7 @@ def delay_time_vs_height(params_data, waves_data, min_height, min_dist, width=0)
     for i, wave in enumerate(waves_data.to_numpy()):
         peaks, _properties = find_peaks(x=wave, height=min_height, distance=min_dist, width=width)
         times = np.add(params_data.iloc[i, 0]*10**-3, 2*peaks)
-        peak_heights = wave_data.iloc[i, :].to_numpy()[peaks]
+        peak_heights = waves_data.iloc[i, :].to_numpy()[peaks]
         all_times = np.append(all_times, [times])
         all_heights = np.append(all_heights, [peak_heights])
     if len(all_times) == 0 or len(all_heights) == 0:

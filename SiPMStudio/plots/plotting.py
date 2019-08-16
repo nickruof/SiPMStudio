@@ -175,7 +175,7 @@ def cross_talk(ax, sipm):
 def delay_times(ax, dts, bins=500, bounds=None, fit=False, alpha=0.75):
     if bounds is None:
         bounds = [0, 1e5]
-    [n, bins, _patches] = plots_base.plot_hist(ax, [dts], bins=bins, x_range=bounds, density=True)
+    [n, bins, _patches] = plots_base.plot_hist(ax, dts, bins=bins, x_range=bounds, density=True)
     if fit:
         loc, scale = expon.fit(dts[(dts > bounds[0]) & (dts < bounds[1])])
         ax.plot(bins[0][:-1], expon.pdf(bins[0][:-1], loc=loc, scale=scale), color="r")

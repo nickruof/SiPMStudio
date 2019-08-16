@@ -122,7 +122,7 @@ def main():
     if len(sys.argv) == 3:
         file_name = sys.argv[1]
         output_path = sys.argv[2]
-        input_path = output_path
+        input_path = os.getcwd()
     elif len(sys.argv) == 2:
         file_name = sys.argv[1]
         output_path = os.getcwd()
@@ -152,7 +152,7 @@ def main():
     norm_proc.add(fun_name="baseline_subtract", settings={})
     norm_proc.add(fun_name="normalize_energy", settings={"pc_peaks": pulse_charge_peaks, "label": "ENERGY"})
     t1_file = file_name
-    t1_path = "/Volumes/TOSHIBA_EXT/SiPM_Data/ketek_dark/t1_files"
+    t1_path = "/Volumes/TOSHIBA_EXT/SiPM_Data/ketek_cold/t1_files"
     process_data(t1_path, [t1_file], norm_proc, digitizer, output_dir=output_path, overwrite=True, write_size=5)
     # output_to_json(output_path, file_name, "waves", pulse_charge_peaks, pulse_height_peaks)
 
