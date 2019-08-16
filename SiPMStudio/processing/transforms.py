@@ -5,6 +5,7 @@ import pywt
 from scipy.signal import savgol_filter
 from scipy.signal import filtfilt
 from statsmodels.robust import mad
+from functools import partial
 
 from SiPMStudio.processing.functions import butter_bandpass
 # TODO: come up with way to store waveform timing information and check DataFrame initialisation speed
@@ -36,14 +37,20 @@ def butter_bandpass_filter(waves_data, digitizer, lowcut, highcut, order=5):
     return pd.DataFrame(data=filtered_data, index=waves_data.index, columns=waves_data.columns)
 
 
-def wavelet_denoise(waves_data, wavelet="db1", levels=3, mode="soft"):
-    data = waves_data.to_numpy()
-    coeffs = pywt.wavedec(data=data, wavelet=wavelet, level=levels, axis=0)
-    sigma = mad(coeffs[-levels], axis=0)
-    uthresh = sigma * np.sqrt(2 * np.log(data.shape[1]))
-    coeffs[1:] = (pywt.threshold(coeffs[i], value=uthresh, mode=mode) for i in range(1, len(coeffs)))
-    filtered_data = pywt.waverec(coeffs, wavelet, axis=0)
-    return pd.DataFrame(data=filtered_data, index=waves_data.index, columns=waves_data.columns)
+def wavelet_denoise(waves_data, wavelet="db1", levels=3, mode="hard"):
+
+    def denoise_function(wave, wavelet_type, num_levels, thresh_mode):
+        coeff = pywt.wavedec(data=wave, wavelet=wavelet, level=levels)
+        sigma = mad(coeff[-levels])
+        uthresh = sigma * np.sqrt(2 * np.log(len(wave)))
+        coeff[1:] = (pywt.threshold(i, value=uthresh, mode=mode) for i in coeff[1:])
+        denoised_wave = pywt.waverec(coeff, wavelet)
+        return denoised_wave
+
+    axis_function = partial(denoise_function, wavelet_type=wavelet, num_levels=levels, thresh_mode=mode)
+    denoised_wave_values = np.apply_along_axis(axis_function, 1, waves_data.to_numpy())
+    new_columns = [str(i) for i in range(denoised_wave_values.shape[1])]
+    return pd.DataFrame(data=denoised_wave_values, index=waves_data.index, columns=new_columns)
 
 
 def moving_average(waves_data, box_size=20):
