@@ -12,6 +12,7 @@ from scipy.signal import find_peaks
 
 from SiPMStudio.processing.functions import gaussian
 from SiPMStudio.processing.functions import multi_gauss
+from SiPMStudio.analysis.noise import average_power
 import SiPMStudio.plots.plots_base as plots_base
 import SiPMStudio.plots.plotting as sipm_plt
 
@@ -72,10 +73,37 @@ def time_interval(params_data, waves_data=None):
     return interval
 
 
+def noise_power(waves_data, sipm, params_data=None):
+    powers = average_power(waves_data)
+    total_average = np.mean(powers)
+    sipm.noise_power.append(total_average)
+    return total_average
+
+
+def signal_power(params_data, waves_data, sipm, energy_label="ENERGY"):
+    energy_data = params_data[energy_label]
+    one_peak = (energy_data > 0.9) & (energy_data < 1.1)
+    two_peak = (energy_data > 1.9) & (energy_data < 2.1)
+    three_peak = (energy_data > 2.9) & (energy_data < 3.1)
+    four_peak = (energy_data > 3.9) & (energy_data < 4.1)
+    noise_wave = waves_data.to_numpy()[noise]
+    waves_1 = waves_data.to_numpy()[one_peak]
+    waves_2 = waves_data.to_numpy()[two_peak]
+    waves_3 = waves_data.to_numpy()[three_peak]
+    waves_4 = waves_data.to_numpy()[four_peak]
+
+    averages = []
+    for waves in [waves_1, waves_2, waves_3, waves_4]:
+        signal_sections = waves.T[:200]
+        signal_sections = signal_sections.T
+        powers = average_power(signal_sections)
+        averages.append(np.mean(powers))
+    sipm.signal_power.append(averages)
+    return averages
+
+
 def spectrum_peaks(params_data, waves_data=None, n_bins=500, hist_range=None, min_dist=0.0, min_height=0.0, width=0.0,
                    display=False, fit_peaks=False):
-
-    # TODO: Find better way to quantify min_dist and min_height guesses
 
     peaks = []
     bin_edges = []
@@ -84,7 +112,6 @@ def spectrum_peaks(params_data, waves_data=None, n_bins=500, hist_range=None, mi
         [bin_vals, bin_edges, _patches] = plots_base.plot_hist(ax, [params_data], bins=n_bins, x_range=hist_range, density=False)
         bin_width = bin_edges[0][1] - bin_edges[0][0]
         peaks, _properties = find_peaks(bin_vals[0], height=min_height, distance=min_dist, width=width)
-        print(bin_width, min_dist/bin_width)
         print(str(len(peaks)) + " peaks found!")
         bin_centers = (bin_edges[0][:-1]+bin_edges[0][1:])/2
         if fit_peaks:

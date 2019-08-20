@@ -13,16 +13,22 @@ def noise_spectrum(waves_data, digitizer):
     return frequencies, power_spec
 
 
-def average_power(waveform):
-    time = np.linspace(0, 2*len(waveform), len(waveform))
-    waveform_squared = np.multiply(waveform, waveform)
-    average = (1/len(time)) * trapz(waveform_squared, time)
+def average_power(waves_data):
+    time = np.linspace(0, 2*waves_data.shape[1], waves_data.shape[1])
+    waves_squared = np.multiply(waves_data, waves_data)
+    average = (1/len(time)) * trapz(waves_squared, time, axis=0)
     return average
 
 
-def snr(waveform, noise):
-    noise_average = average_power(noise)
-    signal_average = average_power(waveform)
-    signal_to_noise = 10 * np.log10((signal_average-noise_average) / noise_average)
+def snr(waves_data, noise=None, noise_power=None):
+    noise_average = 0
+    if noise is None and noise_power is not None:
+        noise_average = noise_power * np.ones(waves_data.shape[0])
+    elif (noise is not None) and (noise_power is None):
+        noise_average = average_power(noise)
+    else:
+        raise AttributeError("Specify noise waveform or a noise power value!")
+    signal_average = average_power(waves_data)
+    inner_term = np.divide(signal_average-noise_average, noise_average)
+    signal_to_noise = 10 * np.log10(inner_term)
     return signal_to_noise
-

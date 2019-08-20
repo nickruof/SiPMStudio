@@ -8,6 +8,8 @@ class Sipm:
         self.brand = name
         self.area = area
         self.bias = []
+        self.noise_power = []
+        self.signal_power = []
         self.gain = []
         self.gain_magnitude = []
         self.pulse_rate = []

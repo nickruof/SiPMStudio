@@ -145,6 +145,18 @@ def ph_spectrum(ax, heights_array, n_bins=500, hist_range=None, log=False, densi
     return n, bins
 
 
+def snr(ax, sipm):
+    noise_power = np.array(sipm.noise_power)
+    signal_power = np.array(sipm.signal_power).T
+    labels = []
+    for i, power in enumerate(signal_power):
+        inner_term = np.divide(power - noise_power[i], noise_power[i])
+        signal_to_noise = 10 * np.log10(inner_term)
+        plots_base.line_plot(ax, sipm.bias, signal_to_noise)
+        labels.append(str(i)+" "+"p.e. peak")
+    ax.legend(labels)
+
+
 def gain(ax, sipm, lin_fit=False):
     plots_base.line_plot(ax, sipm.bias, sipm.gain_magnitude)
     ax.set_xlabel("Bias Voltage (V)")
