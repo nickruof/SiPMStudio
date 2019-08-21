@@ -119,16 +119,16 @@ def main():
     file_name = ""
     output_path = ""
 
-    if len(sys.argv) == 3:
+    if len(sys.argv) == 4:
+        file_name = sys.argv[1]
+        input_path = sys.argv[2]
+        output_path = sys.argv[3]
+    elif len(sys.argv) == 3:
         file_name = sys.argv[1]
         output_path = sys.argv[2]
         input_path = os.getcwd()
-    elif len(sys.argv) == 2:
-        file_name = sys.argv[1]
-        output_path = os.getcwd()
-        input_path = output_path
     else:
-        print("Specify <file_name> <output_path>(optional)!")
+        print("Specify <file_name> <output_path>!")
 
     if not os.path.isfile(file_name):
         raise FileNotFoundError("File: "+str(file_name)+" not found!")
@@ -152,9 +152,16 @@ def main():
     norm_proc.add(fun_name="baseline_subtract", settings={})
     norm_proc.add(fun_name="normalize_energy", settings={"pc_peaks": pulse_charge_peaks, "label": "ENERGY"})
     t1_file = file_name
-    t1_path = "/Volumes/TOSHIBA_EXT/SiPM_Data/ketek_cold/t1_files"
+    t1_path = input_path
+
+    include_other_files = input("Include other files to process? y/n? ")
+    file_list = [t1_file]
+    if include_other_files == "y":
+        what_files = input("Provide file names: ")
+        for file in what_files.split(" "):
+            file_list.append(file)
+
     process_data(t1_path, [t1_file], norm_proc, digitizer, output_dir=output_path, overwrite=True, write_size=5)
-    # output_to_json(output_path, file_name, "waves", pulse_charge_peaks, pulse_height_peaks)
 
 
 if __name__ == "__main__":

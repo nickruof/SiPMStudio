@@ -1,5 +1,4 @@
 import numpy as np
-import pandas as pd
 import matplotlib.pyplot as plt
 import os
 import warnings
@@ -28,6 +27,7 @@ def collect_files(path, digitizer, data_dir="UNFILTERED"):
 
     runs = []
     waves = []
+    noise = []
     if len(dirs_array) == 0:
         raise LookupError("No Directories Found!")
     elif len(dirs_array[1]) == 0:
@@ -37,9 +37,12 @@ def collect_files(path, digitizer, data_dir="UNFILTERED"):
             runs.append(name)
         elif "waves_" in name:
             waves.append(name)
+        elif "noise_" in name:
+            noise.append(name)
 
     run_files = []
     wave_files = []
+    noise_files = []
 
     for run in runs:
         data_path = path+"/DAQ/"+run+"/"+data_dir
@@ -57,8 +60,16 @@ def collect_files(path, digitizer, data_dir="UNFILTERED"):
         for file in files:
             if digitizer.file_header in file:
                 wave_files.append(data_path+"/"+file)
+    for nose in noise:
+        data_path = path+"/DAQ/"+nose+"/"+data_dir
+        files = os.listdir(data_path)
+        file_targets = []
+        os.chdir(data_path)
+        for file in files:
+            if digitizer.file_header in file:
+                noise_files.append(data_path+"/"+file)
 
-    return run_files, wave_files
+    return run_files, wave_files, noise_files
 
 
 def list_files(path):
