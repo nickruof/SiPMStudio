@@ -1,6 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import os
+import operator
 import warnings
 import pickle as pk
 
@@ -177,15 +178,16 @@ def dark_count_rate(sipm, bounds=None, params_data=None, waves_data=None, low_co
     if low_counts:
         all_dts = delay_times(params_data, waves_data, 0.5, 50, 10)
         for i, wave in enumerate(waves_data.to_numpy()):
-            peaks, _properties = find_peaks(x=wave, height=0.5, distance=50, width=10)
+            peaks, _properties = find_peaks(x=wave, height=0.75, distance=50, width=10)
             rate.append(len(peaks) / (len(wave) * 2e-9))
     else:
         for i, wave in enumerate(waves_data.to_numpy()):
-            peaks, _properties = find_peaks(x=wave, height=0.5, distance=50, width=10)
+            peaks, _properties = find_peaks(x=wave, height=0.75, distance=50, width=10)
             rate.append(len(peaks) / (len(wave) * 2e-9))
             if len(peaks) >= 2:
-                time = 2 * (peaks[1] - peaks[0])
-                all_dts.append(time)
+                times = map(operator.sub, peaks[1:], peaks[:-1])
+                times = map(lambda x: x * 2, times)
+                all_dts += times
 
     # pulse_rate
     average_pulse_rate = np.mean(rate)
