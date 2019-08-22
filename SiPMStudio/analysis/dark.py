@@ -97,7 +97,6 @@ def signal_power(params_data, waves_data, sipm, energy_label="ENERGY"):
     two_peak = (energy_data > 1.9) & (energy_data < 2.1)
     three_peak = (energy_data > 2.9) & (energy_data < 3.1)
     four_peak = (energy_data > 3.9) & (energy_data < 4.1)
-    noise_wave = waves_data.to_numpy()[noise]
     waves_1 = waves_data.to_numpy()[one_peak]
     waves_2 = waves_data.to_numpy()[two_peak]
     waves_3 = waves_data.to_numpy()[three_peak]
@@ -157,45 +156,12 @@ def spectrum_peaks(params_data, waves_data=None, n_bins=500, hist_range=None, mi
     return x_values[peaks]
 
 
-def fit_multi_gauss(params_data, waves_data=None, min_dist=0.0, min_height=0.0, params=None, display=False):
-    bins = np.linspace(start=0, stop=max(params_data), num=int(max(params_data)))
-    bin_vals, bin_edges = np.histogram(params_data, bins=bins, density=True)
-    fit = []
-    popt = []
-    if params is None:
-        peaks, _properties = find_peaks(bin_vals, height=min_height, distance=min_dist, width=width)
-        if display:
-            plt.figure()
-            plt.bar(bin_edges[:-1], bin_vals, width=1000, edgecolor="none")
-            plt.plot(peaks, bin_vals[peaks],".r")
-            plt.yscale("log")
-            plt.show()
-        amplitudes = bin_vals[peaks]
-        sigmas = [17]*len(peaks)  # method needed to avoid hard coded sigma guess
-        guess = []
-        for i, peak in enumerate(peaks):
-            guess.append(peak)
-            guess.append(amplitudes[i])
-            guess.append(sigmas[i])
-        popt, pcov = curve_fit(multi_gauss, xdata=bins[:-1], ydata=bin_vals, p0=guess)
-        fit = multi_gauss(bins[:-1], *popt)
-    else:
-        fit = multi_gauss(bins[:-1], *params)
-    if display:
-        plt.figure()
-        plt.bar(bin_edges[:-1], bin_vals, edgecolor="none")
-        plt.plot(bins[:-1], fit, color="red")
-        plt.yscale("log")
-        plt.show()
-    return popt
-
-
 def gain(digitizer, sipm, file_name, params_data=None, waves_data=None):
     pc_peaks = []
     with open(file_name, "rb") as pickle_file:
         pc_peaks = pk.load(pickle_file)
     diffs = pc_peaks[1:] - pc_peaks[:-1]
-    gain_average = np.mean(diffs)
+    gain_average = np.mean(diffs[:4])
     sipm.gain.append(gain_average)
     gain_magnitude = gain_average * digitizer.e_cal/1.6e-19
     sipm.gain_magnitude.append(gain_magnitude)    

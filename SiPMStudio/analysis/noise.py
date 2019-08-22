@@ -16,7 +16,8 @@ def noise_spectrum(waves_data, digitizer):
 def average_power(waves_data):
     time = np.linspace(0, 2*waves_data.shape[1], waves_data.shape[1])
     waves_squared = np.multiply(waves_data, waves_data)
-    average = (1/len(time)) * trapz(waves_squared, time, axis=0)
+    delta_t = time[-1] - time[0]
+    average = (1/delta_t) * trapz(waves_squared, time, axis=1)
     return average
 
 

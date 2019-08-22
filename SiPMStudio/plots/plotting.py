@@ -153,8 +153,10 @@ def snr(ax, sipm):
         inner_term = np.divide(power - noise_power[i], noise_power[i])
         signal_to_noise = 10 * np.log10(inner_term)
         plots_base.line_plot(ax, sipm.bias, signal_to_noise)
-        labels.append(str(i)+" "+"p.e. peak")
+        labels.append(str(i+1)+" "+"p.e. peak")
     ax.legend(labels)
+    ax.set_xlabel("Bias Voltage (V)")
+    ax.set_ylabel("SNR (dB)")
 
 
 def gain(ax, sipm, lin_fit=False):

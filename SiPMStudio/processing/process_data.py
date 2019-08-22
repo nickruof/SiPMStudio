@@ -36,18 +36,26 @@ def process_data(path, data_files, processor, digitizer, overwrite=False, output
         num_rows = store.get_storer("dataset").shape[0]
         df_storage = []
         for i in tqdm.tqdm(range(num_rows//chunk + 1)):
-            df_chunk = store.select("dataset", start=i*chunk, stop=(i+1)*chunk)
+            begin, end = _chunk_range(i, chunk, num_rows)
+            df_chunk = store.select("dataset", start=begin, stop=end)
             processor.digitizer.load_data(df_chunk)
             output_df = _process_chunk(processor=processor)
-            _output_chunk(destination, output_df, df_storage, output_dir, write_size)
+            _output_chunk(destination, output_df, df_storage, output_dir, write_size, num_rows, chunk, end)
         processor.digitizer.clear_data()
         digitizer.clear_data()
         store.close()
 
     print("Processing Finished! ...")
-    print("Output Path: ", output_dir)
     print("Output Files: ", [file.replace("t1", "t2") for file in data_files])
     _output_time(time.time() - start)
+
+
+def _chunk_range(index, chunk, num_rows):
+    start = index * chunk
+    stop = (index+1) * chunk
+    if stop >= num_rows - 1:
+        stop = num_rows - 1
+    return start, stop
 
 
 def _process_chunk(processor, rows=None):
@@ -55,11 +63,15 @@ def _process_chunk(processor, rows=None):
     return processor.process()
 
 
-def _output_chunk(data_file, chunk_frame, storage, output_dir, write_size, prefix="t2"):
-    if write_size == 1:
+def _output_chunk(data_file, chunk_frame, storage, output_dir, write_size, num_rows, chunk, stop, prefix="t2"):
+    if (write_size == 1) | (num_rows < chunk):
         _output_to_file(data_file, chunk_frame, output_dir, prefix)
     else:
         if len(storage) >= write_size:
+            _output_to_file(data_file, storage, output_dir, prefix)
+            storage.clear()
+        elif stop >= num_rows-1:
+            storage.append(chunk_frame)
             _output_to_file(data_file, storage, output_dir, prefix)
             storage.clear()
         else:

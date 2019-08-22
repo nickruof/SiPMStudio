@@ -121,11 +121,11 @@ def main():
 
     if len(sys.argv) == 4:
         file_name = sys.argv[1]
-        input_path = sys.argv[2]
-        output_path = sys.argv[3]
+        input_path = os.path.abspath(sys.argv[2])
+        output_path = os.path.abspath(sys.argv[3])
     elif len(sys.argv) == 3:
         file_name = sys.argv[1]
-        output_path = sys.argv[2]
+        output_path = os.path.abspath(sys.argv[2])
         input_path = os.getcwd()
     else:
         print("Specify <file_name> <output_path>!")
@@ -161,7 +161,7 @@ def main():
         for file in what_files.split(" "):
             file_list.append(file)
 
-    process_data(t1_path, [t1_file], norm_proc, digitizer, output_dir=output_path, overwrite=True, write_size=5)
+    process_data(t1_path, file_list, norm_proc, digitizer, output_dir=output_path, overwrite=True, write_size=5)
 
 
 if __name__ == "__main__":
