@@ -176,22 +176,16 @@ def dark_count_rate(sipm, bounds=None, params_data=None, waves_data=None, low_co
     rate = []
     all_dts = []
     if low_counts:
-        all_dts = delay_times(params_data, waves_data, 0.5, 50, 10)
-        for i, wave in enumerate(waves_data.to_numpy()):
-            peaks, _properties = find_peaks(x=wave, height=0.75, distance=50, width=10)
-            rate.append(len(peaks) / (len(wave) * 2e-9))
+        times = params_data["TIMETAG"].to_numpy()
+        all_dts = (times[1:] - times[:-1]) * 10**-3
     else:
+        all_dts = delay_times(params_data, waves_data, 0.75, 50, 10)
         for i, wave in enumerate(waves_data.to_numpy()):
             peaks, _properties = find_peaks(x=wave, height=0.75, distance=50, width=10)
             rate.append(len(peaks) / (len(wave) * 2e-9))
-            if len(peaks) >= 2:
-                times = map(operator.sub, peaks[1:], peaks[:-1])
-                times = map(lambda x: x * 2, times)
-                all_dts += times
-
-    # pulse_rate
-    average_pulse_rate = np.mean(rate)
-    sipm.pulse_rate.append(average_pulse_rate)
+        # pulse_rate
+        average_pulse_rate = np.mean(rate)
+        sipm.pulse_rate.append(average_pulse_rate)
 
     # exponential fit to delay time histogram
     if bounds is None:
@@ -204,10 +198,11 @@ def dark_count_rate(sipm, bounds=None, params_data=None, waves_data=None, low_co
     if display:
         fig, ax = plt.subplots()
         sipm_plt.delay_times(ax, dts=all_dts, fit=True)
+        ax.legend([str(1/(exp_fit[1]*1e-9))])
         plt.show()
         plt.close()
 
-    return average_pulse_rate, 1/(exp_fit[1]*1e-9)
+    return 1/(exp_fit[1]*1e-9)
 
 
 def excess_charge_factor(sipm, params_data=None, waves_data=None):
@@ -230,8 +225,10 @@ def delay_times(params_data, waves_data, min_height=0.5, min_dist=50, width=10):
     for i, wave in enumerate(waves_data.to_numpy()):
         peaks, _properties = find_peaks(x=wave, height=min_height, distance=min_dist, width=width)
         if len(peaks) > 0:
-            times = np.add(params_data.iloc[i, 0]*10**-3, 2*peaks)
-            all_times = np.append(all_times, [times])
+            peak_list = list(peaks)
+            times = map(lambda x: x * 2, peak_list)
+            times = map(lambda x: x + params_data.iloc[i, 0]*1e-3, times)
+            all_times += times
     M_diag = diags([-1, 1], [0, 1], shape=(len(all_times), len(all_times)))
     all_dts = M_diag @ all_times
     all_dts = np.delete(all_dts, -1)
