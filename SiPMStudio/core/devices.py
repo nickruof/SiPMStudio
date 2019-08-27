@@ -18,6 +18,7 @@ class Sipm:
         self.after_pulse = []
         self.pde = []
 
+        self.lcr_fit = []
         self.current = []
         self.I_current = []
         self.V_voltage = []
@@ -55,6 +56,9 @@ class Photodiode:
             print("Load Responsivity Data!")
         else:
             return np.interp(x=wavelength, xp=self.responsivity["wavelength"], fp=self.responsivity["responsivity"])
+
+    def photon_rate(self, current, active_area):
+        return active_area * (self.cal_slope*current + self.cal_intercept)
 
 
 class Led:

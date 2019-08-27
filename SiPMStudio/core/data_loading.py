@@ -47,7 +47,7 @@ class Keithley2450(DataLoader):
         if isinstance(df_data, pd.core.frame.DataFrame):
             self.df_data = df_data
         elif isinstance(df_data, str):
-            self.df_data = pd.read_csv(df_data, delimiter=",", skiprows=7, usecols=["Reading", "Value"])
+            self.df_data = pd.read_csv(df_data, delimiter=",", skiprows=7, usecols=["Reading", "Value", "Time", "Fractional Seconds"])
         else:
             raise TypeError("DataType not recognized!")
         if self.df_data is not None:

@@ -6,12 +6,12 @@ import warnings
 import pickle as pk
 
 from scipy.sparse import diags
-from scipy.stats import expon
+from lmfit import Model
 from scipy.optimize import curve_fit
 from scipy.signal import find_peaks
 
 from SiPMStudio.processing.functions import gaussian
-from SiPMStudio.processing.functions import multi_gauss
+from SiPMStudio.processing.functions import exponential
 from SiPMStudio.analysis.noise import average_power
 import SiPMStudio.plots.plots_base as plots_base
 import SiPMStudio.plots.plotting as sipm_plt
@@ -73,10 +73,11 @@ def collect_files(path, digitizer, data_dir="UNFILTERED"):
     return run_files, wave_files, noise_files
 
 
-def list_files(path):
-    all_files = [file for file in os.listdir(path) if os.path.isfile(os.path.join(path, file))]
-    h5_files = [file for file in all_files if file.endswith(".h5")]
-    return h5_files
+def list_files(path, suffix=".h5"):
+    actual_path = os.path.abspath(path)
+    all_files = [file for file in os.listdir(actual_path) if os.path.isfile(os.path.join(actual_path, file))]
+    suffix_files = [file for file in all_files if file.endswith(suffix)]
+    return suffix_files
 
 
 def time_interval(params_data, waves_data=None):
@@ -189,16 +190,22 @@ def dark_count_rate(sipm, bounds=None, params_data=None, waves_data=None, low_co
 
     # exponential fit to delay time histogram
     if bounds is None:
-        bounds = [0, 1e5]
+        bounds = [200, 1e4]
     all_dts = np.array(all_dts)
     dts_fit = all_dts[(all_dts > bounds[0]) & (all_dts < bounds[1])]
-    exp_fit = expon.fit(dts_fit)
-    sipm.dcr_fit.append(1/(exp_fit[1]*1e-9))
+
+    exp_model = Model(exponential)
+    params = exp_model.make_params(a=0.001, tau=1100)
+    [n, bin_edges] = np.histogram(all_dts, bins=500, range=bounds, density=True)
+    centers = (bin_edges[1:]+bin_edges[:-1])/2
+    result = exp_model.fit(n, params, x=centers)
+
+    sipm.dcr_fit.append(1/(result["tau"].value*1e-9))
 
     if display:
         fig, ax = plt.subplots()
         sipm_plt.delay_times(ax, dts=all_dts, fit=True)
-        ax.legend([str(1/(exp_fit[1]*1e-9))])
+        ax.legend([str(1/(result["tau"].value*1e-9))])
         plt.show()
         plt.close()
 

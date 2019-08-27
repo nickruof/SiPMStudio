@@ -17,6 +17,10 @@ def multi_gauss(x, *params):
     return y
 
 
+def exponential(x, a, tau):
+    return a*np.exp(-x/tau)
+
+
 def moyal(x, A, loc, scale):
     y = (x - loc) / scale
     return A*np.exp(-(y + np.exp(-y)) / 2)
