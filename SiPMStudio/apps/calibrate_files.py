@@ -41,8 +41,8 @@ def locate_spectrum_peaks(hist_data, bin_width=1.0, file_name=None, output_path=
                 peaks = spectrum_peaks(params_data=hist_data, n_bins=bins,
                                        min_dist=min_distance, min_height=min_height, display=True, fit_peaks=True)
             except RuntimeError:
-                print("Gaussian fits did not converge, retry again!")
-                retry = True
+                peak_inputs = input("Gaussian fits did not converge, input peak locations manually! ")
+                peaks = np.array([int(num) for num in peak_inputs.split(" ")])
             remove_peaks = input("Remove Peaks? y/n ")
             if remove_peaks == "y":
                 what_peaks = input("Input peaks to delete! ")

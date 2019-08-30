@@ -200,20 +200,16 @@ def dark_count_rate(sipm, bounds=None, params_data=None, waves_data=None, low_co
     centers = (bin_edges[1:]+bin_edges[:-1])/2
     result = exp_model.fit(n, params, x=centers)
 
-    sipm.dcr_fit.append(1/(result["tau"].value*1e-9))
+    sipm.dcr_fit.append(1/(result.params["tau"].value*1e-9))
 
     if display:
         fig, ax = plt.subplots()
         sipm_plt.delay_times(ax, dts=all_dts, fit=True)
-        ax.legend([str(1/(result["tau"].value*1e-9))])
+        ax.legend([str(1/(result.params["tau"].value*1e-9))])
         plt.show()
         plt.close()
 
-    return 1/(exp_fit[1]*1e-9)
-
-
-def excess_charge_factor(sipm, params_data=None, waves_data=None):
-    return np.divide(sipm.pulse_rate, sipm.dcr_fit)
+    return 1/(result.params["tau"].value*1e-9)
 
 
 def cross_talk(sipm, label, params_data=None, waves_data=None):
