@@ -50,6 +50,16 @@ def line_plot(ax, x_values, y_values):
     ax.plot(x_values, y_values)
 
 
+def error_plot(ax, x_values, y_values):
+    x_vals = [value.n for value in x_values]
+    x_err = [value.s for value in x_values]
+    y_vals = [value.n for value in y_values]
+    y_err = [value.s for value in y_values]
+
+    ax.scatter(x_vals, y_vals)
+    ax.errorbar(x_vals, y_vals, y_err, x_err, capsize=1)
+
+
 def interp_plot(ax, x_values, y_values, kind="cubic", n_points=None):
     if n_points is None:
         n_points = 100

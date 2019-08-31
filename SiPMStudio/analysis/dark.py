@@ -9,6 +9,8 @@ from scipy.sparse import diags
 from lmfit import Model
 from scipy.optimize import curve_fit
 from scipy.signal import find_peaks
+import scipy.constants as const
+from uncertainties import ufloat, unumpy
 
 from SiPMStudio.processing.functions import gaussian
 from SiPMStudio.processing.functions import exponential
@@ -118,6 +120,7 @@ def spectrum_peaks(params_data, waves_data=None, n_bins=500, hist_range=None, mi
                    display=False, fit_peaks=False):
 
     peaks = []
+    peak_locations = []
     bin_edges = []
     if display:
         fig, ax = plt.subplots()
@@ -128,6 +131,7 @@ def spectrum_peaks(params_data, waves_data=None, n_bins=500, hist_range=None, mi
         bin_centers = (bin_edges[0][:-1]+bin_edges[0][1:])/2
         if fit_peaks:
             gauss_mus = []
+            mu_stderr = []
             gauss_amps = []
             for peak in peaks:
                 start = peak - int(min_dist/2)
@@ -139,9 +143,12 @@ def spectrum_peaks(params_data, waves_data=None, n_bins=500, hist_range=None, mi
                 x_region = bin_centers[start:stop]
                 y_region = bin_vals[0][start:stop]
                 coeffs, covs = curve_fit(gaussian, x_region, y_region, [bin_centers[peak], 10, bin_vals[0][peak]])
+                stderrs = np.sqrt(np.diag(covs))
                 gauss_mus.append(coeffs[0])
+                mu_stderr.append(stderrs[0])
                 gauss_amps.append(coeffs[2])
 
+            peak_locations = unumpy.uarray(gauss_mus, mu_stderr)
             ax.plot(gauss_mus, gauss_amps, "+r")
             ax.set_yscale("log")
             fig.show()
@@ -154,8 +161,7 @@ def spectrum_peaks(params_data, waves_data=None, n_bins=500, hist_range=None, mi
         bin_width = bin_edges[0][1] - bin_edges[0][0]
         peaks, _properties = find_peaks(bin_vals[0], height=min_height, distance=min_dist, width=width)
 
-    x_values = np.array(bin_edges[0][:-1])
-    return x_values[peaks]
+    return peak_locations
 
 
 def gain(digitizer, sipm, file_name, params_data=None, waves_data=None):
@@ -165,7 +171,7 @@ def gain(digitizer, sipm, file_name, params_data=None, waves_data=None):
     diffs = pc_peaks[1:] - pc_peaks[:-1]
     gain_average = np.mean(diffs[:4])
     sipm.gain.append(gain_average)
-    gain_magnitude = gain_average * digitizer.e_cal/1.6e-19
+    gain_magnitude = gain_average * digitizer.e_cal/const.e
     sipm.gain_magnitude.append(gain_magnitude)    
     return gain_average, gain_magnitude
 
@@ -200,7 +206,8 @@ def dark_count_rate(sipm, bounds=None, params_data=None, waves_data=None, low_co
     centers = (bin_edges[1:]+bin_edges[:-1])/2
     result = exp_model.fit(n, params, x=centers)
 
-    sipm.dcr_fit.append(1/(result.params["tau"].value*1e-9))
+    time_constant = ufloat(result.params["tau"].value, result.params["tau"].stderr)
+    sipm.dcr_fit.append(1/(time_constant*1e-9))
 
     if display:
         fig, ax = plt.subplots()
@@ -209,18 +216,25 @@ def dark_count_rate(sipm, bounds=None, params_data=None, waves_data=None, low_co
         plt.show()
         plt.close()
 
-    return 1/(result.params["tau"].value*1e-9)
+    return 1/(time_constant*1e-9)
 
 
 def cross_talk(sipm, label, params_data=None, waves_data=None):
     energy_data = params_data[label].to_numpy()
-    counts_05 = np.ones(len(energy_data[energy_data > 0.5]))
-    counts_15 = np.ones(len(energy_data[energy_data > 1.5]))
-    total_counts1 = np.sum(counts_05)
-    total_counts2 = np.sum(counts_15)
-    prob = total_counts2 / total_counts1
-    sipm.cross_talk.append(prob*100)
-    return prob
+
+    def accumulate_events(data, position):
+        counts = np.ones(len(data[data > position]))
+        counts_upper = np.ones(len(data[data > (position + 1)]))
+        return np.sum(counts), np.sum(counts_upper)
+    upper_bounds = accumulate_events(energy_data, 0.5 + sipm.gain[-1].s/sipm.gain[-1].n)
+    middle = accumulate_events(energy_data, 0.5)
+    lower_bounds = accumulate_events(energy_data, 0.5 - sipm.gain[-1].s/sipm.gain[-1].n)
+
+    prob_upper = upper_bounds[1]/upper_bounds[0]
+    prob_middle = middle[1]/middle[0]
+    prob_lower = lower_bounds[1]/lower_bounds[0]
+    sipm.cross_talk.append(ufloat(prob_middle, (prob_upper-prob_lower)/2))
+    return ufloat(prob_middle, (prob_upper-prob_lower)/2)
 
 
 def delay_times(params_data, waves_data, min_height=0.5, min_dist=50, width=10):
