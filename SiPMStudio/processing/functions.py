@@ -3,6 +3,10 @@ import numpy as np
 from scipy.signal import butter
 
 
+def line(x, m, b):
+    return m*x + b
+
+
 def gaussian(x, mu, sigma, A):
     return A * np.exp(-(x-mu)**2/(2*sigma**2))
 

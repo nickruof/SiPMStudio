@@ -1,6 +1,8 @@
 import numpy as np
 import pandas as pd
 
+import scipy.constants as const
+
 
 class Sipm:
 
@@ -43,8 +45,7 @@ class Photodiode:
         self.bias = None
         self.current = []
         self.responsivity = pd.DataFrame()
-        self.cal_slope = 0
-        self.cal_intercept = 0
+        self.cal_slope = 1
 
     def load_response(self, file_path):
         response_data = pd.read_csv(file_path, delimiter=", ", header=None, engine="python")
@@ -57,8 +58,12 @@ class Photodiode:
         else:
             return np.interp(x=wavelength, xp=self.responsivity["wavelength"], fp=self.responsivity["responsivity"])
 
+    def calibrate(self, light_source):
+        response = self.get_response(light_source.wavelength)
+        self.cal_slope = light_source.wavelength / (self.area * const.h * const.c * response)
+
     def photon_rate(self, current, active_area):
-        return active_area * (self.cal_slope*current + self.cal_intercept)
+        return active_area * self.cal_slope*current
 
 
 class Led:

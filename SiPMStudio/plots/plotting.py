@@ -215,7 +215,7 @@ def delay_heights(fig, ax, dts, heights, density=False):
     ax.set_ylabel("Pulse Heights (V)")
 
 
-def pde(sipm):
-    plots_base.line_plot(ax, sipm.bias, sipm.pde)
+def pde(ax, sipm):
+    plots_base.error_plot(ax, sipm.bias, sipm.pde)
     ax.set_xlabel("Bias Voltage (V)")
     ax.set_ylabel("Photon Detection Efficiency (%)")

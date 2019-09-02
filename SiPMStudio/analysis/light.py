@@ -1,9 +1,11 @@
 import numpy as np
 
 from SiPMStudio.core import devices
+from SiPMStudio.processing.functions import line
 
 import scipy.constants as const
-from scipy.stats import linregress
+from scipy.optimize import curve_fit
+from uncertainties import unumpy, ufloat
 
 
 def time_interval(params_data):
@@ -15,18 +17,22 @@ def time_interval(params_data):
 def average_currents(dataloader, device, files, bias=None):
     if isinstance(device, devices.Sipm):
         currents = [None]*len(files)
+        errors = [None]*len(files)
         for i, file_name in enumerate(files):
             dataloader.load_data(file_name)
             currents[device.bias.index(bias[i])] = dataloader.current.mean()
+            errors[device.bias.index(bias[i])] = dataloader.current.std()
             dataloader.clear_data()
-        return currents
+        return unumpy.uarray(currents, errors)
     elif isinstance(device, devices.Photodiode):
         currents = [None]*len(files)
+        errors = [None]*len(files)
         for i, file_name in enumerate(files):
             dataloader.load_data(file_name)
             currents[i] = dataloader.current.mean()
+            errors[i] = dataloader.current.std()
             dataloader.clear_data()
-            return currents
+            return unumpy.uarray(currents, errors)
     else:
         raise AttributeError("Unrecognized device!")
 
@@ -42,38 +48,9 @@ def average_leakage(dataloader, sipm, bias, files):
     return leakage_currents
 
 
-def to_photons(dataloader, diode, led, dark_files, light_files):
-    dark_current = average_currents(dataloader, diode, dark_files)
-    light_current = average_currents(dataloader, diode, light_files)
-
-    eta = diode.get_response(wavelength=led.wavelength)
-    scale_factor = led.wavelength / (const.h * const.c * eta) / diode.area
-    diff = np.subtract(light_current, dark_current)
-    return diff * scale_factor
-
-
-def diode_calibration(dataloader, diode, led, dark_files=None, light_files=None, dark_data=None, light_data=None):
-    dark_currents = None
-    light_currents = None
-    if (dark_data is None) and (light_data is None):
-        dark_currents = average_currents(dataloader, diode, bias=None, files=dark_files)
-        light_currents = average_currents(dataloader, diode, bias=None, files=light_files)
-    elif (dark_files is None) and (light_files is None):
-        dark_currents = dark_data
-        light_currents = light_data
-    else:
-        raise AttributeError("Please only files or data!")
-    photo_current = 1e6 * np.subtract(light_currents, dark_currents)
-    photon_rate_per_area = to_photons(dataloader, diode, led, dark_files, light_files)
-    slope, intercept, _rvalue, _pvalue, _stderr = linregress(photo_current, photon_rate_per_area)
-    diode.cal_slope = slope
-    diode.cal_intercept = intercept
-    return photo_current, photon_rate_per_area
-
-
 def photocurrent_pde(sipm_darks, sipm_lights, diode_darks, diode_lights, sipm, diode):
     diode_photocurrent = diode_lights - diode_darks
-    photon_rate = sipm.area * (diode.cal_slope*diode_photocurrent*1000 + diode.cal_intercept)
+    incident_photon_rate = diode.photon_rate(diode_photocurrent, sipm.area)
     sipm_photocurrent = sipm_lights - sipm_darks
     ecf = np.divide(sipm.cross_talk, 100)
     ecf = ecf + 1

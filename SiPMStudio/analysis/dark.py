@@ -192,7 +192,8 @@ def dark_count_rate(sipm, bounds=None, params_data=None, waves_data=None, low_co
             rate.append(len(peaks) / (len(wave) * 2e-9))
         # pulse_rate
         average_pulse_rate = np.mean(rate)
-        sipm.pulse_rate.append(average_pulse_rate)
+        error_pulse_rate = np.std(rate)
+        sipm.pulse_rate.append(ufloat(average_pulse_rate, error_pulse_rate))
 
     # exponential fit to delay time histogram
     if bounds is None:
@@ -226,9 +227,9 @@ def cross_talk(sipm, label, params_data=None, waves_data=None):
         counts = np.ones(len(data[data > position]))
         counts_upper = np.ones(len(data[data > (position + 1)]))
         return np.sum(counts), np.sum(counts_upper)
-    upper_bounds = accumulate_events(energy_data, 0.5 + sipm.gain[-1].s/sipm.gain[-1].n)
+    upper_bounds = accumulate_events(energy_data, 0.5 + sipm.gain_magnitude[-1].s/sipm.gain_magnitude[-1].n)
     middle = accumulate_events(energy_data, 0.5)
-    lower_bounds = accumulate_events(energy_data, 0.5 - sipm.gain[-1].s/sipm.gain[-1].n)
+    lower_bounds = accumulate_events(energy_data, 0.5 - sipm.gain_magnitude[-1].s/sipm.gain_magnitude[-1].n)
 
     prob_upper = upper_bounds[1]/upper_bounds[0]
     prob_middle = middle[1]/middle[0]

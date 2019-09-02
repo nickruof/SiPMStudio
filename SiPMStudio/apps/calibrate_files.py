@@ -46,8 +46,11 @@ def locate_spectrum_peaks(hist_data, bin_width=1.0, file_name=None, output_path=
                 if again == "y":
                     retry = True
                 else:
-                    peak_inputs = input("Gaussian fits did not converge, input peak locations manually! ")
-                    peaks = np.array([int(num) for num in peak_inputs.split(" ")])
+                    peak_inputs = input("Input peak locations manually! ")
+                    peak_errors = input("Input estimated uncertainties! ")
+                    peak_locs = np.array([int(num) for num in peak_inputs.split(" ")])
+                    errors = np.array([int(num) for num in peak_errors.split(" ")])
+                    peaks = unumpy.uarray(peak_locs, errors)
             remove_peaks = input("Remove Peaks? y/n ")
             if remove_peaks == "y":
                 what_peaks = input("Input peaks to delete! ")
