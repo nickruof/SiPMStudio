@@ -234,8 +234,8 @@ def cross_talk(sipm, label, params_data=None, waves_data=None):
     prob_upper = upper_bounds[1]/upper_bounds[0]
     prob_middle = middle[1]/middle[0]
     prob_lower = lower_bounds[1]/lower_bounds[0]
-    sipm.cross_talk.append(ufloat(prob_middle, (prob_upper-prob_lower)/2))
-    return ufloat(prob_middle, (prob_upper-prob_lower)/2)
+    sipm.cross_talk.append(ufloat(prob_middle, abs(prob_upper-prob_lower)/2))
+    return ufloat(prob_middle, abs(prob_upper-prob_lower)/2)
 
 
 def delay_times(params_data, waves_data, min_height=0.5, min_dist=50, width=10):

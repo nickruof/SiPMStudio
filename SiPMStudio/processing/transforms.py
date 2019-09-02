@@ -60,6 +60,8 @@ def moving_average(waves_data, box_size=20):
 
 
 def normalize_waves(waves_data, peak_locs):
+    if len(peak_locs) == 0:
+        return waves_data
     diffs = peak_locs[1:] - peak_locs[:-1]
     average_diff = np.mean(diffs)
     norm_data = waves_data.to_numpy() - peak_locs[0]

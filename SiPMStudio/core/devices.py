@@ -2,6 +2,7 @@ import numpy as np
 import pandas as pd
 
 import scipy.constants as const
+import uncertainties
 
 
 class Sipm:
@@ -55,6 +56,8 @@ class Photodiode:
     def get_response(self, wavelength):
         if self.responsivity.empty:
             print("Load Responsivity Data!")
+        elif isinstance(wavelength, uncertainties.core.Variable):
+            return np.interp(x=wavelength.nominal_value, xp=self.responsivity["wavelength"], fp=self.responsivity["responsivity"])
         else:
             return np.interp(x=wavelength, xp=self.responsivity["wavelength"], fp=self.responsivity["responsivity"])
 
