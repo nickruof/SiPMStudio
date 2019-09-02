@@ -160,7 +160,7 @@ def snr(ax, sipm):
 
 
 def gain(ax, sipm, lin_fit=False):
-    plots_base.line_plot(ax, sipm.bias, sipm.gain_magnitude)
+    plots_base.error_plot(ax, sipm.bias, sipm.gain_magnitude)
     ax.set_xlabel("Bias Voltage (V)")
     ax.set_ylabel("Gain")
 
@@ -175,13 +175,13 @@ def gain(ax, sipm, lin_fit=False):
 
 def dcr(ax, sipm):
     dark_count_rate = [dr / 1000 / (sipm.area*1.0e6) for dr in sipm.dcr_fit]
-    plots_base.line_plot(ax, sipm.bias, dark_count_rate)
+    plots_base.error_plot(ax, sipm.bias, dark_count_rate)
     ax.set_xlabel("Bias Voltage (V)")
     ax.set_ylabel("Dark Count Rate (kHz/mm^2)")
 
 
 def cross_talk(ax, sipm):
-    plots_base.line_plot(ax, sipm.bias, sipm.cross_talk)
+    plots_base.error_plot(ax, sipm.bias, sipm.cross_talk)
     ax.set_xlabel("Bias Voltage (V)")
     ax.set_ylabel("Cross Talk Probability (%)")
 

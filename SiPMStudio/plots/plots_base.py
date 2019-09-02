@@ -1,6 +1,8 @@
 import numpy as np
 import seaborn as sns
+
 from scipy.interpolate import interp1d
+from uncertainties import unumpy
 sns.set_style("ticks")
 
 
@@ -51,13 +53,19 @@ def line_plot(ax, x_values, y_values):
 
 
 def error_plot(ax, x_values, y_values):
-    x_vals = [value.n for value in x_values]
-    x_err = [value.s for value in x_values]
-    y_vals = [value.n for value in y_values]
-    y_err = [value.s for value in y_values]
+    x_vals = unumpy.nominal_values(x_values)
+    x_err = unumpy.std_devs(x_values)
+    y_vals = unumpy.nominal_values(y_values)
+    y_err = unumpy.std_devs(y_values)
 
     ax.scatter(x_vals, y_vals)
-    ax.errorbar(x_vals, y_vals, y_err, x_err, capsize=1)
+    if len(x_err) == 0:
+        ax.errorbar(x_vals, y_vals, y_err, None, capsize=1)
+    elif len(y_err) == 0:
+        ax.errorbar(x_vals, y_vals, None, x_err, capsize=1)
+    else:
+        ax.errorbar(x_vals, y_vals, y_err, x_err, capsize=1)
+
 
 
 def interp_plot(ax, x_values, y_values, kind="cubic", n_points=None):

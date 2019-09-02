@@ -1,6 +1,7 @@
 import os
 import sys
 import numpy as np
+from uncertainties import unumpy
 import animation
 import matplotlib.pyplot as plt
 import pickle as pk
@@ -41,8 +42,12 @@ def locate_spectrum_peaks(hist_data, bin_width=1.0, file_name=None, output_path=
                 peaks = spectrum_peaks(params_data=hist_data, n_bins=bins,
                                        min_dist=min_distance, min_height=min_height, display=True, fit_peaks=True)
             except RuntimeError:
-                peak_inputs = input("Gaussian fits did not converge, input peak locations manually! ")
-                peaks = np.array([int(num) for num in peak_inputs.split(" ")])
+                again = input("Fits did not Converge, try again? y/n ")
+                if again == "y":
+                    retry = True
+                else:
+                    peak_inputs = input("Gaussian fits did not converge, input peak locations manually! ")
+                    peaks = np.array([int(num) for num in peak_inputs.split(" ")])
             remove_peaks = input("Remove Peaks? y/n ")
             if remove_peaks == "y":
                 what_peaks = input("Input peaks to delete! ")
@@ -138,7 +143,7 @@ def main():
     wait.start()
     digitizer = digitizers.CAENDT5730(df_data=file_name)
     digitizer.v_range = 2.0
-    digitizer.e_cal = 2.0e-15
+    digitizer.e_cal = 2.5e-15
     params_data = digitizer.format_data(waves=False)
     waves_data = digitizer.format_data(waves=True)
     wait.stop()
@@ -148,9 +153,9 @@ def main():
     pulse_height_peaks = locate_triggered_peaks(waves_data)
 
     norm_proc = Processor()
-    norm_proc.add(fun_name="normalize_waves", settings={"peak_locs": pulse_height_peaks})
+    norm_proc.add(fun_name="normalize_waves", settings={"peak_locs": unumpy.nominal_values(pulse_height_peaks)})
     norm_proc.add(fun_name="baseline_subtract", settings={})
-    norm_proc.add(fun_name="normalize_energy", settings={"pc_peaks": pulse_charge_peaks, "label": "ENERGY"})
+    norm_proc.add(fun_name="normalize_energy", settings={"pc_peaks": unumpy.nominal_values(pulse_charge_peaks), "label": "ENERGY"})
     t1_file = file_name
     t1_path = input_path
 
@@ -161,7 +166,7 @@ def main():
         for file in what_files.split(" "):
             file_list.append(file)
 
-    process_data(t1_path, file_list, norm_proc, digitizer, output_dir=output_path, overwrite=True, write_size=5)
+    process_data(t1_path, file_list, norm_proc, digitizer, output_dir=output_path, overwrite=False, write_size=5)
 
 
 if __name__ == "__main__":
