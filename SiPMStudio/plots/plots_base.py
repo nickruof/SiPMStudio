@@ -67,7 +67,6 @@ def error_plot(ax, x_values, y_values):
         ax.errorbar(x_vals, y_vals, y_err, x_err, capsize=1)
 
 
-
 def interp_plot(ax, x_values, y_values, kind="cubic", n_points=None):
     if n_points is None:
         n_points = 100

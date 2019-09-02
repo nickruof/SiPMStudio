@@ -5,6 +5,7 @@ import seaborn as sns
 from SiPMStudio.processing.functions import butter_bandpass
 from SiPMStudio.plots import plots_base
 
+from uncertainties import unumpy
 from scipy import fftpack
 from scipy.signal import freqz
 from scipy.stats import linregress
@@ -162,10 +163,11 @@ def snr(ax, sipm):
 def gain(ax, sipm, lin_fit=False):
     plots_base.error_plot(ax, sipm.bias, sipm.gain_magnitude)
     ax.set_xlabel("Bias Voltage (V)")
+    ax.ticklabel_format(axis="x", style="sci")
     ax.set_ylabel("Gain")
 
     if lin_fit:
-        (slope, intercept, _rvalue, _pvalue, _stderr) = linregress(x=sipm.bias, y=sipm.gain_magnitude)
+        (slope, intercept, _rvalue, _pvalue, _stderr) = linregress(x=sipm.bias, y=unumpy.nominal_values(sipm.gain_magnitude))
         x = np.linspace(sipm.bias[0], sipm.bias[-1], 100)
         y = np.multiply(slope, x)
         y = np.add(y, intercept)
@@ -181,7 +183,7 @@ def dcr(ax, sipm):
 
 
 def cross_talk(ax, sipm):
-    plots_base.error_plot(ax, sipm.bias, sipm.cross_talk)
+    plots_base.error_plot(ax, sipm.bias, np.array(sipm.cross_talk)*100)
     ax.set_xlabel("Bias Voltage (V)")
     ax.set_ylabel("Cross Talk Probability (%)")
 
