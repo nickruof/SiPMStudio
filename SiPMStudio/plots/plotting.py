@@ -163,7 +163,7 @@ def snr(ax, sipm):
 def gain(ax, sipm, lin_fit=False):
     plots_base.error_plot(ax, sipm.bias, sipm.gain_magnitude)
     ax.set_xlabel("Bias Voltage (V)")
-    ax.ticklabel_format(axis="x", style="sci")
+    ax.ticklabel_format(axis="y", style="sci", scilimits=(0, 0))
     ax.set_ylabel("Gain")
 
     if lin_fit:
