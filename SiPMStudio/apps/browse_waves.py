@@ -1,5 +1,6 @@
 import os
 import sys
+import animation
 import matplotlib.pyplot as plt
 
 import SiPMStudio.core.digitizers as digitizers
@@ -34,10 +35,15 @@ def main():
         output_dir = sys.argv[2]
         peaks = True
 
+    wait = animation.Wait(text="Loading File: " + file_name + " ")
+    print(" ")
+    wait.start()
     digitizer1 = digitizers.CAENDT5730(df_data=file_name)
     digitizer1.v_range = 2.0
     digitizer1.e_cal = 2.0e-15
     waves_data = digitizer1.format_data(waves=True)
+    print(" ")
+    wait.stop()
 
     retry = True
     again = False

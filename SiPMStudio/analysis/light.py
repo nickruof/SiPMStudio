@@ -52,10 +52,9 @@ def photocurrent_pde(sipm_darks, sipm_lights, diode_darks, diode_lights, sipm, d
     diode_photocurrent = diode_lights - diode_darks
     incident_photon_rate = diode.photon_rate(diode_photocurrent, sipm.area)
     sipm_photocurrent = sipm_lights - sipm_darks
-    ecf = np.divide(sipm.cross_talk, 100)
-    ecf = ecf + 1
-    expected_current = np.multiply(sipm.gain_magnitude, const.e*ecf*photon_rate)
-    pde = sipm_photocurrent / expected_current
+    ecf = np.array(sipm.cross_talk) + 1
+    expected_current = np.multiply(sipm.gain_magnitude, const.e*ecf*incident_photon_rate)
+    pde = (sipm_photocurrent*1e-6) / expected_current
     sipm.pde = pde
     return pde
 

@@ -176,7 +176,7 @@ def gain(ax, sipm, lin_fit=False):
 
 
 def dcr(ax, sipm):
-    dark_count_rate = [dr / 1000 / (sipm.area*1.0e6) for dr in sipm.dcr_fit]
+    dark_count_rate = [dr / 1000 / sipm.area for dr in sipm.dcr_fit]
     plots_base.error_plot(ax, sipm.bias, dark_count_rate)
     ax.set_xlabel("Bias Voltage (V)")
     ax.set_ylabel("Dark Count Rate (kHz/mm^2)")
@@ -216,6 +216,7 @@ def delay_heights(fig, ax, dts, heights, density=False):
 
 
 def pde(ax, sipm):
-    plots_base.error_plot(ax, sipm.bias, sipm.pde)
+    pde_percent = [decimal*100 for decimal in sipm.pde]
+    plots_base.error_plot(ax, sipm.bias, pde_percent)
     ax.set_xlabel("Bias Voltage (V)")
     ax.set_ylabel("Photon Detection Efficiency (%)")

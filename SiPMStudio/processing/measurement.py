@@ -77,7 +77,7 @@ class Measurement:
         if retrieve_args is not None:
             self.retrieve = retrieve_args
 
-    def process_block(self, params, waves, utility_belt=None):
+    def process_block(self, params, waves):
         result = self.function(params_data=params, waves_data=waves, **self.fun_args)
         return result
 

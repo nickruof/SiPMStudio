@@ -60,11 +60,11 @@ def error_plot(ax, x_values, y_values):
 
     ax.scatter(x_vals, y_vals)
     if len(x_err) == 0:
-        ax.errorbar(x_vals, y_vals, y_err, None, capsize=1)
+        ax.errorbar(x_vals, y_vals, y_err, None, capsize=3)
     elif len(y_err) == 0:
-        ax.errorbar(x_vals, y_vals, None, x_err, capsize=1)
+        ax.errorbar(x_vals, y_vals, None, x_err, capsize=3)
     else:
-        ax.errorbar(x_vals, y_vals, y_err, x_err, capsize=1)
+        ax.errorbar(x_vals, y_vals, y_err, x_err, capsize=3)
 
 
 def interp_plot(ax, x_values, y_values, kind="cubic", n_points=None):

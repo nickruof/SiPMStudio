@@ -66,7 +66,7 @@ class Photodiode:
         self.cal_slope = light_source.wavelength / (self.area * const.h * const.c * response)
 
     def photon_rate(self, current, active_area):
-        return active_area * self.cal_slope*current
+        return active_area * self.cal_slope*current*1.0e-9
 
 
 class Led:
