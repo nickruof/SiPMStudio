@@ -22,6 +22,7 @@ class Sipm:
         self.pde = []
 
         self.lcr_fit = []
+        self.photon_rate = []
         self.current = []
         self.I_current = []
         self.V_voltage = []

@@ -4,11 +4,13 @@ import os
 import operator
 import warnings
 import pickle as pk
+import pandas as pd
 
 from scipy.sparse import diags
 from lmfit import Model
 from scipy.optimize import curve_fit
 from scipy.signal import find_peaks
+from scipy.stats import linregress
 import scipy.constants as const
 from uncertainties import ufloat, unumpy
 
@@ -17,6 +19,7 @@ from SiPMStudio.processing.functions import exponential
 from SiPMStudio.analysis.noise import average_power
 import SiPMStudio.plots.plots_base as plots_base
 import SiPMStudio.plots.plotting as sipm_plt
+from SiPMStudio.processing.transforms import savgol
 
 warnings.filterwarnings("ignore", "PeakPropertyWarning: some peaks have a width of 0")
 
@@ -75,10 +78,11 @@ def collect_files(path, digitizer, data_dir="UNFILTERED"):
     return run_files, wave_files, noise_files
 
 
-def list_files(path, suffix=".h5"):
+def list_files(path, prefix="t2", suffix=".h5"):
     actual_path = os.path.abspath(path)
     all_files = [file for file in os.listdir(actual_path) if os.path.isfile(os.path.join(actual_path, file))]
-    suffix_files = [file for file in all_files if file.endswith(suffix)]
+    prefix_files = [file for file in all_files if file.startswith(prefix)]
+    suffix_files = [file for file in prefix_files if file.endswith(suffix)]
     return suffix_files
 
 
@@ -176,7 +180,7 @@ def gain(digitizer, sipm, file_name, params_data=None, waves_data=None):
     return gain_average, gain_magnitude
 
 
-def dark_count_rate(sipm, bounds=None, params_data=None, waves_data=None, low_counts=False, display=False):
+def dark_count_rate(sipm, height=0.75, distance=50, width=10, bounds=None, params_data=None, waves_data=None, low_counts=False, filt=False, display=False):
 
     # TODO: Replace hard coded sampling rate of CAENDT5730 with something more generic
 
@@ -186,9 +190,12 @@ def dark_count_rate(sipm, bounds=None, params_data=None, waves_data=None, low_co
         times = params_data["TIMETAG"].to_numpy()
         all_dts = (times[1:] - times[:-1]) * 10**-3
     else:
-        all_dts = delay_times(params_data, waves_data, 0.75, 50, 10)
-        for i, wave in enumerate(waves_data.to_numpy()):
-            peaks, _properties = find_peaks(x=wave, height=0.75, distance=50, width=10)
+        analysis_waves = waves_data
+        if filt:
+            analysis_waves = savgol(waves_data, 9, 3)
+        all_dts = delay_times(params_data, waves_data, height, distance, width)
+        for i, wave in enumerate(analysis_waves.to_numpy()):
+            peaks, _properties = find_peaks(x=wave, height=height, distance=distance, width=width)
             rate.append(len(peaks) / (len(wave) * 2e-9))
         # pulse_rate
         average_pulse_rate = np.mean(rate)
@@ -201,23 +208,47 @@ def dark_count_rate(sipm, bounds=None, params_data=None, waves_data=None, low_co
     all_dts = np.array(all_dts)
     dts_fit = all_dts[(all_dts > bounds[0]) & (all_dts < bounds[1])]
 
-    exp_model = Model(exponential)
-    params = exp_model.make_params(a=0.001, tau=1100)
-    [n, bin_edges] = np.histogram(all_dts, bins=500, range=bounds, density=True)
-    centers = (bin_edges[1:]+bin_edges[:-1])/2
-    result = exp_model.fit(n, params, x=centers)
+    [n, bin_edges] = np.histogram(dts_fit, bins=350, range=bounds)
+    bin_centers = (bin_edges[1:]+bin_edges[:-1])/2
+    log_bins = np.log(n[n > 0])
+    fit_centers = bin_centers[n > 0]
+    slope, intercept, _r_value, _p_value, stderr = linregress(fit_centers, log_bins)
+    slope_param = ufloat(slope, stderr)
+    dark_rate = -1*slope_param/1.0e-9
+    # exp_model = Model(exponential)
+    # params = exp_model.make_params(a=0.001, tau=1100)
+    # [n, bin_edges] = np.histogram(dts_fit, bins=350, range=bounds, density=True)
+    # centers = (bin_edges[1:]+bin_edges[:-1])/2
+    # result = exp_model.fit(n, params, x=centers)
 
-    time_constant = ufloat(result.params["tau"].value, result.params["tau"].stderr)
-    sipm.dcr_fit.append(1/(time_constant*1e-9))
+    # time_constant = ufloat(result.params["tau"].value, result.params["tau"].stderr)
+    sipm.dcr_fit.append(dark_rate)
 
     if display:
         fig, ax = plt.subplots()
-        sipm_plt.delay_times(ax, dts=all_dts, fit=True)
-        ax.legend([str(1/(result.params["tau"].value*1e-9))])
+        ax.plot(bin_centers[~nan_places], log_bins[~nan_places])
+        ax.plot(bin_centers, slope*bin_centers + intercept)
+        # sipm_plt.delay_times(ax, dts=all_dts, fit=True)
+        # ax.legend([str(1/(result.params["tau"].value*1e-9))])
         plt.show()
         plt.close()
 
-    return 1/(time_constant*1e-9)
+    return dark_rate
+
+
+def dark_photon_rate(sipm, height=0.75, distance=50, width=10, params_data=None, waves_data=None, filt=False, display=False):
+    photon_triggers = []
+    analysis_waves = waves_data
+    if filt:
+        analysis_waves = savgol(waves_data, 9, 3)
+    for wave in analysis_waves.to_numpy():
+        peaks, _properties = find_peaks(x=wave, height=height, distance=distance, width=width)
+        round_heights = np.around(wave[peaks])
+        photon_triggers.append(np.sum(round_heights))
+    average_photon_rate = np.mean(photon_triggers) / (waves_data.shape[1]*2.0e-9)
+    stderr_photon_rate = np.std(photon_triggers) / (waves_data.shape[1]*2.0e-9)
+    sipm.photon_rate.append(ufloat(average_photon_rate, stderr_photon_rate))
+    return average_photon_rate
 
 
 def cross_talk(sipm, label, params_data=None, waves_data=None):
@@ -251,6 +282,15 @@ def delay_times(params_data, waves_data, min_height=0.5, min_dist=50, width=10):
     all_dts = M_diag @ all_times
     all_dts = np.delete(all_dts, -1)
     return all_dts
+
+
+def delay_time_intervals(waves_data, min_height=0.5, min_dist=50, width=10, params_data=None):
+    all_dts = []
+    for i, wave in enumerate(waves_data.to_numpy()):
+        peaks, _properties = find_peaks(x=wave, height=min_height, distance=min_dist, width=width)
+        diffs = list((peaks[1:] - peaks[:-1])*2)
+        all_dts += diffs
+    return np.array(all_dts)
 
 
 def trigger_delay_times(waves_data, params_data=None, min_height=0.5, min_dist=50, width=4):
