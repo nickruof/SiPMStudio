@@ -34,8 +34,8 @@ def multi_gauss_moyal(x, A, loc, scale, *params):
     return multi_gauss(x, *params) + moyal(x, loc, scale)
 
 
-def butter_bandpass(digitizer, lowcut, highcut, order=5):
-    nyq = 0.5 * digitizer.sample_rate
+def butter_bandpass(lowcut, highcut, sample_rate, order=5):
+    nyq = 0.5 * sample_rate
     low = lowcut / nyq
     high = highcut / nyq
     (b, a) = butter(N=order, Wn=[low, high], btype="bandpass")

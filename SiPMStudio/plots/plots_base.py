@@ -67,6 +67,15 @@ def error_plot(ax, x_values, y_values):
         ax.errorbar(x_vals, y_vals, y_err, x_err, capsize=3)
 
 
+def shaded_plot(ax, x_values, y_values):
+    x_vals = unumpy.nominal_values(x_values)
+    y_vals = unumpy.nominal_values(y_values)
+    y_err = unumpy.std_devs(y_values)
+
+    ax.scatter(x_vals, y_vals)
+    ax.fill_between(x_vals, y_vals-y_err, y_vals+y_err, alpha=0.5)
+
+
 def interp_plot(ax, x_values, y_values, kind="cubic", n_points=None):
     if n_points is None:
         n_points = 100

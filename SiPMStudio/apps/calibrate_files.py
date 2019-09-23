@@ -157,7 +157,7 @@ def main():
 
     norm_proc = Processor()
     norm_proc.add(fun_name="normalize_waves", settings={"peak_locs": unumpy.nominal_values(pulse_height_peaks)})
-    norm_proc.add(fun_name="baseline_subtract", settings={})
+    # norm_proc.add(fun_name="baseline_subtract", settings={})
     norm_proc.add(fun_name="normalize_energy", settings={"pc_peaks": unumpy.nominal_values(pulse_charge_peaks), "label": "ENERGY"})
     t1_file = file_name
     t1_path = input_path
