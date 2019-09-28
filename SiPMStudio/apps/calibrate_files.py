@@ -146,7 +146,7 @@ def main():
     wait.start()
     digitizer = digitizers.CAENDT5730(df_data=file_name)
     digitizer.v_range = 2.0
-    digitizer.e_cal = 2.5e-15
+    digitizer.e_cal = 5.0e-15
     params_data = digitizer.format_data(waves=False)
     waves_data = digitizer.format_data(waves=True)
     wait.stop()
@@ -154,6 +154,7 @@ def main():
 
     pulse_charge_peaks = locate_spectrum_peaks(params_data["ENERGY"], 1, file_name, output_path)
     pulse_height_peaks = locate_triggered_peaks(waves_data)
+    pk.dump([pulse_charge_peaks, pulse_height_peaks], open(input_path+"/"+file_name[:-3]+".pk", "wb"))
 
     norm_proc = Processor()
     norm_proc.add(fun_name="normalize_waves", settings={"peak_locs": unumpy.nominal_values(pulse_height_peaks)})

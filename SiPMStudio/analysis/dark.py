@@ -80,7 +80,7 @@ def collect_files(path, digitizer, data_dir="UNFILTERED"):
 
 def list_files(path, prefix="t2", suffix=".h5"):
     actual_path = os.path.abspath(path)
-    all_files = [file for file in os.listdir(actual_path) if os.path.isfile(os.path.join(actual_path, file))]
+    all_files = [file for file in sorted(os.listdir(actual_path)) if os.path.isfile(os.path.join(actual_path, file))]
     prefix_files = [file for file in all_files if file.startswith(prefix)]
     suffix_files = [file for file in prefix_files if file.endswith(suffix)]
     return suffix_files

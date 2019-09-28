@@ -47,12 +47,12 @@ def _hist_outline(heights, bin_edges):
     return np.array(x_values), np.array(y_values)
 
 
-def line_plot(ax, x_values, y_values):
+def line_plot(ax, x_values, y_values, label=None):
     ax.scatter(x_values, y_values)
-    ax.plot(x_values, y_values)
+    ax.plot(x_values, y_values, label=label)
 
 
-def error_plot(ax, x_values, y_values):
+def error_plot(ax, x_values, y_values, label=None):
     x_vals = unumpy.nominal_values(x_values)
     x_err = unumpy.std_devs(x_values)
     y_vals = unumpy.nominal_values(y_values)
@@ -60,20 +60,21 @@ def error_plot(ax, x_values, y_values):
 
     ax.scatter(x_vals, y_vals)
     if len(x_err) == 0:
-        ax.errorbar(x_vals, y_vals, y_err, None, capsize=3)
+        ax.errorbar(x_vals, y_vals, y_err, None, capsize=3, label=label)
     elif len(y_err) == 0:
-        ax.errorbar(x_vals, y_vals, None, x_err, capsize=3)
+        ax.errorbar(x_vals, y_vals, None, x_err, capsize=3, label=label)
     else:
-        ax.errorbar(x_vals, y_vals, y_err, x_err, capsize=3)
+        ax.errorbar(x_vals, y_vals, y_err, x_err, capsize=3, label=label)
 
 
-def shaded_plot(ax, x_values, y_values):
+def shaded_plot(ax, x_values, y_values, color=sns.color_palette()[0], label=None):
     x_vals = unumpy.nominal_values(x_values)
     y_vals = unumpy.nominal_values(y_values)
     y_err = unumpy.std_devs(y_values)
 
-    ax.scatter(x_vals, y_vals)
-    ax.fill_between(x_vals, y_vals-y_err, y_vals+y_err, alpha=0.5)
+    ax.scatter(x_vals, y_vals, label=label)
+    ax.plot(x_vals, y_vals)
+    ax.fill_between(x_vals, y_vals-y_err, y_vals+y_err, facecolor=color, alpha=0.25)
 
 
 def interp_plot(ax, x_values, y_values, kind="cubic", n_points=None):
