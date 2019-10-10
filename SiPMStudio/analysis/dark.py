@@ -86,6 +86,11 @@ def list_files(path, prefix="t2", suffix=".h5"):
     return suffix_files
 
 
+def label_uncertainties(unumpy_array, name):
+    for i, element in enumerate(unumpy_array):
+        unumpy_array[i].tag = name
+
+
 def time_interval(params_data, waves_data=None):
     interval = params_data["TIMETAG"].iloc[-1] - params_data["TIMETAG"].iloc[0]
     interval = interval * 1.0e-12
@@ -173,14 +178,14 @@ def gain(digitizer, sipm, file_name, params_data=None, waves_data=None):
     with open(file_name, "rb") as pickle_file:
         pc_peaks = pk.load(pickle_file)
     diffs = pc_peaks[1:] - pc_peaks[:-1]
-    gain_average = np.mean(diffs[:4])
+    gain_average = ufloat((np.mean(diffs[:4])).nominal_value, (np.mean(diffs[:4])).std_dev, "statistical")
     sipm.gain.append(gain_average)
     gain_magnitude = gain_average * digitizer.e_cal/const.e
-    sipm.gain_magnitude.append(gain_magnitude)    
+    sipm.gain_magnitude.append(gain_magnitude)
     return gain_average, gain_magnitude
 
 
-def dark_count_rate(sipm, height=0.75, distance=50, width=10, bounds=None, params_data=None, waves_data=None, low_counts=False, filt=False, display=False):
+def dark_count_rate(sipm, height=0.75, distance=50, width=10, bounds=None, params_data=None, waves_data=None, low_counts=False, filt=False, save=False, save_path=None):
 
     # TODO: Replace hard coded sampling rate of CAENDT5730 with something more generic
 
@@ -222,16 +227,15 @@ def dark_count_rate(sipm, height=0.75, distance=50, width=10, bounds=None, param
     # result = exp_model.fit(n, params, x=centers)
 
     # time_constant = ufloat(result.params["tau"].value, result.params["tau"].stderr)
+    dark_rate = ufloat(dark_rate.nominal_value, dark_rate.std_dev, "statistical")
     sipm.dcr_fit.append(dark_rate)
 
-    if display:
+    if save:
         fig, ax = plt.subplots()
         ax.plot(bin_centers[~nan_places], log_bins[~nan_places])
         ax.plot(bin_centers, slope*bin_centers + intercept)
-        # sipm_plt.delay_times(ax, dts=all_dts, fit=True)
-        # ax.legend([str(1/(result.params["tau"].value*1e-9))])
-        plt.show()
-        plt.close()
+        plot_index = sipm.dcr_fit.index(dark_rate)
+        plt.savefig(save_path+"/dark_count_rate_"+sipm.bias[plot_index]+".png", dpi=300)
 
     return dark_rate
 
@@ -247,7 +251,7 @@ def dark_photon_rate(sipm, height=0.75, distance=50, width=10, params_data=None,
         photon_triggers.append(np.sum(round_heights))
     average_photon_rate = np.mean(photon_triggers) / (waves_data.shape[1]*2.0e-9)
     stderr_photon_rate = np.std(photon_triggers) / (waves_data.shape[1]*2.0e-9)
-    sipm.photon_rate.append(ufloat(average_photon_rate, stderr_photon_rate))
+    sipm.photon_rate.append(ufloat(average_photon_rate, stderr_photon_rate, "statistical"))
     return average_photon_rate
 
 
@@ -265,7 +269,7 @@ def cross_talk(sipm, label, params_data=None, waves_data=None):
     prob_upper = upper_bounds[1]/upper_bounds[0]
     prob_middle = middle[1]/middle[0]
     prob_lower = lower_bounds[1]/lower_bounds[0]
-    sipm.cross_talk.append(ufloat(prob_middle, abs(prob_upper-prob_lower)/2))
+    sipm.cross_talk.append(ufloat(prob_middle, abs(prob_upper-prob_lower)/2, "statistical"))
     return ufloat(prob_middle, abs(prob_upper-prob_lower)/2)
 
 
