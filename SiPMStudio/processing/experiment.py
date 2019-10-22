@@ -33,7 +33,7 @@ def experiment(path, files, settings_files, measurement_array, digitizer, output
         destination = path+"/"+file
         digitizer.load_data(df_data=destination)
         measurement_array.set_array(digitizer=digitizer)
-        _process(path+"/"+settings_files[i], digitizer, measurement_array)
+        _process(settings_files[i], digitizer, measurement_array)
 
     _output_time(time.time()-start)
 

@@ -176,7 +176,7 @@ def spectrum_peaks(params_data, waves_data=None, n_bins=500, hist_range=None, mi
 def gain(digitizer, sipm, file_name, params_data=None, waves_data=None):
     pc_peaks = []
     with open(file_name, "rb") as pickle_file:
-        pc_peaks = pk.load(pickle_file)
+        pc_peaks = pk.load(pickle_file)[0]
     diffs = pc_peaks[1:] - pc_peaks[:-1]
     gain_average = ufloat((np.mean(diffs[:4])).nominal_value, (np.mean(diffs[:4])).std_dev, "statistical")
     sipm.gain.append(gain_average)
@@ -271,6 +271,14 @@ def cross_talk(sipm, label, params_data=None, waves_data=None):
     prob_lower = lower_bounds[1]/lower_bounds[0]
     sipm.cross_talk.append(ufloat(prob_middle, abs(prob_upper-prob_lower)/2, "statistical"))
     return ufloat(prob_middle, abs(prob_upper-prob_lower)/2)
+
+
+def excess_charge_factor(sipm, params_data, waves_data=None):
+    primary_charge = primary = params_data["ENERGY"][(params_data["ENERGY"] > 0.5) & (params_data["ENERGY"] < 1.5)]
+    out_charge = params_data["ENERGY"]
+    ecf = np.mean(out_charge) / np.mean(primary_charge)
+    sipm.ecf.append(ecf)
+    return ecf
 
 
 def delay_times(params_data, waves_data, min_height=0.5, min_dist=50, width=10):

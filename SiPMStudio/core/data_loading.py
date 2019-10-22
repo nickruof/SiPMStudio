@@ -1,4 +1,6 @@
+import datetime
 import pandas as pd
+
 from abc import ABC
 
 
@@ -41,15 +43,25 @@ class Keithley2450(DataLoader):
         self.model_name = "Keithley2450"
         self.current = []
         self.voltage = []
+        self.time = []
         super().__init__(*args, **kwargs)
 
     def load_data(self, df_data, chunksize=None):
         if isinstance(df_data, pd.core.frame.DataFrame):
             self.df_data = df_data
         elif isinstance(df_data, str):
-            self.df_data = pd.read_csv(df_data, delimiter=",", skiprows=7, usecols=["Reading", "Value", "Time", "Fractional Seconds"])
+            self.df_data = pd.read_csv(df_data, delimiter=",", skiprows=7, usecols=["Reading", "Value", "Date", "Time", "Fractional Seconds"])
         else:
             raise TypeError("DataType not recognized!")
         if self.df_data is not None:
             self.current = self.df_data["Reading"]
             self.voltage = self.df_data["Value"]
+            time_series = []
+            time_0 = 0;
+            for i, date in enumerate(self.df_data["Date"]):
+                date_string = date + " " + (self.df_data["Time"])[i]
+                date_time = datetime.datetime.strptime(date_string,"%m/%d/%Y %H:%M:%S")
+                if i == 0:
+                    time_0 = date_time.timestamp() + (self.df_data["Fractional Seconds"])[i]
+                time_series.append(date_time.timestamp() + (self.df_data["Fractional Seconds"])[i] - time_0)
+            self.time = time_series

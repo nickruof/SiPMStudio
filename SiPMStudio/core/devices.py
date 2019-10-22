@@ -21,7 +21,7 @@ class Sipm:
         self.after_pulse = []
         self.pde = []
 
-        self.lcr_fit = []
+        self.ecf = []
         self.photon_rate = []
         self.current = []
         self.I_current = []
@@ -35,6 +35,8 @@ class Sipm:
         data["dcr_fit"] = self.dcr_fit
         data["cross_talk"] = self.cross_talk
         data["after_pulse"] = self.after_pulse
+        data["ecf"] = self.ecf
+        data["photon_rate"] = self.photon_rate
         data["pde"] = self.pde
         return data
 
