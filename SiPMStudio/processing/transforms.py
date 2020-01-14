@@ -1,6 +1,7 @@
 import numpy as np
 import pandas as pd
 import pywt
+import peakutils
 
 from scipy.signal import savgol_filter
 from scipy.signal import filtfilt
@@ -18,10 +19,16 @@ def adc_to_volts(waves_data, digitizer):
     return pd.DataFrame(data=processed_waveforms, index=waves_data.index, columns=waves_data.columns)
 
 
-def baseline_subtract(waves_data):
-    baseline = np.mean(waves_data.to_numpy()[:, 0:45], axis=1)
-    baselines_vector = baseline.reshape((baseline.shape[0], 1))
-    processed_waveforms = waves_data.to_numpy() - baselines_vector
+# def baseline_subtract(waves_data):
+#    baseline = np.mean(waves_data.to_numpy()[:, 0:45], axis=1)
+#    baselines_vector = baseline.reshape((baseline.shape[0], 1))
+#    processed_waveforms = waves_data.to_numpy() - baselines_vector
+#    return pd.DataFrame(data=processed_waveforms, index=waves_data.index, columns=waves_data.columns)
+
+def baseline_subtract(waves_data, degree=1):
+    axis_function = partial(peakutils.baseline, deg=degree)
+    baselines = np.apply_along_axis(axis_function, 1, waves_data.to_numpy())
+    processed_waveforms = waves_data.to_numpy() - baselines
     return pd.DataFrame(data=processed_waveforms, index=waves_data.index, columns=waves_data.columns)
 
 
@@ -64,9 +71,8 @@ def normalize_waves(waves_data, peak_locs):
         return waves_data
     diffs = peak_locs[1:] - peak_locs[:-1]
     average_diff = np.mean(diffs)
-    norm_data = waves_data.to_numpy() - peak_locs[0]
+    norm_data = waves_data.to_numpy()
     norm_data = norm_data / average_diff
-    norm_data = norm_data + 1
     return pd.DataFrame(data=norm_data, index=waves_data.index, columns=waves_data.columns)
 
 

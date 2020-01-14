@@ -58,27 +58,26 @@ def error_plot(ax, x_values, y_values, label=None, color=None):
     y_vals = unumpy.nominal_values(y_values)
     y_err = unumpy.std_devs(y_values)
 
-    ax.scatter(x_vals, y_vals)
     if len(x_err) == 0:
-        ax.errorbar(x_vals, y_vals, y_err, None, fmt="o", capsize=3, label=label, color=color)
+        ax.errorbar(x_vals, y_vals, y_err, None, fmt="o", capsize=2, label=label, color=color)
     elif len(y_err) == 0:
-        ax.errorbar(x_vals, y_vals, None, x_err, fmt="o", capsize=3, label=label, color=color)
+        ax.errorbar(x_vals, y_vals, None, x_err, fmt="o", capsize=2, label=label, color=color)
     else:
-        ax.errorbar(x_vals, y_vals, y_err, x_err, fmt="o", capsize=3, label=label, color=color)
+        ax.errorbar(x_vals, y_vals, y_err, x_err, fmt="o", capsize=2, label=label, color=color)
 
 
-def shaded_plot(ax, x_values, y_values, color=sns.color_palette()[0], label=None, bars=False):
-    # error_plot(ax, x_values, y_values, label=label)
+def shaded_plot(ax, x_values, y_values, systematics=None, color=sns.color_palette()[0], label=None, bars=False):
     x_vals = unumpy.nominal_values(x_values)
     y_vals = unumpy.nominal_values(y_values)
     x_err = unumpy.std_devs(x_values)
     y_err = unumpy.std_devs(y_values)
+    
     if bars:
         error_plot(ax, x_values, y_values, label=label)
-        ax.fill_between(x_vals, y_vals - y_err, y_vals + y_err, facecolor=color, alpha=0.25)
+        ax.fill_between(x_vals, y_vals - systematics, y_vals + systematics, facecolor=color, alpha=0.25)
     else:
         ax.scatter(x_vals, y_vals, label=label)
-        ax.fill_between(x_vals, y_vals-y_err, y_vals+y_err, facecolor=color, alpha=0.25)
+        ax.fill_between(x_vals, y_vals - systematics, y_vals + systematics, facecolor=color, alpha=0.25)
 
 
 def interp_plot(ax, x_values, y_values, kind="cubic", n_points=None):

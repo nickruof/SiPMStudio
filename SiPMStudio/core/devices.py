@@ -3,6 +3,7 @@ import pandas as pd
 
 import scipy.constants as const
 import uncertainties
+from uncertainties import unumpy
 
 
 class Sipm:
@@ -28,17 +29,23 @@ class Sipm:
         self.V_voltage = []
 
     def dump_data(self):
-        data = pd.DataFrame()
-        data["bias"] = self.bias
-        data["gain"] = self.gain
-        data["pulse_rate"] = self.pulse_rate
-        data["dcr_fit"] = self.dcr_fit
-        data["cross_talk"] = self.cross_talk
-        data["after_pulse"] = self.after_pulse
-        data["ecf"] = self.ecf
-        data["photon_rate"] = self.photon_rate
-        data["pde"] = self.pde
-        return data
+        data_values = pd.DataFrame()
+        data_values["bias"] = unumpy.nominal_values(self.bias)
+        data_values["gain"] = unumpy.nominal_values(self.gain)
+        data_values["dcr_fit"] = unumpy.nominal_values(self.dcr_fit)
+        data_values["cross_talk"] = unumpy.nominal_values(self.cross_talk)
+        data_values["ecf"] =unumpy.nominal_values(self.ecf)
+        data_values["pde"] = unumpy.nominal_values(self.pde)
+
+        data_errors = pd.DataFrame()
+        data_errors["bias"] = unumpy.std_devs(self.bias)
+        data_errors["gain"] = unumpy.std_devs(self.gain)
+        data_errors["dcr_fit"] = unumpy.std_devs(self.dcr_fit)
+        data_errors["cross_talk"] = unumpy.std_devs(self.cross_talk)
+        data_errors["ecf"] = unumpy.std_devs(self.ecf)
+        data_errors["pde"] = unumpy.std_devs(self.pde)
+
+        return data_values, data_errors
 
 
 class Photodiode:
@@ -66,7 +73,8 @@ class Photodiode:
 
     def calibrate(self, light_source):
         response = self.get_response(light_source.wavelength)
-        self.cal_slope = light_source.wavelength / (self.area * const.h * const.c * response)
+        energy_per_photon = const.h*const.c / light_source.wavelength
+        self.cal_slope = 1 / (energy_per_photon * response * self.area)
 
     def photon_rate(self, current, active_area):
         return active_area * self.cal_slope*current*1.0e-9

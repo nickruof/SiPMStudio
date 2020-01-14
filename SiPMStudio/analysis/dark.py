@@ -173,11 +173,8 @@ def spectrum_peaks(params_data, waves_data=None, n_bins=500, hist_range=None, mi
     return peak_locations
 
 
-def gain(digitizer, sipm, file_name, params_data=None, waves_data=None):
-    pc_peaks = []
-    with open(file_name, "rb") as pickle_file:
-        pc_peaks = pk.load(pickle_file)[0]
-    diffs = pc_peaks[1:] - pc_peaks[:-1]
+def gain(digitizer, sipm, peaks, params_data=None, waves_data=None):
+    diffs = (peaks[0])[1:] - (peaks[0])[:-1]
     gain_average = ufloat((np.mean(diffs[:4])).nominal_value, (np.mean(diffs[:4])).std_dev, "statistical")
     sipm.gain.append(gain_average)
     gain_magnitude = gain_average * digitizer.e_cal/const.e
@@ -185,7 +182,7 @@ def gain(digitizer, sipm, file_name, params_data=None, waves_data=None):
     return gain_average, gain_magnitude
 
 
-def dark_count_rate(sipm, height=0.75, distance=50, width=10, bounds=None, params_data=None, waves_data=None, low_counts=False, filt=False, save=False, save_path=None):
+def dark_count_rate(sipm, height=0.75, distance=50, width=10, bounds=None, params_data=None, waves_data=None, low_counts=False, filt=False, save=False, save_path=""):
 
     # TODO: Replace hard coded sampling rate of CAENDT5730 with something more generic
 
@@ -232,10 +229,12 @@ def dark_count_rate(sipm, height=0.75, distance=50, width=10, bounds=None, param
 
     if save:
         fig, ax = plt.subplots()
-        ax.plot(bin_centers[~nan_places], log_bins[~nan_places])
+        ax.plot(fit_centers, log_bins)
         ax.plot(bin_centers, slope*bin_centers + intercept)
+        ax.set_xlabel("Delay Times (ns)")
+        ax.set_ylabel("Log Counts")
         plot_index = sipm.dcr_fit.index(dark_rate)
-        plt.savefig(save_path+"/dark_count_rate_"+sipm.bias[plot_index]+".png", dpi=300)
+        plt.savefig("dark_count_rate_"+str(sipm.bias[plot_index])+".pdf")
 
     return dark_rate
 
@@ -274,7 +273,7 @@ def cross_talk(sipm, label, params_data=None, waves_data=None):
 
 
 def excess_charge_factor(sipm, params_data, waves_data=None):
-    primary_charge = primary = params_data["ENERGY"][(params_data["ENERGY"] > 0.5) & (params_data["ENERGY"] < 1.5)]
+    primary_charge = params_data["ENERGY"][(params_data["ENERGY"] > 0.5) & (params_data["ENERGY"] < 1.5)]
     out_charge = params_data["ENERGY"]
     ecf = np.mean(out_charge) / np.mean(primary_charge)
     sipm.ecf.append(ecf)
