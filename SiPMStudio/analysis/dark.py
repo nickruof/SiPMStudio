@@ -173,7 +173,7 @@ def spectrum_peaks(params_data, waves_data=None, n_bins=500, hist_range=None, mi
     return peak_locations
 
 
-def gain(digitizer, sipm, peaks, params_data=None, waves_data=None):
+def gain(digitizer, sipm, peaks, params_data=None, waves_data=None, save_path=None):
     diffs = (peaks[0])[1:] - (peaks[0])[:-1]
     gain_average = ufloat((np.mean(diffs[:4])).nominal_value, (np.mean(diffs[:4])).std_dev, "statistical")
     sipm.gain.append(gain_average)

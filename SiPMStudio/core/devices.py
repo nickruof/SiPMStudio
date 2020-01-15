@@ -31,7 +31,7 @@ class Sipm:
     def dump_data(self):
         data_values = pd.DataFrame()
         data_values["bias"] = unumpy.nominal_values(self.bias)
-        data_values["gain"] = unumpy.nominal_values(self.gain)
+        data_values["gain"] = unumpy.nominal_values(self.gain_magnitude)
         data_values["dcr_fit"] = unumpy.nominal_values(self.dcr_fit)
         data_values["cross_talk"] = unumpy.nominal_values(self.cross_talk)
         data_values["ecf"] =unumpy.nominal_values(self.ecf)
@@ -39,7 +39,7 @@ class Sipm:
 
         data_errors = pd.DataFrame()
         data_errors["bias"] = unumpy.std_devs(self.bias)
-        data_errors["gain"] = unumpy.std_devs(self.gain)
+        data_errors["gain"] = unumpy.std_devs(self.gain_magnitude)
         data_errors["dcr_fit"] = unumpy.std_devs(self.dcr_fit)
         data_errors["cross_talk"] = unumpy.std_devs(self.cross_talk)
         data_errors["ecf"] = unumpy.std_devs(self.ecf)

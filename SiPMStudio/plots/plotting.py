@@ -160,7 +160,7 @@ def snr(ax, sipm):
     ax.set_ylabel("SNR (dB)")
 
 
-def gain(ax, sipm, lin_fit=False):
+def gain(ax, sipm, lin_fit=False, save_path=None):
     plots_base.error_plot(ax, sipm.bias, sipm.gain_magnitude)
     ax.set_xlabel("Bias Voltage (V)")
     ax.ticklabel_format(axis="y", style="sci", scilimits=(0, 0))
@@ -174,18 +174,27 @@ def gain(ax, sipm, lin_fit=False):
         ax.plot(x, y, "r")
         ax.legend(["Breakdown Voltage: " + str(round(-intercept/slope, 1)) + " V"])
 
+    if save_path:
+        plt.savefig(save_path+"/gain_plot.jpg")
 
-def dcr(ax, sipm):
+
+def dcr(ax, sipm, save_path=None):
     dark_count_rate = [dr / 1000 / sipm.area for dr in sipm.dcr_fit]
     plots_base.error_plot(ax, sipm.bias, dark_count_rate)
     ax.set_xlabel("Bias Voltage (V)")
     ax.set_ylabel("Dark Count Rate (kHz/mm^2)")
 
+    if save_path:
+        plt.savefig(save_path+"/dcr_plot.jpg")
 
-def cross_talk(ax, sipm):
+
+def cross_talk(ax, sipm, save_path=None):
     plots_base.error_plot(ax, sipm.bias, np.array(sipm.cross_talk)*100)
     ax.set_xlabel("Bias Voltage (V)")
     ax.set_ylabel("Cross Talk Probability (%)")
+
+    if save_path:
+        plt.savefig(save_path+"/cross_talk_plot.jpg")
 
 
 def delay_times(ax, dts, bins=500, bounds=None, fit=False, alpha=0.75):
@@ -215,8 +224,11 @@ def delay_heights(fig, ax, dts, heights, density=False):
     ax.set_ylabel("Pulse Heights (V)")
 
 
-def pde(ax, sipm):
+def pde(ax, sipm, save_path=None):
     pde_percent = [decimal*100 for decimal in sipm.pde]
     plots_base.error_plot(ax, sipm.bias, pde_percent)
     ax.set_xlabel("Bias Voltage (V)")
     ax.set_ylabel("Photon Detection Efficiency (%)")
+
+    if save_path:
+        plt.savefig(save_path+"/pde_plot.jpg")

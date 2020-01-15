@@ -51,15 +51,15 @@ def load_current_measurements(path, scope):
     return np.array(dark_currents)*1.0e6, np.array(light_currents)*1.0e6
 
 
-def leakage_current(dark_currents, dcr, gain, ecf):
-    expected_current = gain * dcr * ecf * 1.0e-6 * const.e
+def leakage_current(dark_currents, sipm):
+    expected_current = np.array(sipm.gain_magnitude) * np.array(sipm.dcr_fit) * np.array(sipm.ecf) * 1.0e-6 * const.e
     leakage = np.array(dark_currents)*1.0e-6 - expected_current
     return leakage
 
 
-def current_pde(sipm, dark_currents, light_currents, photon_rate, gain, ecf=1):
+def current_pde(sipm, dark_currents, light_currents, photon_rate):
     photocurrent = (light_currents - dark_currents) * 1.0e-6
-    expected_current = const.e * (sipm.gain * photon_rate) * sipm.ecf
+    expected_current = const.e * (np.array(sipm.gain_magnitude) * photon_rate) * np.array(sipm.ecf)
     pde = photocurrent / expected_current
     sipm.pde = pde
 
