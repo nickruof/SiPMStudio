@@ -1,7 +1,6 @@
 import os, re, sys, time
 import math
 import tqdm
-import animation
 import numpy as np
 import pandas as pd
 import multiprocessing as mp

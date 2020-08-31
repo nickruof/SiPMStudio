@@ -7,8 +7,6 @@ from SiPMStudio.processing.process_data import _output_time
 
 def process_metadata(metadata_files, digitizer, output_dir=None, verbose=False):
 
-    # TODO: make more memory efficient to reduce python application memory size
-
     print("Processing Metadata! ...")
     print("Number of Files to Process: "+str(len(metadata_files)))
     output_dir = os.getcwd() if output_dir is None else output_dir
@@ -35,8 +33,9 @@ def process_metadata(metadata_files, digitizer, output_dir=None, verbose=False):
 
 
 def _output_to_file(data_file, output_path, input_dataframe, digitizer):
+    print(data_file)
     indices = [i for i, item in enumerate(data_file) if item == "/"]
     file_name = data_file[indices[-1] + 1:].replace(digitizer.file_header, "")
-    input_dataframe.to_hdf(path_or_buf=output_path+"/t1_" + file_name[:-4] + ".h5", key="dataset", mode="w", table=True)
+    input_dataframe.to_hdf(path_or_buf=output_path+"/t1_" + file_name[:-4] + ".h5", key="dataset", mode="w", format="table")
 
 

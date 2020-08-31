@@ -92,7 +92,7 @@ class CAENDT5730(Digitizer):
         self.v_range = settings["v_range"]
         self.e_cal = settings["e_cal"]
         self.int_window = settings["int_window"]
-        self.file_header = "CH_"+str(settings["channel"])+"@"+self.model_name+"_"+str(settings["id"])+"_Data_"
+        self.file_header = "DataR_CH"+str(settings["channel"])+"@"+self.model_name+"_"+str(settings["id"])+"_"
 
     def get_event_size(self, t0_file):
         with open(t0_file, "rb") as file:

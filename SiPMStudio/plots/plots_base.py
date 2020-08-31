@@ -73,11 +73,11 @@ def shaded_plot(ax, x_values, y_values, systematics=None, color=sns.color_palett
     y_err = unumpy.std_devs(y_values)
     
     if bars:
-        error_plot(ax, x_values, y_values, label=label)
-        ax.fill_between(x_vals, y_vals - systematics, y_vals + systematics, facecolor=color, alpha=0.25)
+        error_plot(ax, x_values, y_values, label=label, color=color)
+        ax.fill_between(x_vals, y_vals - y_err, y_vals + y_err, facecolor=color, alpha=0.25)
     else:
-        ax.scatter(x_vals, y_vals, label=label)
-        ax.fill_between(x_vals, y_vals - systematics, y_vals + systematics, facecolor=color, alpha=0.25)
+        ax.scatter(x_vals, y_vals, label=label, color=color)
+        ax.fill_between(x_vals, y_vals - y_err, y_vals + y_err, facecolor=color, alpha=0.25)
 
 
 def interp_plot(ax, x_values, y_values, kind="cubic", n_points=None):
