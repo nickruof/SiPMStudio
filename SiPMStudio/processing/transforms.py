@@ -3,12 +3,13 @@ import pandas as pd
 import pywt
 import peakutils
 
-from scipy.signal import savgol_filter
-from scipy.signal import filtfilt
+from scipy.signal import savgol_filter, filtfilt, find_peaks, wiener, deconvolve
+from scipy.optimize import curve_fit
 from statsmodels.robust import mad
 from functools import partial
 
-from SiPMStudio.processing.functions import butter_bandpass
+from SiPMStudio.processing.functions import butter_bandpass, double_exp
+
 # TODO: come up with way to store waveform timing information and check DataFrame initialisation speed
 
 
@@ -64,6 +65,37 @@ def moving_average(waves_data, box_size=20):
     box = np.ones(box_size) / box_size
     smooth_waves = np.apply_along_axis(lambda wave: np.convolve(wave, box, mode="same"), axis=0, arr=waves_data.to_numpy())
     return pd.DataFrame(data=smooth_waves, index=waves_data.index, columns=waves_data.columns)
+
+
+def deconvolve_waves(waves_data, height_range, min_loc):
+    x_samples = np.linspace(0, 2*len(waves_data[0]), len(waves_data[0]))
+
+    def average_waveform(waveforms):
+        peak_array = []
+        average_wave = np.array([0]*len(waveforms[0]), dtype=np.float64)
+        N = 0
+        for waveform in waveforms:
+            peak_locs = find_peaks(waveform, height=height_range[0], distance=5)[0]
+            if len(peak_locs) == 0: continue
+            if (waveform[peak_locs[0]] < height_range[1]) & (peak_locs[0] < min_loc):
+                average_wave = average_wave + waveform
+                N += 1
+        return average_waveform / N
+
+    super_pulse = average_waveform(waves_data)
+    x_fit = x_samples[56:1000]
+    y_fit = super_pulse[56:1000]
+    coeffs, covs = curve_fit(double_exp, x_fit, y_fit, p0=[1000, 100, 50, 100, 10, 0])
+    transfer_func = double_exp(x_samples[50:500], 0.5, 0.1, 0, coeffs[3], coeffs[4], 0)
+
+    def deconvolve_waveform(waveform, transfer):
+        waveform_wiener = wiener(waveform, 20)
+        waveform_deconv = deconvolve(waveform_wiener, transfer)
+        return waveform_deconv
+
+    deconvolve_function = partial(deconvolve_waveform, transfer=transfer_func)
+    deconv_waves = np.apply_along_axis(deconvolve_waveform, 1, waves_data.to_numpy())
+    return pd.DataFrame(data=deconv_waves, index=waves_data.index, columns=waves_data.columns)
 
 
 def normalize_waves(waves_data, peak_locs):

@@ -1,4 +1,4 @@
-import os, time
+import os, time, glob
 import tqdm
 import pandas as pd
 
@@ -101,12 +101,6 @@ def _output_to_file(data_file, storage, output_dir, prefix="t2"):
             store.put(key="dataset", value=output_frame, format="table", append=True, min_itemsize=minimum_size)
         else:
             store.put(key="dataset", value=output_frame, format="table", append=False, min_itemsize=minimum_size)
-
-
-def _list_files(path):
-    all_files = [file for file in os.listdir(path) if os.path.isfile(os.path.join(path, file))]
-    h5_files = [file for file in all_files if file.endswith(".h5")]
-    return h5_files
 
 
 def _output_time(delta_seconds):

@@ -42,16 +42,10 @@ def butter_bandpass(lowcut, highcut, sample_rate, order=5):
     return b, a
 
 
-def sipm_rise(t, a, tau, t0, d):
-    return a * (1 - np.exp(-(t-t0)/tau)) + d
+def exp_func(t, A, t0, tau, D):
+    return A*np.exp(-(t-t0)/tau) + D
 
 
-def sipm_fall(t, a, tau, t0, d):
-    return a * np.exp(-(t-t0)/tau) + d
-
-
-def double_exp(t, A, lam1, lam2):
-    distro_1 = A*np.exp(-lam1*t)
-    distro_2 = (1 - A)*np.exp(-lam2*t)
-    return distro_1 + distro_2
+def double_exp(t, A1, A2, t0, tau1, tau2, D):
+    return exp_func(t, A1, t0, tau1, 0) + exp_func(t, A2, t0, tau2, D)
 
