@@ -68,7 +68,7 @@ def moving_average(waves_data, box_size=20):
 
 
 def deconvolve_waves(waves_data, height_range, min_loc):
-    x_samples = np.linspace(0, 2*len(waves_data[0]), len(waves_data[0]))
+    x_samples = np.linspace(0, 2*waves_data.shape[1], waves_data.shape[1])
 
     def average_waveform(waveforms):
         peak_array = []
@@ -80,9 +80,9 @@ def deconvolve_waves(waves_data, height_range, min_loc):
             if (waveform[peak_locs[0]] < height_range[1]) & (peak_locs[0] < min_loc):
                 average_wave = average_wave + waveform
                 N += 1
-        return average_waveform / N
+        return average_wave / float(N)
 
-    super_pulse = average_waveform(waves_data)
+    super_pulse = average_waveform(waves_data.to_numpy())
     x_fit = x_samples[56:1000]
     y_fit = super_pulse[56:1000]
     coeffs, covs = curve_fit(double_exp, x_fit, y_fit, p0=[1000, 100, 50, 100, 10, 0])
@@ -91,10 +91,12 @@ def deconvolve_waves(waves_data, height_range, min_loc):
     def deconvolve_waveform(waveform, transfer):
         waveform_wiener = wiener(waveform, 20)
         waveform_deconv = deconvolve(waveform_wiener, transfer)
-        return waveform_deconv
+        buffer_length = len(waveform) - len(waveform_deconv[0])
+        output_wave = np.append(waveform_deconv[0], [0]*buffer_length)
+        return output_wave
 
     deconvolve_function = partial(deconvolve_waveform, transfer=transfer_func)
-    deconv_waves = np.apply_along_axis(deconvolve_waveform, 1, waves_data.to_numpy())
+    deconv_waves = np.apply_along_axis(deconvolve_function, 1, waves_data.to_numpy())
     return pd.DataFrame(data=deconv_waves, index=waves_data.index, columns=waves_data.columns)
 
 

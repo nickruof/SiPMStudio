@@ -1,9 +1,12 @@
-import os, time, glob
+import os, time
 import tqdm
 import pandas as pd
 
 
-def process_data(path, data_files, processor, digitizer, overwrite=False, output_dir=None, verbose=False, chunk=2000, write_size=1):
+def process_data(settings, processor, digitizer, overwrite=False, output_dir=None, verbose=False, chunk=2000, write_size=1):
+
+    path = settings["output_path"]
+    data_files = ["t1_" + settings["file_base_name"] + "_" + str(entry["bias"]) + ".h5" for entry in settings["init_info"]]
 
     print(" ")
     print("Starting SiPMStudio processing ... ")
@@ -11,12 +14,14 @@ def process_data(path, data_files, processor, digitizer, overwrite=False, output
     output_dir = os.getcwd() if output_dir is None else output_dir
     print("Output Path: ", output_dir)
     print("Input Files: ", data_files)
+
     file_sizes = []
     for file_name in data_files:
         memory_size = os.path.getsize(path+"/"+file_name)
         memory_size = round(memory_size/1e6)
         file_sizes.append(str(memory_size)+" MB")
     print("File Sizes: ", file_sizes)
+
     if overwrite is True:
         for file_name in data_files:
             destination = output_dir+"/"+file_name.replace("t1", "t2")
@@ -30,10 +35,10 @@ def process_data(path, data_files, processor, digitizer, overwrite=False, output
     # -----Processing Begins Here!---------------------------------
 
     for file in data_files:
-        destination = path+"/"+file
+        destination = os.path.join(path, file)
         print("Processing: "+file)
         store = pd.HDFStore(destination)
-        num_rows = store.get_storer("dataset").shape[0]
+        num_rows = store.get_storer("dataset").nrows
         df_storage = []
         for i in tqdm.tqdm(range(num_rows//chunk + 1)):
             begin, end = _chunk_range(i, chunk, num_rows)
