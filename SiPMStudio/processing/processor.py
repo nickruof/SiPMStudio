@@ -12,6 +12,8 @@ class Processor(ABC):
     dataframe that is stored in the DataLoading base class of a digitizer object
     """
 
+    # TODO: Look into using in place transformations for the ProcessorBase class
+
     def __init__(self, settings=None):
         self.file = ""
         self.proc_list = []

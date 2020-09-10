@@ -1,5 +1,4 @@
 import sys
-import glob
 import json
 
 from SiPMStudio.core.digitizers import CAENDT5730
@@ -22,8 +21,11 @@ def main():
 
     digitizer = CAENDT5730()
     processor = Processor()
+    short_tau = settings_dict["deconv_params"]["short_tau"][0]
+    long_tau = settings_dict["deconv_params"]["long_tau"][0]
     processor.add("baseline_subtract", settings={"degree": 1})
-    process_data(settings_dict, processor, digitizer, overwrite=True)
+    processor.add("deconvolve_waves", settings={"short_tau": short_tau, "long_tau": long_tau})
+    process_data(settings_dict, processor, digitizer, overwrite=True, output_dir=settings_dict["output_path_t2"], chunk=4000, write_size=3)
 
 
 if __name__ == "__main__":
