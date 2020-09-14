@@ -15,7 +15,6 @@ import scipy.constants as const
 from uncertainties import ufloat, unumpy
 
 from SiPMStudio.processing.functions import gaussian
-from SiPMStudio.processing.functions import exponential
 from SiPMStudio.analysis.noise import average_power
 import SiPMStudio.plots.plots_base as plots_base
 import SiPMStudio.plots.plotting as sipm_plt
