@@ -7,7 +7,7 @@ from scipy.signal import savgol_filter, filtfilt, wiener, deconvolve
 from statsmodels.robust import mad
 from functools import partial
 
-from SiPMStudio.processing.functions import butter_bandpass, exp_func, double_exp
+from SiPMStudio.processing.functions import butter_bandpass, exp_func, double_exp, quadratic
 
 # TODO: come up with way to store waveform timing information and check DataFrame initialisation speed
 
@@ -89,13 +89,8 @@ def deconvolve_waves(waves_data, short_tau, long_tau):
     return pd.DataFrame(data=deconv_waves, index=waves_data.index, columns=waves_data.columns)
 
 
-def normalize_waves(waves_data, peak_locs):
-    if len(peak_locs) == 0:
-        return waves_data
-    diffs = peak_locs[1:] - peak_locs[:-1]
-    average_diff = np.mean(diffs)
-    norm_data = waves_data.to_numpy()
-    norm_data = norm_data / average_diff
+def normalize_waves(waves_data, calib_constants):
+    norm_data = quadratic(waves_data.to_numpy(), *calib_constants)
     return pd.DataFrame(data=norm_data, index=waves_data.index, columns=waves_data.columns)
 
 

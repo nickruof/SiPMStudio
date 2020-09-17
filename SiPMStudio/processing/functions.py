@@ -7,6 +7,10 @@ def line(x, m, b):
     return m*x + b
 
 
+def quadratic(x, a, b, c):
+    return a*x**2 + b*x + c
+
+
 def gaussian(x, mu, sigma, A):
     return A * np.exp(-(x-mu)**2/(2*sigma**2))
 

@@ -21,7 +21,11 @@ def main():
 
     digitizer = CAENDT5730()
     processor = Processor()
-    process_data(settings_dict, processor, digitizer, overwrite=True, output_dir=settings_dict["output_path_t2"], chunk=4000, write_size=3)
+    for entry in settings_dict["init_info"]:
+        processor.add("normalize_waves", settings={"calib_constants": entry["cal_constants"]})
+        process_data(settings_dict, processor, digitizer, bias=[entry["bias"]], overwrite=True,
+                     output_dir=settings_dict["output_path_t2"], chunk=4000, write_size=3)
+        processor.clear()
 
 
 if __name__ == "__main__":

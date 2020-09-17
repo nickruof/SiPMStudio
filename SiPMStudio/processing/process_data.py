@@ -2,11 +2,20 @@ import os, time
 import tqdm
 import pandas as pd
 
+# TODO: refactor structure in the HDF5 file output
 
-def process_data(settings, processor, digitizer, overwrite=False, output_dir=None, verbose=False, chunk=2000, write_size=1):
+
+def process_data(settings, processor, digitizer, bias=None, overwrite=False, output_dir=None, verbose=False, chunk=2000, write_size=1):
 
     path = settings["output_path"]
-    data_files = ["t1_" + settings["file_base_name"] + "_" + str(entry["bias"]) + ".h5" for entry in settings["init_info"]]
+    data_files = []
+    for entry in settings["init_info"]:
+        if bias is None:
+            data_files.append("t1_" + settings["file_base_name"] + "_" + str(entry["bias"]) + ".h5")
+        elif entry["bias"] in bias:
+            data_files.append("t1_" + settings["file_base_name"] + "_" + str(entry["bias"]) + ".h5")
+        else:
+            pass
 
     print(" ")
     print("Starting SiPMStudio processing ... ")

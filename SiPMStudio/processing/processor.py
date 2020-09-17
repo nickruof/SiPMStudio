@@ -64,6 +64,10 @@ class Processor(ABC):
         else:
             raise LookupError("ERROR! unknown function: ", fun_name)
 
+    def clear(self):
+        self.proc_list.clear()
+        self.settings.clear()
+
 
 class ProcessorBase(ABC):
     def __init__(self, function, fun_args={}):
