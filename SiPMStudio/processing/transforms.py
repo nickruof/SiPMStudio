@@ -15,8 +15,8 @@ from SiPMStudio.processing.functions import butter_bandpass, exp_func, double_ex
 def adc_to_volts(waves_data, digitizer):
     v_pp = digitizer.v_range
     n_bits = digitizer.adc_bitcount
-    processed_waveforms = (v_pp/2**n_bits) * waves_data.to_numpy()
-    return pd.DataFrame(data=processed_waveforms, index=waves_data.index, columns=waves_data.columns)
+    processed_waveforms = (v_pp/2**n_bits) * waves_data
+    return processed_waveforms
 
 
 # def baseline_subtract(waves_data):
@@ -28,21 +28,21 @@ def adc_to_volts(waves_data, digitizer):
 
 def baseline_subtract(waves_data, degree=1):
     axis_function = partial(peakutils.baseline, deg=degree)
-    baselines = np.apply_along_axis(axis_function, 1, waves_data.to_numpy())
-    processed_waveforms = waves_data.to_numpy() - baselines
-    return pd.DataFrame(data=processed_waveforms, index=waves_data.index, columns=waves_data.columns)
+    baselines = np.apply_along_axis(axis_function, 1, waves_data)
+    processed_waveforms = waves_data - baselines
+    return processed_waveforms
 
 
 def savgol(waves_data, window=15, order=2):
-    filtered_data = savgol_filter(waves_data.to_numpy(), window, order, axis=1)
-    return pd.DataFrame(data=filtered_data, index=waves_data.index, columns=waves_data.columns)
+    filtered_data = savgol_filter(waves_data, window, order, axis=1)
+    return filtered_data
 
 
 def butter_bandpass_filter(waves_data, digitizer, lowcut, highcut, order=5):
     sample_rate = digitizer.sample_rate
     (b, a) = butter_bandpass(lowcut, highcut, sample_rate, order=order)
-    filtered_data = filtfilt(b, a, waves_data.to_numpy(), axis=1)
-    return pd.DataFrame(data=filtered_data, index=waves_data.index, columns=waves_data.columns)
+    filtered_data = filtfilt(b, a, waves_data, axis=1)
+    return filtered_data
 
 
 def wavelet_denoise(waves_data, wavelet="db1", levels=3, mode="hard"):
@@ -56,15 +56,15 @@ def wavelet_denoise(waves_data, wavelet="db1", levels=3, mode="hard"):
         return denoised_wave
 
     axis_function = partial(denoise_function, wavelet_type=wavelet, num_levels=levels, thresh_mode=mode)
-    denoised_wave_values = np.apply_along_axis(axis_function, 1, waves_data.to_numpy())
+    denoised_wave_values = np.apply_along_axis(axis_function, 1, waves_data)
     new_columns = [str(i) for i in range(denoised_wave_values.shape[1])]
-    return pd.DataFrame(data=denoised_wave_values, index=waves_data.index, columns=new_columns)
+    return denoised_wave_values
 
 
 def moving_average(waves_data, box_size=20):
     box = np.ones(box_size) / box_size
-    smooth_waves = np.apply_along_axis(lambda wave: np.convolve(wave, box, mode="same"), axis=0, arr=waves_data.to_numpy())
-    return pd.DataFrame(data=smooth_waves, index=waves_data.index, columns=waves_data.columns)
+    smooth_waves = np.apply_along_axis(lambda wave: np.convolve(wave, box, mode="same"), axis=0, arr=waves_data)
+    return smooth_waves
 
 
 def deconvolve_waves(waves_data, short_tau, long_tau):
@@ -85,13 +85,13 @@ def deconvolve_waves(waves_data, short_tau, long_tau):
         return output_wave
 
     deconvolve_function = partial(deconvolve_waveform, transfer_func=transfer)
-    deconv_waves = np.apply_along_axis(deconvolve_function, 1, waves_data.to_numpy())
-    return pd.DataFrame(data=deconv_waves, index=waves_data.index, columns=waves_data.columns)
+    deconv_waves = np.apply_along_axis(deconvolve_function, 1, waves_data)
+    return deconv_waves
 
 
 def normalize_waves(waves_data, calib_constants):
-    norm_data = quadratic(waves_data.to_numpy(), *calib_constants)
-    return pd.DataFrame(data=norm_data, index=waves_data.index, columns=waves_data.columns)
+    norm_data = quadratic(waves_data, *calib_constants)
+    return norm_data
 
 
 

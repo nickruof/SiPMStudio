@@ -6,19 +6,11 @@ import SiPMStudio.processing.transforms as pt
 
 
 class Processor(ABC):
-    """
-    An object that stores a series of ProcessorBase classes to be independently run
-    on a series of calcs and waves.  The calcs and waves are references to a pandas
-    dataframe that is stored in the DataLoading base class of a digitizer object
-    """
 
     # TODO: Look into using in place transformations for the ProcessorBase class
 
     def __init__(self, settings=None):
-        self.file = ""
         self.proc_list = []
-        self.df_data = None
-        self.digitizer = None
         self.calcs = []
         self.waves = []
         self.settings = {}
@@ -28,14 +20,8 @@ class Processor(ABC):
             for key in settings:
                 self.add(key, settings[key])
 
-    def set_processor(self, digitizer=None, rows=None):
-        for processor in self.proc_list:
-            if "file_name" in processor.fun_args.keys():
-                processor.fun_args["file_name"] = self.file
-        if digitizer is not None:
-            self.digitizer = digitizer
-        self.calcs = self.digitizer.format_data(waves=False, rows=rows)
-        self.waves = self.digitizer.format_data(waves=True, rows=rows)
+    def set_processor(self, waves_data, rows=None):
+        self.waves = waves_data
 
     def process(self):
         for processor in self.proc_list:
@@ -45,7 +31,7 @@ class Processor(ABC):
                 self.waves = processor.process_block(self.waves)
             else:
                 raise TypeError("Couldn't identify processor type!")
-        return pd.concat([self.calcs, self.waves], axis=1)
+        return self.waves
 
     def add(self, fun_name, settings):
         if settings is None:

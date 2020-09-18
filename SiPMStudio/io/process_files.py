@@ -25,7 +25,7 @@ def main():
     long_tau = settings_dict["deconv_params"]["long_tau"][0]
     processor.add("baseline_subtract", settings={"degree": 1})
     processor.add("deconvolve_waves", settings={"short_tau": short_tau, "long_tau": long_tau})
-    process_data(settings_dict, processor, digitizer, overwrite=True, output_dir=settings_dict["output_path_t2"], chunk=4000, write_size=3)
+    process_data(settings_dict, processor, overwrite=True, chunk=4000, write_size=2)
 
 
 if __name__ == "__main__":

@@ -1,27 +1,29 @@
 import os, time
 import tqdm
-import pandas as pd
+import h5py
+import numpy as np
 
-# TODO: refactor structure in the HDF5 file output
 
+def process_data(settings, processor, bias=None, overwrite=False, verbose=False, chunk=2000, write_size=1):
 
-def process_data(settings, processor, digitizer, bias=None, overwrite=False, output_dir=None, verbose=False, chunk=2000, write_size=1):
-
-    path = settings["output_path"]
+    path = settings["output_path_t1"]
+    path_t2 = settings["output_path_t2"]
     data_files = []
+    output_files = []
     for entry in settings["init_info"]:
         if bias is None:
             data_files.append("t1_" + settings["file_base_name"] + "_" + str(entry["bias"]) + ".h5")
+            output_files.append("t2_" + settings["file_base_name"] + "_" + str(entry["bias"]) + ".h5")
         elif entry["bias"] in bias:
-            data_files.append("t1_" + settings["file_base_name"] + "_" + str(entry["bias"]) + ".h5")
+            data_files.append("t2_" + settings["file_base_name"] + "_" + str(entry["bias"]) + ".h5")
+            output_files.append("t2_" + settings["file_base_name"] + "_" + str(entry["bias"]) + ".h5")
         else:
             pass
 
     print(" ")
     print("Starting SiPMStudio processing ... ")
     print("Input Path: ", path)
-    output_dir = os.getcwd() if output_dir is None else output_dir
-    print("Output Path: ", output_dir)
+    print("Output Path: ", path_t2)
     print("Input Files: ", data_files)
 
     file_sizes = []
@@ -32,32 +34,28 @@ def process_data(settings, processor, digitizer, bias=None, overwrite=False, out
     print("File Sizes: ", file_sizes)
 
     if overwrite is True:
-        for file_name in data_files:
-            destination = output_dir+"/"+file_name.replace("t1", "t2")
+        for file_name in output_files:
+            destination = path_t2+"/"+file_name
             if os.path.isfile(destination):
                 os.remove(destination)
-
-    digitizer_type = digitizer.__class__
-    processor.digitizer = digitizer_type()
 
     start = time.time()
     # -----Processing Begins Here!---------------------------------
 
-    for file in data_files:
+    for i, file in enumerate(data_files):
         destination = os.path.join(path, file)
+        output_destination = os.path.join(path_t2, output_files[i])
         print("Processing: "+file)
-        store = pd.HDFStore(destination)
-        num_rows = store.get_storer("dataset").nrows
+        h5_file = h5py.File(destination, "r")
+
+        num_rows = h5_file["/raw/waveforms"][:].shape[0]
         df_storage = []
         for i in tqdm.tqdm(range(num_rows//chunk + 1)):
             begin, end = _chunk_range(i, chunk, num_rows)
-            df_chunk = store.select("dataset", start=begin, stop=end)
-            processor.digitizer.load_data(df_chunk)
-            output_df = _process_chunk(processor=processor)
-            _output_chunk(destination, output_df, df_storage, output_dir, write_size, num_rows, chunk, end)
-        processor.digitizer.clear_data()
-        digitizer.clear_data()
-        store.close()
+            wf_chunk = h5_file["/raw/waveforms"][begin:end]
+            output_wf = _process_chunk(wf_chunk, processor=processor)
+            _output_chunk(h5_file, output_destination, output_wf, df_storage, write_size, num_rows, chunk, end)
+        h5_file.close()
 
     print("Processing Finished! ...")
     print("Output Files: ", [file.replace("t1", "t2") for file in data_files])
@@ -72,49 +70,39 @@ def _chunk_range(index, chunk, num_rows):
     return start, stop
 
 
-def _process_chunk(processor, rows=None):
-    processor.set_processor(rows=rows)
+def _process_chunk(wf_chunk, processor, rows=None):
+    processor.set_processor(wf_chunk, rows=rows)
     return processor.process()
 
 
-def _output_chunk(data_file, chunk_frame, storage, output_dir, write_size, num_rows, chunk, stop, prefix="t2"):
+def _output_chunk(data_file, output_file, chunk_frame, storage, write_size, num_rows, chunk, stop):
     if (write_size == 1) | (num_rows < chunk):
-        _output_to_file(data_file, chunk_frame, output_dir, prefix)
+        _output_to_file(data_file, output_file, chunk_frame)
     else:
         if len(storage) >= write_size:
-            _output_to_file(data_file, storage, output_dir, prefix)
+            _output_to_file(data_file, output_file, storage)
             storage.clear()
         elif stop >= num_rows-1:
             storage.append(chunk_frame)
-            _output_to_file(data_file, storage, output_dir, prefix)
+            _output_to_file(data_file, output_file, storage)
             storage.clear()
         else:
             storage.append(chunk_frame)
 
 
-def _output_to_file(data_file, storage, output_dir, prefix="t2"):
-    indices = [i for i, item in enumerate(data_file) if item == "/"]
-    file_name = data_file[indices[-1]+1:]
-    output_frame = None
+def _output_to_file(data_file, output_filename, storage):
+    output_waveforms = None
     if isinstance(storage, list):
-        output_frame = pd.concat(storage)
+        output_waveforms = np.concatenate(storage)
     else:
-        output_frame = storage
-    output_frame.columns = output_frame.columns.astype(str)
-    new_file_name = ""
-    if (prefix in file_name) & (file_name.endswith(".h5")):
-        new_file_name = file_name
-    elif ("t1" in file_name) & (file_name.endswith(".h5")):
-        new_file_name = file_name.replace("t1", prefix)
-    else:
-        new_file_name = prefix+"_"+file_name[:-4]+".h5"
+        output_waveforms = storage
 
-    minimum_size = {"index": 10}
-    with pd.HDFStore(output_dir+"/"+new_file_name) as store:
-        if "dataset" in store:
-            store.put(key="dataset", value=output_frame, format="table", append=True, min_itemsize=minimum_size)
+    with h5py.File(output_filename, "w") as output_file:
+        if "processed" not in output_file.keys():
+            output_file.create_dataset("/processed/waveforms", data=output_waveforms)
         else:
-            store.put(key="dataset", value=output_frame, format="table", append=False, min_itemsize=minimum_size)
+            output_file["/processed/waveforms"].resize(output_file["/processed/waveforms"].shape[0]+output_waveforms.shape[0], axis=0)
+            output_file["/processed/waveforms"][-output_waveforms.shape[0]:] = output_waveforms
 
 
 def _output_time(delta_seconds):

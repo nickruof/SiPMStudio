@@ -27,7 +27,7 @@ def process_metadata(settings, digitizer, output_dir=None, verbose=False):
                 event_rows.append(event)
                 waveform_rows.append(waveform)
                 event_data_bytes = metadata_file.read(event_size)
-        _output_to_h5file(file_name, settings["file_base_name"], settings["output_path"], np.array(event_rows), np.array(waveform_rows))
+        _output_to_h5file(file_name, settings["file_base_name"], settings["output_path_t1"], np.array(event_rows), np.array(waveform_rows))
     _output_time(time.time() - start)
 
 
