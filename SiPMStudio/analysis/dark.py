@@ -1,93 +1,23 @@
 import numpy as np
 import matplotlib.pyplot as plt
-import os
-import operator
+import tqdm
 import warnings
-import pickle as pk
-import pandas as pd
 
 from scipy.sparse import diags
-from lmfit import Model
+from lmfit.models import LinearModel, QuadraticModel
 from scipy.optimize import curve_fit
 from scipy.signal import find_peaks
 from scipy.stats import linregress
 import scipy.constants as const
 from uncertainties import ufloat, unumpy
 
-from SiPMStudio.processing.functions import gaussian
+from SiPMStudio.processing.functions import gaussian, rise_func
 from SiPMStudio.analysis.noise import average_power
 import SiPMStudio.plots.plots_base as plots_base
 import SiPMStudio.plots.plotting as sipm_plt
 from SiPMStudio.processing.transforms import savgol
 
 warnings.filterwarnings("ignore", "PeakPropertyWarning: some peaks have a width of 0")
-
-
-def collect_files(path, digitizer, data_dir="UNFILTERED"):
-    dirs_array = []
-    file_array = []
-    for dirpath, dirnames, filenames in os.walk(path):
-        if dirnames:
-            dirs_array.append(dirnames)
-
-    runs = []
-    waves = []
-    noise = []
-    if len(dirs_array) == 0:
-        raise LookupError("No Directories Found!")
-    elif len(dirs_array[1]) == 0:
-        raise FileNotFoundError("No Files Found in the Directory!")
-    for name in dirs_array[1]:
-        if "runs_" in name:
-            runs.append(name)
-        elif "waves_" in name:
-            waves.append(name)
-        elif "noise_" in name:
-            noise.append(name)
-
-    run_files = []
-    wave_files = []
-    noise_files = []
-
-    for run in runs:
-        data_path = path+"/DAQ/"+run+"/"+data_dir
-        files = os.listdir(data_path)
-        file_targets = []
-        os.chdir(data_path)
-        for file in files:
-            if digitizer.file_header in file:
-                run_files.append(data_path+"/"+file)
-    for wave in waves:
-        data_path = path+"/DAQ/"+wave+"/"+data_dir
-        files = os.listdir(data_path)
-        file_targets = []
-        os.chdir(data_path)
-        for file in files:
-            if digitizer.file_header in file:
-                wave_files.append(data_path+"/"+file)
-    for nose in noise:
-        data_path = path+"/DAQ/"+nose+"/"+data_dir
-        files = os.listdir(data_path)
-        file_targets = []
-        os.chdir(data_path)
-        for file in files:
-            if digitizer.file_header in file:
-                noise_files.append(data_path+"/"+file)
-
-    return run_files, wave_files, noise_files
-
-
-def list_files(path, prefix="t2", suffix=".h5"):
-    actual_path = os.path.abspath(path)
-    all_files = [file for file in sorted(os.listdir(actual_path)) if os.path.isfile(os.path.join(actual_path, file))]
-    prefix_files = [file for file in all_files if file.startswith(prefix)]
-    suffix_files = [file for file in prefix_files if file.endswith(suffix)]
-    return suffix_files
-
-
-def label_uncertainties(unumpy_array, name):
-    for i, element in enumerate(unumpy_array):
-        unumpy_array[i].tag = name
 
 
 def time_interval(params_data, waves_data=None):
@@ -172,70 +102,110 @@ def spectrum_peaks(params_data, waves_data=None, n_bins=500, hist_range=None, mi
     return peak_locations
 
 
-def gain(digitizer, sipm, peaks, params_data=None, waves_data=None, save_path=None):
-    diffs = (peaks[0])[1:] - (peaks[0])[:-1]
-    gain_average = ufloat((np.mean(diffs[:4])).nominal_value, (np.mean(diffs[:4])).std_dev, "statistical")
-    sipm.gain.append(gain_average)
-    gain_magnitude = gain_average * digitizer.e_cal/const.e
-    sipm.gain_magnitude.append(gain_magnitude)
-    return gain_average, gain_magnitude
+def normalize_heights(waveforms, adc_peaks, display=False):
+    peak_values = unumpy.nominal_values(adc_peaks)
+    error_values = unumpy.std_devs(adc_peaks)
+    if all(np.isinf(error_values)):
+        error_values = np.array([1]*len(error_values))
+    y_fit = [i+1 for i, value in enumerate(adc_peaks)]
+    if len(adc_peaks) == 2:
+        lin_model = LinearModel()
+        params = lin_model.make_params(slope=1, intercept=0)
+        result = lin_model.fit(data=y_fit, params=params, weights=1/error_values, x=peak_values)
+        lin_coeffs = [result.params["slope"].value, result.params["intercept"].value]
+        lin_errors = [result.params["slope"].stderr, result.params["intercept"].stderr]
+        return lin_model.eval(result.params, x=waveforms), lin_coeffs
+    quad_model = QuadraticModel()
+    params = quad_model.make_params(a=0.001, b=0.001, c=0.1)
+    result = quad_model.fit(data=y_fit, params=params, weights=1/error_values, x=peak_values)
+    quad_coeffs = [result.params["a"].value, result.params["b"].value, result.params["c"].value]
+    quad_errors = [result.params["a"].stderr, result.params["b"].stderr, result.params["c"].stderr]
+    if display:
+        x_plot = np.linspace(0, 10000, 1000)
+        plt.figure()
+        plt.errorbar(peak_values, y_fit, xerr=error_values, fmt="o", capsize=2, alpha=0.5)
+        plt.plot(x_plot, quad_model.eval(result.params, x=x_plot), color="magenta")
+        plt.xlabel("Deconvolved ADC")
+        plt.ylabel("PDE")
+    return quad_model.eval(result.params, x=waveforms), quad_coeffs
 
 
-def dark_count_rate(sipm, height=0.75, distance=50, width=10, bounds=None, params_data=None, waves_data=None, low_counts=False, filt=False, save=False, save_path=""):
+def current_waveforms(waveforms, vpp=2, n_bits=14):
+    return waveforms * (vpp / 2 ** n_bits) * (1000 / 31.05) * 1.0e-6
 
-    # TODO: Replace hard coded sampling rate of CAENDT5730 with something more generic
 
-    rate = []
-    all_dts = []
-    if low_counts:
-        times = params_data["TIMETAG"].to_numpy()
-        all_dts = (times[1:] - times[:-1]) * 10**-3
-    else:
-        analysis_waves = waves_data
-        if filt:
-            analysis_waves = savgol(waves_data, 9, 3)
-        all_dts = delay_times(params_data, waves_data, height, distance, width)
-        for i, wave in enumerate(analysis_waves.to_numpy()):
-            peaks, _properties = find_peaks(x=wave, height=height, distance=distance, width=width)
-            rate.append(len(peaks) / (len(wave) * 2e-9))
-        # pulse_rate
-        average_pulse_rate = np.mean(rate)
-        error_pulse_rate = np.std(rate)
-        sipm.pulse_rate.append(ufloat(average_pulse_rate, error_pulse_rate))
+def integrate_current(current_forms, trigger=50, upperbound=150, sample_time=2e-9):
+    return np.sum(current_forms.T[trigger:upperbound].T, axis=1)*sample_time
 
-    # exponential fit to delay time histogram
-    if bounds is None:
-        bounds = [200, 1e4]
-    all_dts = np.array(all_dts)
-    dts_fit = all_dts[(all_dts > bounds[0]) & (all_dts < bounds[1])]
 
-    [n, bin_edges] = np.histogram(dts_fit, bins=350, range=bounds)
-    bin_centers = (bin_edges[1:]+bin_edges[:-1])/2
-    log_bins = np.log(n[n > 0])
-    fit_centers = bin_centers[n > 0]
-    slope, intercept, _r_value, _p_value, stderr = linregress(fit_centers, log_bins)
+def gain(peaks, peak_errors):
+    diffs = peaks[1:] - peaks[:-1]
+    errors_squared = peak_errors**2
+    errors = np.sqrt(errors_squared[1:] + errors_squared[:-1])
+    weights = 1 / errors
+    return np.average(diffs, weights=weights)
+
+
+def wave_peaks(waveforms, height=500, distance=5):
+    all_peaks = []
+    all_heights = []
+    for waveform in tqdm(waveforms, total=len(waveforms)):
+        peak_locs = find_peaks(waveform, height=height, distance=distance)[0]
+        heights = waveform[peak_locs]
+        if len(heights) == len(peak_locs):
+            all_peaks.append(peak_locs)
+            all_heights.append(heights)
+    return np.asarray(all_peaks, dtype=object), np.asarray(all_heights, dtype=object)
+
+
+def waveform_find(waveforms, peak_locations, heights, n_waveforms, dt_range, pe_range):
+    output_waveforms = []
+    output_peaks = []
+    output_heights = []
+    for i, wave in enumerate(tqdm(waveforms, total=len(waveforms))):
+        dt = 0
+        height = 0
+        if len(peak_locations[i]) < 2:
+            continue
+        if (heights[i][0] < 0.98) | (heights[i][0] > 1.11):
+            continue
+        else:
+            dt = 2*(peak_locations[i][1] - peak_locations[i][0])
+            height = heights[i][1]
+            if (dt > dt_range[0]) & (dt < dt_range[1]) & (height > pe_range[0]) & (height < pe_range[1]):
+                output_waveforms.append(wave)
+                output_peaks.append(peak_locations[i])
+                output_heights.append(heights[i])
+            if len(output_waveforms) == n_waveforms:
+                return output_waveforms, output_peaks, output_heights
+    return output_waveforms, output_peaks, output_heights
+
+
+def dark_count_rate(waves, times, peaks, heights, region=None, bins=1000, display=False):
+    all_times = []
+    all_heights = []
+    if region is None:
+        region = [1e3, 1e6]
+    for i, time in tqdm(enumerate(times), total=len(times)):
+        time_values = (2000*peaks[i] + time)/1000
+        height_values = heights[i]
+        all_times += list(time_values[height_values > 0.83])
+        all_heights += list(height_values[height_values > 0.83])
+    dts = np.array(all_times)[1:] - np.array(all_times)[:-1]
+    out_heights = np.array(all_heights)[1:]
+    n, bin_edges = np.histogram(dts, bins=bins, range=region)
+    bin_centers = (bin_edges[1:] + bin_edges[:-1])/2
+    slope, intercept, pvalue, rvalue, stderr = linregress(bin_centers[n > 0], np.log(n[n > 0]))
     slope_param = ufloat(slope, stderr)
-    dark_rate = -1*slope_param/1.0e-9
-    # exp_model = Model(exponential)
-    # params = exp_model.make_params(a=0.001, tau=1100)
-    # [n, bin_edges] = np.histogram(dts_fit, bins=350, range=bounds, density=True)
-    # centers = (bin_edges[1:]+bin_edges[:-1])/2
-    # result = exp_model.fit(n, params, x=centers)
-
-    # time_constant = ufloat(result.params["tau"].value, result.params["tau"].stderr)
-    dark_rate = ufloat(dark_rate.nominal_value, dark_rate.std_dev, "statistical")
-    sipm.dcr_fit.append(dark_rate)
-
-    if save:
-        fig, ax = plt.subplots()
-        ax.plot(fit_centers, log_bins)
-        ax.plot(bin_centers, slope*bin_centers + intercept)
-        ax.set_xlabel("Delay Times (ns)")
-        ax.set_ylabel("Log Counts")
-        plot_index = sipm.dcr_fit.index(dark_rate)
-        plt.savefig("dark_count_rate_"+str(sipm.bias[plot_index])+".pdf")
-
-    return dark_rate
+    dark_rate = 1 / (abs(1 / slope_param) * 1e-9) / 1000
+    if display:
+        plt.figure()
+        plt.step(bin_centers, np.log(n))
+        plt.plot(bin_centers, slope*bin_centers+intercept)
+        plt.xlabel("Time (ns)")
+        plt.ylabel("Log Counts")
+        plt.legend([str(round(dark_rate))+" kHz"])
+    return dark_rate.n, dark_rate.s
 
 
 def dark_photon_rate(sipm, height=0.75, distance=50, width=10, params_data=None, waves_data=None, filt=False, display=False):
@@ -253,29 +223,53 @@ def dark_photon_rate(sipm, height=0.75, distance=50, width=10, params_data=None,
     return average_photon_rate
 
 
-def cross_talk(sipm, label, params_data=None, waves_data=None):
-    energy_data = params_data[label].to_numpy()
-
-    def accumulate_events(data, position):
-        counts = np.ones(len(data[data > position]))
-        counts_upper = np.ones(len(data[data > (position + 1)]))
-        return np.sum(counts), np.sum(counts_upper)
-    upper_bounds = accumulate_events(energy_data, 0.5 + sipm.gain_magnitude[-1].s/sipm.gain_magnitude[-1].n)
-    middle = accumulate_events(energy_data, 0.5)
-    lower_bounds = accumulate_events(energy_data, 0.5 - sipm.gain_magnitude[-1].s/sipm.gain_magnitude[-1].n)
-
-    prob_upper = upper_bounds[1]/upper_bounds[0]
-    prob_middle = middle[1]/middle[0]
-    prob_lower = lower_bounds[1]/lower_bounds[0]
-    sipm.cross_talk.append(ufloat(prob_middle, abs(prob_upper-prob_lower)/2, "statistical"))
-    return ufloat(prob_middle, abs(prob_upper-prob_lower)/2)
+def cross_talk_frac(heights, min_height=0.83, max_height=1.17):
+    one_pulses = 0
+    other_pulses = 0
+    for height_set in tqdm(heights, total=len(heights)):
+        ones = height_set[(height_set > min_height) & (height_set < max_height)]
+        others = height_set[height_set > max_height]
+        if len(ones) > 0:
+            one_pulses += ones.shape[0]
+        if len(others) > 0:
+            other_pulses += others.shape[0]
+    return other_pulses / (one_pulses + other_pulses)
 
 
-def excess_charge_factor(sipm, params_data, waves_data=None):
-    primary_charge = params_data["ENERGY"][(params_data["ENERGY"] > 0.5) & (params_data["ENERGY"] < 1.5)]
-    out_charge = params_data["ENERGY"]
-    ecf = np.mean(out_charge) / np.mean(primary_charge)
-    sipm.ecf.append(ecf)
+def afterpulsing_frac(waves, peaks, heights, display=False, fit_range=None):
+    if fit_range is None:
+        fit_range = [[25, 200], [0.25, 0.75]]
+    ap_waves, ap_peaks, ap_heights = waveform_find(waves, peaks, heights, len(waves), fit_range[0], fit_range[1])
+    ap_fraction = len(ap_waves)/len(waves)
+    times = []
+    all_heights = []
+    for i, peak in enumerate(ap_peaks):
+        if peak[1] < 125:
+            times.append(2*(peak[1] - peak[0]))
+            all_heights.append(ap_heights[i][1])
+    times = np.array(times)
+    all_heights = np.array(all_heights)
+    fit_mask = (times > fit_range[0][0]) & (times < fit_range[0][1]) & (all_heights > fit_range[1][0]) \
+               & (all_heights < fit_range[1][1])
+    time_fit = times[fit_mask]
+    height_fit = all_heights[fit_mask]
+    coeffs_ap, covs_ap = curve_fit(rise_func, time_fit, height_fit, p0=[1, 0, 80, 0])
+    t_rec = coeffs_ap[2]
+    print(coeffs_ap)
+    if display:
+        t_plot = np.linspace(10, 200, 500)
+        plt.figure()
+        plt.scatter(times, heights, s=1, label="Data")
+        plt.plot(t_plot, rise_func(t_plot, *coeffs_ap), color="magenta", alpha=0.75, label="r$t_{rec}=$ "+str(round(t_rec))+" ns")
+        plt.xlabel("Inter-times (ns)")
+        plt.ylabel("Amplitude (P.E.)")
+        plt.legend()
+    return ap_fraction, t_rec
+
+
+def excess_charge_factor(norm_charges, min_charge=0.5, max_charge=1.5):
+    primary_charge = norm_charges[(norm_charges > min_charge) & (norm_charges < max_charge)]
+    ecf = np.mean(norm_charges) / np.mean(primary_charge)
     return ecf
 
 

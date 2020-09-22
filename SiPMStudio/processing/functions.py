@@ -49,3 +49,6 @@ def exp_func(t, A, t0, tau, D):
 def double_exp(t, A1, A2, t0, tau1, tau2, D):
     return exp_func(t, A1, t0, tau1, 0) + exp_func(t, A2, t0, tau2, D)
 
+
+def rise_func(t, A, t0, tau, D):
+    return A*(1 - np.exp(-(t-t0)/tau)) + D

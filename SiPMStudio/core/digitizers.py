@@ -1,7 +1,6 @@
 from .data_loading import DataLoader
 
 import numpy as np
-import pandas as pd
 
 
 class Digitizer(DataLoader):
@@ -45,48 +44,6 @@ class CAENDT5730(Digitizer):
         }
         super().__init__(*args, **kwargs)
 
-    def initialize_data(self):
-        if self.df_data is not None:
-            self.df_data = self.df_data.rename(index=str, columns={0: "TIMETAG", 1: "ENERGY", 2: "E_SHORT", 3: "FLAGS"})
-        else:
-            raise LookupError("No Data Loaded!")
-
-    def format_data(self, waves=False, rows=None):
-        if self.df_data is None:
-            return None
-        if rows is None:
-            rows = []
-        if len(rows) == 2:
-            if waves:
-                params_frame = self.df_data.iloc[rows[0]:rows[1], :3]
-                params_frame.columns = self.parameters[:3]
-                waves_frame = self.df_data.iloc[rows[0]:rows[1], 4:]
-                return waves_frame
-            else:
-                params_frame = self.df_data.iloc[rows[0]:rows[1], :3]
-                params_frame.columns = self.parameters[:3]
-                return params_frame
-        elif len(rows) == 1:
-            if waves:
-                params_frame = self.df_data.iloc[rows[0]:, :3]
-                params_frame.columns = self.parameters[:3]
-                waves_frame = self.df_data.iloc[rows[0]:, 4:]
-                return waves_frame
-            else:
-                params_frame = self.df_data.iloc[rows[0]:, :3]
-                params_frame.columns = self.parameters[:3]
-                return params_frame
-        else:
-            if waves:
-                params_frame = self.df_data.iloc[:, :3]
-                params_frame.columns = self.parameters[:3]
-                waves_frame = self.df_data.iloc[:, 4:]
-                return waves_frame
-            else:
-                params_frame = self.df_data.iloc[:, :3]
-                params_frame.columns = self.parameters[:3]
-                return params_frame
-
     def input_settings(self, settings):
         self.id = settings["id"]
         self.v_range = settings["v_range"]
@@ -118,12 +75,3 @@ class CAENDT5730(Digitizer):
         flags = self.decoded_values["flags"]
         waveform = self.decoded_values["waveform"]
         return [timestamp, energy, energy_short, flags], waveform
-
-    def create_dataframe(self, array):
-        waveform_labels = [str(item) for item in list(range(self.decoded_values["num_samples"]))]
-        column_labels = self.parameters + waveform_labels
-        dataframe = pd.DataFrame(data=array, columns=column_labels, dtype=float)
-        return dataframe
-
-    def parse_xml(self, xmlfile):
-        pass
