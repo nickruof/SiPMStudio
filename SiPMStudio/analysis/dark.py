@@ -135,21 +135,24 @@ def current_waveforms(waveforms, vpp=2, n_bits=14):
 
 
 def integrate_current(current_forms, trigger=50, upperbound=150, sample_time=2e-9):
-    return np.sum(current_forms.T[trigger:upperbound].T, axis=1)*sample_time
+    return np.sum(current_forms.T[trigger-15:upperbound].T, axis=1)*sample_time
 
 
 def gain(peaks, peak_errors):
-    diffs = peaks[1:] - peaks[:-1]
-    errors_squared = peak_errors**2
-    errors = np.sqrt(errors_squared[1:] + errors_squared[:-1])
-    weights = 1 / errors
-    return np.average(diffs, weights=weights)
+    if any(np.isnan(peak_errors)) | any(np.isinf(peak_errors)):
+        return (peaks[1] - peaks[0]) / const.e
+    else:
+        diffs = peaks[1:] - peaks[:-1]
+        errors_squared = peak_errors**2
+        errors = np.sqrt(errors_squared[1:] + errors_squared[:-1])
+        weights = 1 / errors
+        return np.average(diffs, weights=weights) / const.e
 
 
 def wave_peaks(waveforms, height=500, distance=5):
     all_peaks = []
     all_heights = []
-    for waveform in tqdm(waveforms, total=len(waveforms)):
+    for waveform in tqdm.tqdm(waveforms, total=len(waveforms)):
         peak_locs = find_peaks(waveform, height=height, distance=distance)[0]
         heights = waveform[peak_locs]
         if len(heights) == len(peak_locs):
@@ -162,7 +165,7 @@ def waveform_find(waveforms, peak_locations, heights, n_waveforms, dt_range, pe_
     output_waveforms = []
     output_peaks = []
     output_heights = []
-    for i, wave in enumerate(tqdm(waveforms, total=len(waveforms))):
+    for i, wave in enumerate(tqdm.tqdm(waveforms, total=len(waveforms))):
         dt = 0
         height = 0
         if len(peak_locations[i]) < 2:
@@ -186,8 +189,10 @@ def dark_count_rate(waves, times, peaks, heights, region=None, bins=1000, displa
     all_heights = []
     if region is None:
         region = [1e3, 1e6]
-    for i, time in tqdm(enumerate(times), total=len(times)):
-        time_values = (2000*peaks[i] + time)/1000
+    for i, peak in tqdm.tqdm(enumerate(peaks), total=len(peaks)):
+        if len(peak) == 0:
+            continue
+        time_values = (2000*peak + times[i])/1000
         height_values = heights[i]
         all_times += list(time_values[height_values > 0.83])
         all_heights += list(height_values[height_values > 0.83])
@@ -199,12 +204,18 @@ def dark_count_rate(waves, times, peaks, heights, region=None, bins=1000, displa
     slope_param = ufloat(slope, stderr)
     dark_rate = 1 / (abs(1 / slope_param) * 1e-9) / 1000
     if display:
-        plt.figure()
-        plt.step(bin_centers, np.log(n))
-        plt.plot(bin_centers, slope*bin_centers+intercept)
-        plt.xlabel("Time (ns)")
-        plt.ylabel("Log Counts")
-        plt.legend([str(round(dark_rate))+" kHz"])
+        fig, ax = plt.subplots(1, 2)
+        ax[0].hist(dts, bins=bins, range=region, edgecolor="none")
+        ax[0].set_xlabel("Inter-times (ns)")
+        ax[0].set_ylabel("Counts")
+        ax[0].set_xscale("log")
+        ax[0].set_yscale("log")
+
+        ax[1].step(bin_centers[n > 0], np.log(n[n > 0]))
+        ax[1].plot(bin_centers, slope*bin_centers+intercept)
+        ax[1].set_xlabel("Time (ns)")
+        ax[1].set_ylabel("Log Counts")
+        ax[1].legend([str(round(dark_rate.n))+" kHz"])
     return dark_rate.n, dark_rate.s
 
 
@@ -223,16 +234,16 @@ def dark_photon_rate(sipm, height=0.75, distance=50, width=10, params_data=None,
     return average_photon_rate
 
 
-def cross_talk_frac(heights, min_height=0.83, max_height=1.17):
+def cross_talk_frac(heights, min_height=0.5, max_height=1.50):
     one_pulses = 0
     other_pulses = 0
-    for height_set in tqdm(heights, total=len(heights)):
+    for height_set in tqdm.tqdm(heights, total=len(heights)):
         ones = height_set[(height_set > min_height) & (height_set < max_height)]
         others = height_set[height_set > max_height]
         if len(ones) > 0:
-            one_pulses += ones.shape[0]
+            one_pulses += len(ones)
         if len(others) > 0:
-            other_pulses += others.shape[0]
+            other_pulses += len(ones)
     return other_pulses / (one_pulses + other_pulses)
 
 
@@ -253,13 +264,14 @@ def afterpulsing_frac(waves, peaks, heights, display=False, fit_range=None):
                & (all_heights < fit_range[1][1])
     time_fit = times[fit_mask]
     height_fit = all_heights[fit_mask]
+    if (len(time_fit) < 4) & (len(height_fit) < 4):
+        return 0, 0
     coeffs_ap, covs_ap = curve_fit(rise_func, time_fit, height_fit, p0=[1, 0, 80, 0])
     t_rec = coeffs_ap[2]
-    print(coeffs_ap)
     if display:
         t_plot = np.linspace(10, 200, 500)
         plt.figure()
-        plt.scatter(times, heights, s=1, label="Data")
+        plt.scatter(times, all_heights, s=1, label="Data")
         plt.plot(t_plot, rise_func(t_plot, *coeffs_ap), color="magenta", alpha=0.75, label="r$t_{rec}=$ "+str(round(t_rec))+" ns")
         plt.xlabel("Inter-times (ns)")
         plt.ylabel("Amplitude (P.E.)")
