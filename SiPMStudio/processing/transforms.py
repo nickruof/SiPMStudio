@@ -1,15 +1,15 @@
 import numpy as np
-import pandas as pd
 import pywt
 import peakutils
 
-from scipy.signal import savgol_filter, filtfilt, wiener, deconvolve
+from scipy.signal import savgol_filter, filtfilt, deconvolve
+from scipy.ndimage import gaussian_filter1d
 from statsmodels.robust import mad
 from functools import partial
 
 from SiPMStudio.processing.functions import butter_bandpass, exp_func, double_exp, quadratic
 
-# TODO: come up with way to store waveform timing information and check DataFrame initialisation speed
+# TODO: come up with way to store waveform timing information
 
 
 def adc_to_volts(waves_data, digitizer):
@@ -17,13 +17,6 @@ def adc_to_volts(waves_data, digitizer):
     n_bits = digitizer.adc_bitcount
     processed_waveforms = (v_pp/2**n_bits) * waves_data
     return processed_waveforms
-
-
-# def baseline_subtract(waves_data):
-#    baseline = np.mean(waves_data.to_numpy()[:, 0:45], axis=1)
-#    baselines_vector = baseline.reshape((baseline.shape[0], 1))
-#    processed_waveforms = waves_data.to_numpy() - baselines_vector
-#    return pd.DataFrame(data=processed_waveforms, index=waves_data.index, columns=waves_data.columns)
 
 
 def baseline_subtract(waves_data, degree=1):
@@ -57,7 +50,6 @@ def wavelet_denoise(waves_data, wavelet="db1", levels=3, mode="hard"):
 
     axis_function = partial(denoise_function, wavelet_type=wavelet, num_levels=levels, thresh_mode=mode)
     denoised_wave_values = np.apply_along_axis(axis_function, 1, waves_data)
-    new_columns = [str(i) for i in range(denoised_wave_values.shape[1])]
     return denoised_wave_values
 
 
@@ -67,7 +59,7 @@ def moving_average(waves_data, box_size=20):
     return smooth_waves
 
 
-def deconvolve_waves(waves_data, short_tau, long_tau):
+def deconvolve_waves(waves_data, short_tau, long_tau, sigma=10):
     x_samples = np.linspace(0, 2*waves_data.shape[1], waves_data.shape[1])
     transfer = None
     if short_tau == 0.0:
@@ -78,14 +70,14 @@ def deconvolve_waves(waves_data, short_tau, long_tau):
         transfer = double_exp(x_samples[50:500], 0.5, 0.1, 0, short_tau, long_tau, 0)
 
     def deconvolve_waveform(waveform, transfer_func):
-        waveform_wiener = wiener(waveform, 20)
-        waveform_deconv = deconvolve(waveform_wiener, transfer_func)
+        waveform_deconv = deconvolve(waveform, transfer_func)
         buffer_length = len(waveform) - len(waveform_deconv[0])
         output_wave = np.append(waveform_deconv[0], [0]*buffer_length)
         return output_wave
 
     deconvolve_function = partial(deconvolve_waveform, transfer_func=transfer)
-    deconv_waves = np.apply_along_axis(deconvolve_function, 1, waves_data)
+    smooth_waves = gaussian_filter1d(waves_data, sigma=sigma, axis=1)
+    deconv_waves = np.apply_along_axis(deconvolve_function, 1, smooth_waves)
     return deconv_waves
 
 

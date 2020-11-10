@@ -118,37 +118,19 @@ def height_scan(waveforms, bins):
 def plot_waveforms(ax, waveforms, linewidth=0.01):
     times = np.repeat([range(0, 2*waveforms.shape[1], 2)], waveforms.shape[0], axis=0)
     ax.plot(times.T, waveforms.to_numpy().T, color=sns.color_palette()[0], linewidth=linewidth, alpha=0.075)
-    ax.set_xlabel("Time (ns)")
-    ax.set_ylabel("Voltage (V)")
     ax.set_xlim([20, 150])
     ax.set_ylim([np.amin(waveforms.to_numpy()), np.amax(waveforms.to_numpy())])
 
 
-def pc_spectrum(ax, hist_array, n_bins=120, log=False, density=False, labels=None):
+def pc_spectrum(ax, hist_array, n_bins=120, density=False, labels=None):
     bins = np.linspace(start=min(hist_array[-1]), stop=max(hist_array[-1]), num=n_bins)
     [n, bins, patches] = plots_base.plot_hist(ax, hist_array, bins, None, density, labels)
-    plt.xlabel("ADC")
-    if density:
-        ax.set_ylabel("Norm Counts")
-    else:
-        ax.set_ylabel("Counts")
-    if log:
-        ax.set_yscale("log")
     return n, bins
 
 
-def ph_spectrum(ax, heights_array, n_bins=500, hist_range=None, log=False, density=False, labels=None):
-    [n, bins, patches] = plots_base.plot_hist(ax, heights_array, n_bins, hist_range, density, labels)
-    ax.set_xlabel("Pulse Heights (V)")
-    ax.set_ylabel("Counts")
-    if log:
-        ax.set_yscale("log")
-    return n, bins
-
-
-def snr(ax, sipm):
-    noise_power = np.array(sipm.noise_power)
-    signal_power = np.array(sipm.signal_power).T
+def snr(ax, noise_power, signal_power):
+    noise_power = np.array(noise_power)
+    signal_power = np.array(signal_power).T
     labels = []
     for i, power in enumerate(signal_power):
         inner_term = np.divide(power - noise_power[i], noise_power[i])
@@ -156,12 +138,10 @@ def snr(ax, sipm):
         plots_base.line_plot(ax, sipm.bias, signal_to_noise)
         labels.append(str(i+1)+" "+"p.e. peak")
     ax.legend(labels)
-    ax.set_xlabel("Bias Voltage (V)")
-    ax.set_ylabel("SNR (dB)")
 
 
-def gain(ax, sipm, lin_fit=False, save_path=None):
-    plots_base.error_plot(ax, sipm.bias, sipm.gain_magnitude)
+def gain(ax, bias, gains, lin_fit=False, save_path=None):
+    plots_base.error_plot(ax, bias, gains)
     ax.set_xlabel("Bias Voltage (V)")
     ax.ticklabel_format(axis="y", style="sci", scilimits=(0, 0))
     ax.set_ylabel("Gain")
@@ -178,21 +158,14 @@ def gain(ax, sipm, lin_fit=False, save_path=None):
         plt.savefig(save_path+"/gain_plot.jpg")
 
 
-def dcr(ax, sipm, save_path=None):
-    dark_count_rate = [dr / 1000 / sipm.area for dr in sipm.dcr_fit]
-    plots_base.error_plot(ax, sipm.bias, dark_count_rate)
-    ax.set_xlabel("Bias Voltage (V)")
-    ax.set_ylabel("Dark Count Rate (kHz/mm^2)")
-
+def dcr(ax, bias, dark_count_rates, save_path=None):
+    plots_base.error_plot(ax, bias, dark_count_rates)
     if save_path:
         plt.savefig(save_path+"/dcr_plot.jpg")
 
 
-def cross_talk(ax, sipm, save_path=None):
-    plots_base.error_plot(ax, sipm.bias, np.array(sipm.cross_talk)*100)
-    ax.set_xlabel("Bias Voltage (V)")
-    ax.set_ylabel("Cross Talk Probability (%)")
-
+def cross_talk(ax, bias, cross_talks, save_path=None):
+    plots_base.error_plot(ax, bias, np.array(cross_talks)*100)
     if save_path:
         plt.savefig(save_path+"/cross_talk_plot.jpg")
 
@@ -224,11 +197,7 @@ def delay_heights(fig, ax, dts, heights, density=False):
     ax.set_ylabel("Pulse Heights (V)")
 
 
-def pde(ax, sipm, save_path=None):
-    pde_percent = [decimal*100 for decimal in sipm.pde]
-    plots_base.error_plot(ax, sipm.bias, pde_percent)
-    ax.set_xlabel("Bias Voltage (V)")
-    ax.set_ylabel("Photon Detection Efficiency (%)")
-
+def pde(ax, bias, pdes, save_path=None):
+    plots_base.error_plot(ax, bias, np.array(pdes)*100)
     if save_path:
         plt.savefig(save_path+"/pde_plot.jpg")

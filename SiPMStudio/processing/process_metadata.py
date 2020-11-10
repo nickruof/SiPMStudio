@@ -11,8 +11,7 @@ def process_metadata(settings, digitizer, output_dir=None, verbose=False):
 
     print("Processing Metadata! ...")
     print("Number of Files to Process: "+str(len(settings["init_info"])))
-    output_dir = os.getcwd() if output_dir is None else output_dir
-    print("Output Path: ", output_dir)
+    print("Output Path: ", settings["output_path_t1"])
 
     start = time.time()
 
@@ -39,4 +38,4 @@ def _output_to_h5file(data_file, output_name, output_path, events, waveforms, di
         output_file.create_dataset("/raw/energy", data=events.T[1])
         output_file.create_dataset("/raw/waveforms", data=waveforms)
         output_file.create_dataset("bias", data=float(data_file["bias"]))
-        output_file.create_dataset("adc_to_v", data=digitizer.v_range/2**digitizer.n_bits)
+        output_file.create_dataset("adc_to_v", data=digitizer.v_range/2**digitizer.adc_bitcount)

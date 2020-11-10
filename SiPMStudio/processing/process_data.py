@@ -15,7 +15,7 @@ def process_data(settings, processor, bias=None, overwrite=False, verbose=False,
             data_files.append("t1_" + settings["file_base_name"] + "_" + str(entry["bias"]) + ".h5")
             output_files.append("t2_" + settings["file_base_name"] + "_" + str(entry["bias"]) + ".h5")
         elif entry["bias"] in bias:
-            data_files.append("t2_" + settings["file_base_name"] + "_" + str(entry["bias"]) + ".h5")
+            data_files.append("t1_" + settings["file_base_name"] + "_" + str(entry["bias"]) + ".h5")
             output_files.append("t2_" + settings["file_base_name"] + "_" + str(entry["bias"]) + ".h5")
         else:
             pass

@@ -161,6 +161,13 @@ def wave_peaks(waveforms, height=500, distance=5):
     return np.asarray(all_peaks, dtype=object), np.asarray(all_heights, dtype=object)
 
 
+def amplitudes(heights):
+    amps = []
+    for i, height in tqdm.tqdm(enumerate(heights), total=len(heights)):
+        amps += list(height)
+    return np.array(amps)
+
+
 def waveform_find(waveforms, peak_locations, heights, n_waveforms, dt_range, pe_range):
     output_waveforms = []
     output_peaks = []
@@ -238,13 +245,29 @@ def cross_talk_frac(heights, min_height=0.5, max_height=1.50):
     one_pulses = 0
     other_pulses = 0
     for height_set in tqdm.tqdm(heights, total=len(heights)):
-        ones = height_set[(height_set > min_height) & (height_set < max_height)]
-        others = height_set[height_set > max_height]
-        if len(ones) > 0:
-            one_pulses += len(ones)
-        if len(others) > 0:
-            other_pulses += len(ones)
+        if len(height_set) > 0:
+            if (height_set[0] > min_height) & (height_set[0] < max_height):
+                one_pulses += 1
+            else:
+                other_pulses += 1
+        else:
+            continue
     return other_pulses / (one_pulses + other_pulses)
+
+
+def cross_talk_frac_v2(peaks, peak_errors, charges):
+    charge_diff = 0
+    if any(np.isnan(peak_errors)) | any(np.isinf(peak_errors)):
+        charge_diff = peaks[1] - peaks[0]
+    else:
+        diffs = peaks[1:] - peaks[:-1]
+        errors_squared = peak_errors**2
+        errors = np.sqrt(errors_squared[1:] + errors_squared[:-1])
+        weights = 1 / errors
+        charge_diff = np.average(diffs, weights=weights)
+    one_charges = charges[(charges > (charge_diff/2)) & (charges < (3*charge_diff/2))]
+    other_charges = charges[charges > (3*charge_diff/2)]
+    return len(one_charges) / (len(one_charges) + len(other_charges))
 
 
 def afterpulsing_frac(waves, peaks, heights, display=False, fit_range=None):
@@ -272,7 +295,7 @@ def afterpulsing_frac(waves, peaks, heights, display=False, fit_range=None):
         t_plot = np.linspace(10, 200, 500)
         plt.figure()
         plt.scatter(times, all_heights, s=1, label="Data")
-        plt.plot(t_plot, rise_func(t_plot, *coeffs_ap), color="magenta", alpha=0.75, label="r$t_{rec}=$ "+str(round(t_rec))+" ns")
+        plt.plot(t_plot, rise_func(t_plot, *coeffs_ap), color="magenta", alpha=0.75, label=r"$t_{rec}=$ "+str(round(t_rec))+" ns")
         plt.xlabel("Inter-times (ns)")
         plt.ylabel("Amplitude (P.E.)")
         plt.legend()
