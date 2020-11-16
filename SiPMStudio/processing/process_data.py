@@ -54,7 +54,7 @@ def process_data(settings, processor, bias=None, overwrite=False, verbose=False,
             wf_chunk = h5_file["/raw/waveforms"][begin:end]
             output_wf = _process_chunk(wf_chunk, processor=processor)
             _output_chunk(h5_file, output_destination, output_wf, df_storage, write_size, i, num_rows, chunk, end)
-        # copy_to_t2(["bias", "/raw/timetag"], ["bias", "/processed/timetag"], h5_file, output_destination)
+        _copy_to_t2(["bias", "/raw/timetag"], ["bias", "/processed/timetag"], h5_file, output_destination)
         h5_file.close()
 
     print("Processing Finished! ...")
@@ -93,9 +93,9 @@ def _output_chunk(data_file, output_file, chunk_frame, storage, write_size, iter
 def _copy_to_t2(raw_names, process_names, h5_file, output_destination):
     if len(raw_names) != len(process_names):
         raise AttributeError("raw names and process names not the same length")
-    with h5py.File(output_destination, "w") as output_file:
+    with h5py.File(output_destination, "a") as output_file:
         for i, name in enumerate(raw_names):
-            output_file[process_names[i]] = h5_file[name]
+            output_file.create_dataset(process_names[i], data=h5_file[name])
 
 
 def _output_to_file(data_file, output_filename, storage, write_size, iterator):

@@ -59,7 +59,7 @@ def moving_average(waves_data, box_size=20):
     return smooth_waves
 
 
-def deconvolve_waves(waves_data, short_tau, long_tau, sigma=10):
+def deconvolve_waves(waves_data, short_tau, long_tau):
     x_samples = np.linspace(0, 2*waves_data.shape[1], waves_data.shape[1])
     transfer = None
     if short_tau == 0.0:
@@ -76,8 +76,7 @@ def deconvolve_waves(waves_data, short_tau, long_tau, sigma=10):
         return output_wave
 
     deconvolve_function = partial(deconvolve_waveform, transfer_func=transfer)
-    smooth_waves = gaussian_filter1d(waves_data, sigma=sigma, axis=1)
-    deconv_waves = np.apply_along_axis(deconvolve_function, 1, smooth_waves)
+    deconv_waves = np.apply_along_axis(deconvolve_function, 1, waves_data)
     return deconv_waves
 
 
