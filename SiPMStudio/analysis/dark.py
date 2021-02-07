@@ -14,7 +14,6 @@ from uncertainties import ufloat, unumpy
 from SiPMStudio.processing.functions import gaussian, rise_func
 from SiPMStudio.analysis.noise import average_power
 import SiPMStudio.plots.plots_base as plots_base
-import SiPMStudio.plots.plotting as sipm_plt
 from SiPMStudio.processing.transforms import savgol
 
 warnings.filterwarnings("ignore", "PeakPropertyWarning: some peaks have a width of 0")
@@ -134,8 +133,8 @@ def current_waveforms(waveforms, vpp=2, n_bits=14):
     return waveforms * (vpp / 2 ** n_bits) * (1000 / 31.05) * 1.0e-6
 
 
-def integrate_current(current_forms, trigger=50, upperbound=150, sample_time=2e-9):
-    return np.sum(current_forms.T[trigger-15:upperbound].T, axis=1)*sample_time
+def integrate_current(current_forms, lower_bound=0, upper_bound=200, sample_time=2e-9):
+    return np.sum(current_forms.T[lower_bound:upper_bound].T, axis=1)*sample_time
 
 
 def gain(peaks, peak_errors):
@@ -191,7 +190,7 @@ def waveform_find(waveforms, peak_locations, heights, n_waveforms, dt_range, pe_
     return output_waveforms, output_peaks, output_heights
 
 
-def dark_count_rate(waves, times, peaks, heights, region=None, bins=1000, display=False):
+def dark_count_rate(waves, times, peaks, heights, pe_lim=0.5, sample_size=2, exclude=None, region=None, bins=1000, display=False):
     all_times = []
     all_heights = []
     if region is None:
@@ -199,14 +198,17 @@ def dark_count_rate(waves, times, peaks, heights, region=None, bins=1000, displa
     for i, peak in tqdm.tqdm(enumerate(peaks), total=len(peaks)):
         if len(peak) == 0:
             continue
-        time_values = (2000*peak + times[i])/1000
+        time_values = sample_size*peak + times[i] #sample size in ns
         height_values = heights[i]
-        all_times += list(time_values[height_values > 0.83])
-        all_heights += list(height_values[height_values > 0.83])
+        all_times += list(time_values[height_values > pe_lim])
+        all_heights += list(height_values[height_values > pe_lim])
     dts = np.array(all_times)[1:] - np.array(all_times)[:-1]
     out_heights = np.array(all_heights)[1:]
     n, bin_edges = np.histogram(dts, bins=bins, range=region)
     bin_centers = (bin_edges[1:] + bin_edges[:-1])/2
+    if exclude:
+        n = n[(bin_centers < exclude[0]) | (bin_centers > exclude[1])]
+        bin_centers = bin_centers[(bin_centers < exclude[0]) | (bin_centers > exclude[1])]
     slope, intercept, pvalue, rvalue, stderr = linregress(bin_centers[n > 0], np.log(n[n > 0]))
     slope_param = ufloat(slope, stderr)
     dark_rate = 1 / (abs(1 / slope_param) * 1e-9) / 1000

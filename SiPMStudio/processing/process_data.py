@@ -51,7 +51,7 @@ def process_data(settings, processor, bias=None, overwrite=False, verbose=False,
         df_storage = []
         for i in tqdm.tqdm(range(num_rows//chunk + 1)):
             begin, end = _chunk_range(i, chunk, num_rows)
-            wf_chunk = h5_file["/raw/waveforms"][begin:end]
+            wf_chunk = h5_file["/raw/waveforms"][begin:end] - h5_file["/raw/baselines"][begin:end]
             output_wf = _process_chunk(wf_chunk, processor=processor)
             _output_chunk(h5_file, output_destination, output_wf, df_storage, write_size, i, num_rows, chunk, end)
         _copy_to_t2(["bias", "/raw/timetag"], ["bias", "/processed/timetag"], h5_file, output_destination)

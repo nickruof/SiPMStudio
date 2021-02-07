@@ -2,7 +2,7 @@ import numpy as np
 import pywt
 import peakutils
 
-from scipy.signal import savgol_filter, filtfilt, deconvolve
+from scipy.signal import savgol_filter, filtfilt, deconvolve, wiener
 from scipy.ndimage import gaussian_filter1d
 from statsmodels.robust import mad
 from functools import partial
@@ -59,7 +59,7 @@ def moving_average(waves_data, box_size=20):
     return smooth_waves
 
 
-def deconvolve_waves(waves_data, short_tau, long_tau):
+def deconvolve_waves(waves_data, short_tau, long_tau, wiener_filter=False):
     x_samples = np.linspace(0, 2*waves_data.shape[1], waves_data.shape[1])
     transfer = None
     if short_tau == 0.0:
@@ -70,7 +70,10 @@ def deconvolve_waves(waves_data, short_tau, long_tau):
         transfer = double_exp(x_samples[50:500], 0.5, 0.1, 0, short_tau, long_tau, 0)
 
     def deconvolve_waveform(waveform, transfer_func):
-        waveform_deconv = deconvolve(waveform, transfer_func)
+        waveform_deconv = None
+        if wiener_filter:
+            waveform_deconv = wiener(waveform, 20)
+        waveform_deconv = deconvolve(waveform_deconv, transfer_func)
         buffer_length = len(waveform) - len(waveform_deconv[0])
         output_wave = np.append(waveform_deconv[0], [0]*buffer_length)
         return output_wave
