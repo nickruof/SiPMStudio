@@ -5,16 +5,114 @@ import seaborn as sns
 from SiPMStudio.processing.functions import butter_bandpass
 from SiPMStudio.plots import plots_base
 
-from uncertainties import unumpy
 from scipy import fftpack
 from scipy.signal import freqz
-from scipy.stats import linregress
 from scipy.stats import kde
 from scipy.stats import expon
 from scipy.signal import find_peaks
 from functools import partial
 
 sns.set_style("ticks")
+
+
+class PlotSipm:
+    def __init__(self, save_path, sipm_array):
+        self.sipms = sipm_array
+        self.save_path = save_path
+
+    def gain(self, figsize=(8, 8), save=True):
+        fig, ax = plt.subplots(figsize=figsize)
+        save_name = "gain_"
+        for sipm in self.sipms:
+            over_volts, gains = sipm["gain"]
+            ax.plot(over_volts, gains, "-o", label=sipm.settings["model"]+", "+str(round(sipm.micro_cap)) + " fC, "+str(round(sipm.breakdown, 1))+" V")
+            save_name += sipm.settings["model"]+"_"
+        ax.set_xlabel("Over-voltage (V)")
+        ax.set_ylabel("Gain")
+        ax.legend()
+        ax.grid(alpha=0.25)
+        save_name += ".png"
+        if save:
+            plt.savefig(os.path.join(self.save_path, save_name), dpi=600)
+
+    def dark_rate(self, figsize=(8, 8), log=False, save=True):
+        fig, ax = plt.subplots(figsize=figsize)
+        save_name = "dark_rate_"
+        for sipm in self.sipms:
+            over_volts, dark_rates = sipm["dark_rate"]
+            dark_rates = dark_rates.T[0] / sipm.settings["area"]
+            ax.plot(over_volts, dark_rates, "-o", label=sipm.settings["model"])
+            save_name += sipm.settings["model"]+"_"
+        if log:
+            ax.set_yscale("log")
+        ax.set_xlabel("Over-voltage (V)")
+        ax.set_ylabel("Dark Count Rate (kHz / $mm^2$)")
+        ax.legend()
+        ax.grid(alpha=0.25, which="both")
+        save_name += ".png"
+        if save:
+            plt.savefig(os.path.join(self.save_path, save_name), dpi=600)
+
+    def cross_talk(self, figsize=(8, 8), save=True):
+        fig, ax = plt.subplots(figsize=figsize)
+        save_name = "cross_talk_"
+        for sipm in self.sipms:
+            over_volts, cross_talks = sipm["cross_talk"]
+            cross_talks = cross_talks * 100
+            ax.plot(over_volts, cross_talks, "-o", label=sipm.settings["model"])
+            save_name += sipm.settings["model"]+"_"
+        ax.set_xlabel("Over-voltage (V)")
+        ax.set_ylabel("Cross-Talk Probability (%)")
+        ax.legend()
+        ax.grid(alpha=0.25)
+        save_name += ".png"
+        if save:
+            plt.savefig(os.path.join(self.save_path, save_name), dpi=600)
+
+    def afterpulse(self, figsize=(8, 8), save=True):
+        fig, ax = plt.subplots(figsize=figsize)
+        save_name = "afterpulse_"
+        for sipm in self.sipms:
+            over_volts, afterpulses = sipm["afterpulse"]
+            afterpulses = afterpulses * 100
+            ax.plot(over_volts, afterpulses, "-o", label=sipm.settings["model"])
+            save_name += sipm.settings["model"]+"_"
+        ax.set_xlabel("Over-voltage (V)")
+        ax.set_ylabel("Afterpulse Probability (%)")
+        ax.legend()
+        ax.grid(alpha=0.25)
+        save_name += ".png"
+        if save:
+            plt.savefig(os.path.join(self.save_path, save_name), dpi=600)
+
+    def iv_curve(self, figsize=(8, 8), xlim=None, window=100, save=True):
+        scope = Keithley2450()
+
+        def moving_average(x, w):
+            return np.convolve(x, np.ones(w), "valid") / w
+
+        fig, ax = plt.subplots()
+        save_name = "iv_curve_"
+        for sipm in self.sipms:
+            scope.load_data(sipm.settings["iv_file"])
+            current = scope.current
+            voltage = scope.voltage
+            smooth_current = moving_average(current, window)
+            smooth_voltage = moving_average(voltage, window)
+            ax.plot(smooth_voltage, smooth_current, label=sipm.settings["model"], alpha=0.5)
+            save_name += sipm.settings["model"]+"_"
+        save_name += ".png"
+        if xlim:
+            ax.set_xlim(*xlim)
+        else:
+            ax.set_xlim(15, 36)
+        ax.set_xlabel("Reverse Bias (V)")
+        ax.set_ylabel("Current (A)")
+        ax.set_yscale("log")
+        ax.grid(alpha=0.15, which="both")
+        ax.legend()
+        if save:
+            plt.savefig(os.path.join(self.save_path, save_name), dpi=600)
 
 
 def plot_butter_response(ax, digitizer, lowcut, highcut, order=5):
@@ -128,48 +226,6 @@ def pc_spectrum(ax, hist_array, n_bins=120, density=False, labels=None):
     return n, bins
 
 
-def snr(ax, noise_power, signal_power):
-    noise_power = np.array(noise_power)
-    signal_power = np.array(signal_power).T
-    labels = []
-    for i, power in enumerate(signal_power):
-        inner_term = np.divide(power - noise_power[i], noise_power[i])
-        signal_to_noise = 10 * np.log10(inner_term)
-        plots_base.line_plot(ax, sipm.bias, signal_to_noise)
-        labels.append(str(i+1)+" "+"p.e. peak")
-    ax.legend(labels)
-
-
-def gain(ax, bias, gains, lin_fit=False, save_path=None):
-    plots_base.error_plot(ax, bias, gains)
-    ax.set_xlabel("Bias Voltage (V)")
-    ax.ticklabel_format(axis="y", style="sci", scilimits=(0, 0))
-    ax.set_ylabel("Gain")
-
-    if lin_fit:
-        (slope, intercept, _rvalue, _pvalue, _stderr) = linregress(x=sipm.bias, y=unumpy.nominal_values(sipm.gain_magnitude))
-        x = np.linspace(sipm.bias[0], sipm.bias[-1], 100)
-        y = np.multiply(slope, x)
-        y = np.add(y, intercept)
-        ax.plot(x, y, "r")
-        ax.legend(["Breakdown Voltage: " + str(round(-intercept/slope, 1)) + " V"])
-
-    if save_path:
-        plt.savefig(save_path+"/gain_plot.jpg")
-
-
-def dcr(ax, bias, dark_count_rates, save_path=None):
-    plots_base.error_plot(ax, bias, dark_count_rates)
-    if save_path:
-        plt.savefig(save_path+"/dcr_plot.jpg")
-
-
-def cross_talk(ax, bias, cross_talks, save_path=None):
-    plots_base.error_plot(ax, bias, np.array(cross_talks)*100)
-    if save_path:
-        plt.savefig(save_path+"/cross_talk_plot.jpg")
-
-
 def delay_times(ax, dts, bins=500, bounds=None, fit=False, alpha=0.75):
     if bounds is None:
         bounds = [0, 1e5]
@@ -195,9 +251,3 @@ def delay_heights(fig, ax, dts, heights, density=False):
     ax.set_xscale("log")
     ax.set_xlabel("Delay Time (ns)")
     ax.set_ylabel("Pulse Heights (V)")
-
-
-def pde(ax, bias, pdes, save_path=None):
-    plots_base.error_plot(ax, bias, np.array(pdes)*100)
-    if save_path:
-        plt.savefig(save_path+"/pde_plot.jpg")

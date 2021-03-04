@@ -4,15 +4,12 @@ import tqdm
 import warnings
 
 from scipy.sparse import diags
-from lmfit.models import LinearModel, QuadraticModel
 from scipy.optimize import curve_fit
 from scipy.signal import find_peaks
 from scipy.stats import linregress
-import scipy.constants as const
 from uncertainties import ufloat, unumpy
 
 from SiPMStudio.processing.functions import gaussian, rise_func
-from SiPMStudio.analysis.noise import average_power
 import SiPMStudio.plots.plots_base as plots_base
 from SiPMStudio.processing.transforms import savgol
 
@@ -23,34 +20,6 @@ def time_interval(params_data, waves_data=None):
     interval = params_data["TIMETAG"].iloc[-1] - params_data["TIMETAG"].iloc[0]
     interval = interval * 1.0e-12
     return interval
-
-
-def noise_power(waves_data, sipm, params_data=None):
-    powers = average_power(waves_data)
-    total_average = np.mean(powers)
-    sipm.noise_power.append(total_average)
-    return total_average
-
-
-def signal_power(params_data, waves_data, sipm, energy_label="ENERGY"):
-    energy_data = params_data[energy_label]
-    one_peak = (energy_data > 0.9) & (energy_data < 1.1)
-    two_peak = (energy_data > 1.9) & (energy_data < 2.1)
-    three_peak = (energy_data > 2.9) & (energy_data < 3.1)
-    four_peak = (energy_data > 3.9) & (energy_data < 4.1)
-    waves_1 = waves_data.to_numpy()[one_peak]
-    waves_2 = waves_data.to_numpy()[two_peak]
-    waves_3 = waves_data.to_numpy()[three_peak]
-    waves_4 = waves_data.to_numpy()[four_peak]
-
-    averages = []
-    for waves in [waves_1, waves_2, waves_3, waves_4]:
-        signal_sections = waves.T[:200]
-        signal_sections = signal_sections.T
-        powers = average_power(signal_sections)
-        averages.append(np.mean(powers))
-    sipm.signal_power.append(averages)
-    return averages
 
 
 def spectrum_peaks(params_data, waves_data=None, n_bins=500, hist_range=None, min_dist=0.0, min_height=0.0, width=0.0,
@@ -101,51 +70,12 @@ def spectrum_peaks(params_data, waves_data=None, n_bins=500, hist_range=None, mi
     return peak_locations
 
 
-def normalize_heights(waveforms, adc_peaks, display=False):
-    peak_values = unumpy.nominal_values(adc_peaks)
-    error_values = unumpy.std_devs(adc_peaks)
-    if all(np.isinf(error_values)):
-        error_values = np.array([1]*len(error_values))
-    y_fit = [i+1 for i, value in enumerate(adc_peaks)]
-    if len(adc_peaks) == 2:
-        lin_model = LinearModel()
-        params = lin_model.make_params(slope=1, intercept=0)
-        result = lin_model.fit(data=y_fit, params=params, weights=1/error_values, x=peak_values)
-        lin_coeffs = [result.params["slope"].value, result.params["intercept"].value]
-        lin_errors = [result.params["slope"].stderr, result.params["intercept"].stderr]
-        return lin_model.eval(result.params, x=waveforms), lin_coeffs
-    quad_model = QuadraticModel()
-    params = quad_model.make_params(a=0.001, b=0.001, c=0.1)
-    result = quad_model.fit(data=y_fit, params=params, weights=1/error_values, x=peak_values)
-    quad_coeffs = [result.params["a"].value, result.params["b"].value, result.params["c"].value]
-    quad_errors = [result.params["a"].stderr, result.params["b"].stderr, result.params["c"].stderr]
-    if display:
-        x_plot = np.linspace(0, 10000, 1000)
-        plt.figure()
-        plt.errorbar(peak_values, y_fit, xerr=error_values, fmt="o", capsize=2, alpha=0.5)
-        plt.plot(x_plot, quad_model.eval(result.params, x=x_plot), color="magenta")
-        plt.xlabel("Deconvolved ADC")
-        plt.ylabel("PDE")
-    return quad_model.eval(result.params, x=waveforms), quad_coeffs
-
-
 def current_waveforms(waveforms, vpp=2, n_bits=14):
     return waveforms * (vpp / 2 ** n_bits) * (1000 / 31.05) * 1.0e-6
 
 
 def integrate_current(current_forms, lower_bound=0, upper_bound=200, sample_time=2e-9):
     return np.sum(current_forms.T[lower_bound:upper_bound].T, axis=1)*sample_time
-
-
-def gain(peaks, peak_errors):
-    if any(np.isnan(peak_errors)) | any(np.isinf(peak_errors)):
-        return (peaks[1] - peaks[0]) / const.e
-    else:
-        diffs = peaks[1:] - peaks[:-1]
-        errors_squared = peak_errors**2
-        errors = np.sqrt(errors_squared[1:] + errors_squared[:-1])
-        weights = 1 / errors
-        return np.average(diffs, weights=weights) / const.e
 
 
 def wave_peaks(waveforms, height=500, distance=5):
