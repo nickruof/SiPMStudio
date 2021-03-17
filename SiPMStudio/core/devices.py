@@ -4,11 +4,9 @@ import json
 
 import numpy as np
 import pandas as pd
-import uncertainties
 
 from scipy.stats import linregress
 from scipy.interpolate import interp1d
-from scipy.integrate import quad
 import scipy.constants as const
 import SiPMStudio.plots.plots_base as plt_base
 
@@ -138,9 +136,9 @@ class Photodiode:
         else:
             return np.interp(x=wavelength, xp=self.responsivity["wavelength"], fp=self.responsivity["responsivity"])
 
-    def calibrate(self, light_source):
+    def calibrate(self):
         bias = self.data["bias"].to_numpy()
-        photo_current = (self.data["light"] - self.data["dark"]).to_numpy()
+        photo_current = (self.data["light"] - self.data["dark"]).to_numpy() * 1.0e-9
         fit_data = linregress(bias, photo_current)
         slope, intercept = fit_data[0], fit_data[1]
 
@@ -158,12 +156,33 @@ class LightSource:
         self.intensity_profile = intensity_profile
         self.profile = interp1d(wavelengths, intensity_profile, kind="linear")
         self.profile_norm = 1
+        self.voltage = None
 
     def calculate_norm(self, spacing=0.1):
         num_points = (max(self.wavelengths) - min(self.wavelengths) ) / spacing
         x = np.linspace(min(self.wavelengths), max(self.wavelengths), round(num_points))
         y = self.profile(x)
-        self.profile_norm = np.cumsum(y) * spacing
+        self.profile_norm = np.trapz(y, x)
 
     def norm_profile(self, wavelength):
         return self.profile(wavelength) / self.profile_norm
+
+
+class IntegratingSphere:
+
+    def __init__(self, sipm, diode, light_source):
+        self.sipm = sipm
+        self.diode = diode
+        self.light_source = light_source
+        self.photon_rate = 0 #N_photons / s / mm^2
+
+    def sphere_photon_rate(self, spacing=0.01):
+        photocurrent = self.diode.cal_func(self.light_source.voltage) / self.diode.area
+        num_points = (max(self.light_source.wavelengths) - min(self.light_source.wavelengths)) / spacing
+        lam_x = np.linspace(min(self.light_source.wavelengths), max(self.light_source.wavelenghts), num_points)
+        self.photon_rate = photocurrent * np.trapz(self._photon_rate_integrand(lam_x), x)
+
+    def _photon_rate_integrand(self, lam):
+        term1 = lam / (const.h * const.c)
+        term2 = self.light_source.norm_profile(lam) / self.diode.get_response(lam)
+        return term1 * term2

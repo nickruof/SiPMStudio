@@ -78,6 +78,14 @@ def integrate_current(current_forms, lower_bound=0, upper_bound=200, sample_time
     return np.sum(current_forms.T[lower_bound:upper_bound].T, axis=1)*sample_time
 
 
+def rando_integrate_current(current_forms, width, sample_time=2e-9):
+    start_range = width
+    stop_range = current_forms.shape[1] - width - 1
+    start = np.random.randint(start_range, stop_range)
+    stop = start + width
+    return np.sum(current_forms.T[start:stop].T, axis=1)*sample_time
+
+
 def wave_peaks(waveforms, height=500, distance=5):
     all_peaks = []
     all_heights = []

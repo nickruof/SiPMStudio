@@ -104,13 +104,13 @@ def _output_to_file(data_file, output_filename, storage, write_size, iterator):
         output_waveforms = np.concatenate(storage)
     else:
         output_waveforms = storage
-    if iterator == write_size-1:
-        with h5py.File(output_filename, "w") as output_file:
-            output_file.create_dataset("/processed/waveforms", data=output_waveforms, maxshape=(None, None))
-    else:
+    if "/processed/waveforms" in data_file:
         with h5py.File(output_filename, "a") as output_file:
             output_file["/processed/waveforms"].resize(output_file["/processed/waveforms"].shape[0]+output_waveforms.shape[0], axis=0)
             output_file["/processed/waveforms"][-output_waveforms.shape[0]:] = output_waveforms
+    else:
+        with h5py.File(output_filename, "w") as output_file:
+            output_file.create_dataset("/processed/waveforms", data=output_waveforms, maxshape=(None, None))
 
 
 def _output_time(delta_seconds):
