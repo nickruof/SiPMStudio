@@ -2,6 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import tqdm
 import warnings
+import math
 
 from scipy.sparse import diags
 from scipy.optimize import curve_fit
@@ -84,6 +85,16 @@ def rando_integrate_current(current_forms, width, sample_time=2e-9):
     start = np.random.randint(start_range, stop_range)
     stop = start + width
     return np.sum(current_forms.T[start:stop].T, axis=1)*sample_time
+
+
+def integrate_slices(current_forms, width, window_size, sample_time=2e-9):
+    steps = math.floor((current_forms.shape[1] - 2*window_size) / window_size)
+    charges = []
+    for i in range(steps):
+        start = window_size * (i+1)
+        stop = start + width
+        charges += list(np.sum(current_forms.T[start:stop].T, axis=1)*sample_time)
+    return np.array(charges)
 
 
 def wave_peaks(waveforms, height=500, distance=5):
