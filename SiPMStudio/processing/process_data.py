@@ -42,18 +42,18 @@ def process_data(settings, processor, bias=None, overwrite=False, verbose=False,
     start = time.time()
     # -----Processing Begins Here!---------------------------------
 
-    for i, file in enumerate(data_files):
+    for file in data_files:
         destination = os.path.join(path, file)
         output_destination = os.path.join(path_t2, output_files[i])
         print("Processing: "+file)
         h5_file = h5py.File(destination, "r")
         num_rows = h5_file["/raw/waveforms"][:].shape[0]
-        df_storage = []
+        df_storage = {}
         for i in tqdm.tqdm(range(num_rows//chunk + 1)):
             begin, end = _chunk_range(i, chunk, num_rows)
-            wf_chunk = h5_file["/raw/waveforms"][begin:end] - h5_file["/raw/baselines"][begin:end]
-            output_wf = _process_chunk(wf_chunk, processor=processor)
-            _output_chunk(h5_file, output_destination, output_wf, df_storage, write_size, i, num_rows, chunk, end)
+            wf_chunk = h5_file["/raw/waveforms"][begin:end]
+            output_data = _process_chunk(wf_chunk, processor=processor)
+            _output_chunk(h5_file, output_destination, output_data, df_storage, write_size, i, num_rows, chunk, end)
         _copy_to_t2(["bias", "/raw/timetag"], ["bias", "/processed/timetag"], h5_file, output_destination)
         h5_file.close()
 
@@ -75,19 +75,22 @@ def _process_chunk(wf_chunk, processor, rows=None):
     return processor.process()
 
 
-def _output_chunk(data_file, output_file, chunk_frame, storage, write_size, iterator, num_rows, chunk, stop):
-    if (write_size == 1) | (num_rows < chunk):
-        _output_to_file(data_file, output_file, chunk_frame, write_size, iterator)
-    else:
-        if stop >= num_rows-1:
-            storage.append(chunk_frame)
-            _output_to_file(data_file, output_file, storage, write_size, iterator)
-            storage.clear()
+def _output_chunk(data_file, output_file, chunk_data, storage, write_size, iterator, num_rows, chunk, stop):
+    for output in chunk_data.keys():
+        if output not in storage:
+            storage[output] = []
+        if (write_size == 1) | (num_rows < chunk):
+            _output_to_file(data_file, output_file, chunk_data, output, write_size, iterator)
         else:
-            storage.append(chunk_frame)
-            if len(storage) == write_size:
-                _output_to_file(data_file, output_file, storage, write_size, iterator)
+            if stop >= num_rows-1:
+                storage[output].append(chunk_data[output])
+                _output_to_file(data_file, output_file, storage, output, write_size, iterator)
                 storage.clear()
+            else:
+                storage[output].append(chunk_data[output])
+                if len(storage) == write_size:
+                    _output_to_file(data_file, output_file, storage, output, write_size, iterator)
+                    storage.clear()
 
 
 def _copy_to_t2(raw_names, process_names, h5_file, output_destination):
@@ -98,19 +101,19 @@ def _copy_to_t2(raw_names, process_names, h5_file, output_destination):
             output_file.create_dataset(process_names[i], data=h5_file[name])
 
 
-def _output_to_file(data_file, output_filename, storage, write_size, iterator):
-    output_waveforms = None
-    if isinstance(storage, list):
-        output_waveforms = np.concatenate(storage)
+def _output_to_file(data_file, output_filename, storage, output_name, write_size, iterator):
+    output_data = None
+    if isinstance(storage[output_name], list):
+        output_data = np.concatenate(storage[output_name])
     else:
-        output_waveforms = storage
-    if "/processed/waveforms" in data_file:
+        output_data = storage[output_name]
+    if output_name in data_file:
         with h5py.File(output_filename, "a") as output_file:
-            output_file["/processed/waveforms"].resize(output_file["/processed/waveforms"].shape[0]+output_waveforms.shape[0], axis=0)
-            output_file["/processed/waveforms"][-output_waveforms.shape[0]:] = output_waveforms
+            output_file[output_name].resize(output_file[output_name].shape[0]+output_data.shape[0], axis=0)
+            output_file[output_name][-output_data.shape[0]:] = output_data
     else:
         with h5py.File(output_filename, "w") as output_file:
-            output_file.create_dataset("/processed/waveforms", data=output_waveforms, maxshape=(None, None))
+            output_file.create_dataset(output_name, data=output_data, maxshape=(None, None))
 
 
 def _output_time(delta_seconds):

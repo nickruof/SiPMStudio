@@ -42,13 +42,11 @@ def butter_bandpass(lowcut, highcut, sample_rate, order=5):
     return b, a
 
 
-def exp_func(t, A, t0, tau, D):
-    return A*np.exp(-(t-t0)/tau) + D
+def exp_charge(x, A, x0, tau):
+    result = A*(1 - np.exp(-(x-x0)/tau))
+    result[result < 0] = 0
+    return result
 
 
-def double_exp(t, A1, A2, t0, tau1, tau2, D):
-    return exp_func(t, A1, t0, tau1, 0) + exp_func(t, A2, t0, tau2, D)
-
-
-def rise_func(t, A, t0, tau, D):
-    return A*(1 - np.exp(-(t-t0)/tau)) + D
+def double_exp_release(x, x0, A1, A2, b1, b2):
+    return A1*np.exp(-(x-x0)/b1) + A2*np.exp(-(x-x0)/b2)

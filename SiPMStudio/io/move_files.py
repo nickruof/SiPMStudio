@@ -15,9 +15,10 @@ def main():
         if out_path == "here":
             out_path = os.getcwd()
     else:
-        print("Usage: python3 move_files.py <in_path> <out_path>")
+        print("Usage: python3 move_files.py <in_path> <dir_name> <out_path>")
 
     file_list = glob.glob(in_path+"/"+dir_name+"_*/UNFILTERED/*.bin")
+    print(file_list)
 
     for file in tqdm.tqdm(file_list, total=len(file_list)):
         if os.path.getsize(file) > 0:

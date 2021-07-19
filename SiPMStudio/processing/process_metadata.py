@@ -2,7 +2,6 @@ import os
 import time
 import tqdm
 import h5py
-import peakutils
 import numpy as np
 
 from SiPMStudio.processing.process_data import _output_time
@@ -25,10 +24,8 @@ def process_metadata(settings, digitizer, output_dir=None, verbose=False):
             event_data_bytes = metadata_file.read(event_size)
             while event_data_bytes != b"":
                 event, waveform = digitizer.get_event(event_data_bytes)
-                baseline = peakutils.baseline(waveform, deg=2)
                 event_rows.append(event)
                 waveform_rows.append(waveform)
-                baseline_rows.append(baseline)
                 event_data_bytes = metadata_file.read(event_size)
         _output_to_h5file(file_name, settings["file_base_name"], settings["output_path_t1"],
                           np.array(event_rows), np.array(waveform_rows), np.array(baseline_rows), digitizer)
@@ -41,6 +38,5 @@ def _output_to_h5file(data_file, output_name, output_path, events, waveforms, ba
         output_file.create_dataset("/raw/timetag", data=events.T[0])
         output_file.create_dataset("/raw/energy", data=events.T[1])
         output_file.create_dataset("/raw/waveforms", data=waveforms)
-        output_file.create_dataset("/raw/baselines", data=baselines)
         output_file.create_dataset("bias", data=float(data_file["bias"]))
         output_file.create_dataset("adc_to_v", data=digitizer.v_range/2**digitizer.adc_bitcount)

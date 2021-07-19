@@ -2,12 +2,12 @@ import numpy as np
 import pywt
 import peakutils
 
-from scipy.signal import savgol_filter, filtfilt, deconvolve, wiener
-from scipy.ndimage import gaussian_filter1d
+from scipy.signal import savgol_filter, filtfilt, find_peaks
+from scipy.optimize import curve_fit
 from statsmodels.robust import mad
 from functools import partial
 
-from SiPMStudio.processing.functions import butter_bandpass, exp_func, double_exp, quadratic
+from SiPMStudio.processing.functions import butter_bandpass, exp_charge, double_exp_release
 
 # TODO: come up with way to store waveform timing information
 
@@ -53,39 +53,38 @@ def wavelet_denoise(waves_data, wavelet="db1", levels=3, mode="hard"):
     return denoised_wave_values
 
 
-def moving_average(waves_data, box_size=20):
-    box = np.ones(box_size) / box_size
-    smooth_waves = np.apply_along_axis(lambda wave: np.convolve(wave, box, mode="same"), axis=0, arr=waves_data)
-    return smooth_waves
-
-
-def deconvolve_waves(waves_data, short_tau, long_tau, wiener_filter=False):
-    x_samples = np.linspace(0, 2*waves_data.shape[1], waves_data.shape[1])
-    transfer = None
-    if short_tau == 0.0:
-        transfer = exp_func(x_samples[50:500], 1, 0, long_tau, 0)
-    elif long_tau == 0.0:
-        transfer = exp_func(x_samples[50:500], 1, 0, short_tau, 0)
-    else:
-        transfer = double_exp(x_samples[50:500], 0.5, 0.1, 0, short_tau, long_tau, 0)
-
-    def deconvolve_waveform(waveform, transfer_func):
-        waveform_deconv = None
-        if wiener_filter:
-            waveform_deconv = wiener(waveform, 20)
-        waveform_deconv = deconvolve(waveform_deconv, transfer_func)
-        buffer_length = len(waveform) - len(waveform_deconv[0])
-        output_wave = np.append(waveform_deconv[0], [0]*buffer_length)
-        return output_wave
-
-    deconvolve_function = partial(deconvolve_waveform, transfer_func=transfer)
-    deconv_waves = np.apply_along_axis(deconvolve_function, 1, waves_data)
-    return deconv_waves
-
-
-def normalize_waves(waves_data, calib_constants):
-    norm_data = quadratic(waves_data, *calib_constants)
-    return norm_data
+def fit_waveforms(waves_data, short_tau, long_tau, charge_up, max_amp=100):
+    output_waveforms = []
+    times = np.arange(0, 2*waves_data.shape[1], 2)
+    for i, wave in enumerate(waves_data):
+        peak_info = find_peaks(wave, height=250, distance=50, width=4)
+        if len(peak_info[0]) == 0:
+            output_waveforms.append(np.array([np.mean(wave)]*len(times)))
+            continue
+        base_wave = wave
+        pulses = []
+        for j, peak in enumerate(peak_info[0]):
+            wave_value = base_wave[peak]
+            idx = peak - charge_up[0]*2
+            if idx < 0:
+                idx = 0
+            charge_time, release_time = times[idx:peak], times[peak:peak+50]
+            charge_form, release_form = base_wave[idx:peak], base_wave[peak:peak+50]
+            release_coeffs, release_cov = curve_fit(double_exp_release, release_time, release_form,
+                                                    p0=[2*peak, 200, 5e6, short_tau[0], long_tau[0]],
+                                                    bounds=([2*peak-10, 0, 0, short_tau[1], long_tau[1]], [2*peak+10, np.inf, np.inf, short_tau[2], long_tau[2]]))
+            charge_coeffs, charge_cov = curve_fit(exp_charge, charge_time, charge_form, p0=[600, 2*peak, charge_up[0]],
+                                                 bounds=([0, 2*peak-10, charge_up[1]], [np.inf, 2*peak+10, charge_up[2]]))
+            charge_up_part = exp_charge(times[:peak], *charge_coeffs)
+            release_part = double_exp_release(times[peak:], *release_coeffs)
+            fit_waveform = np.concatenate((charge_up_part, release_part))
+            if max(fit_waveform) < max_amp:
+                continue
+            else:
+                pulses.append(fit_waveform)
+                base_wave = base_wave - fit_waveform
+        output_waveforms.append(np.sum(pulses, axis=0))
+    return np.array(output_waveforms)
 
 
 
