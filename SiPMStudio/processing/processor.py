@@ -18,14 +18,9 @@ class Processor(object):
 
     def process(self):
         for processor in self.proc_list:
-            if isinstance(processor, Calculator):
+            if isinstance(processor, ProcessorBase):
                 self.calcs = processor.process_block(self.waves, self.calcs)
-                if processor.output_name:
-                    output_name = self.calcs
-            elif isinstance(processor, Transformer):
-                self.waves = processor.process_block(self.waves)
-                if processor.output_name:
-                    output_name = self.waves
+                self.processor.process_block()
             else:
                 raise TypeError("Couldn't identify processor type!")
         return self.outputs
@@ -58,10 +53,9 @@ class Processor(object):
 
 
 class ProcessorBase(object):
-    def __init__(self, function, *args, **kwargs):
+    def __init__(self, function, **kwargs):
         self.function = function
-        self.fun_args = args
         self.fun_kwargs = kwargs
 
     def process_block(self):
-        self.function(self.outputs, *self.fun_args, **self.fun_kwargs)
+        self.function(self.outputs, **self.fun_kwargs)
