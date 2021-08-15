@@ -57,8 +57,10 @@ def process_data(settings, processor, bias=None, overwrite=False, verbose=False,
         for i in tqdm.tqdm(range(num_rows//chunk + 1)):
             begin, end = _chunk_range(i, chunk, num_rows)
             wf_chunk = h5_file["/raw/waveforms"][begin:end]
-            output_data = _process_chunk(wf_chunk, processor=processor)
+            time_chunk = h5_file["/raw/timetag"][begin:end]
+            output_data = _process_chunk(wf_chunk, time_chunk, processor=processor)
             _output_chunk(h5_file, output_destination, output_data, df_storage, write_size, i, num_rows, chunk, end)
+            processor.reset_output()
         _copy_to_t2(["bias", "/raw/timetag"], ["bias", "/processed/timetag"], h5_file, output_destination)
         h5_file.close()
 
@@ -76,7 +78,8 @@ def _chunk_range(index, chunk, num_rows):
     return start, stop
 
 
-def _process_chunk(wf_chunk, processor, rows=None):
+def _process_chunk(wf_chunk, time_chunk, processor, rows=None):
+    processor.init_outputs({"/processed/waveforms": wf_chunk, "/raw/timetag": time_chunk})
     processor.set_processor(wf_chunk, rows=rows)
     return processor.process()
 
