@@ -19,11 +19,12 @@ def adc_to_volts(waves_data, digitizer):
     return processed_waveforms
 
 
-def baseline_subtract(waves_data, degree=1):
+def baseline_subtract(outputs, wf_in, wf_out, degree=1):
+    waves_data = outputs[wf_in]
     axis_function = partial(peakutils.baseline, deg=degree)
     baselines = np.apply_along_axis(axis_function, 1, waves_data)
     processed_waveforms = waves_data - baselines
-    return processed_waveforms
+    outputs[wf_out] = processed_waveforms
 
 
 def savgol(waves_data, window=15, order=2):
@@ -53,8 +54,9 @@ def wavelet_denoise(waves_data, wavelet="db1", levels=3, mode="hard"):
     return denoised_wave_values
 
 
-def fit_waveforms(waves_data, short_tau, long_tau, charge_up, max_amp=100):
+def fit_waveforms(outputs, wf_in, wf_out, short_tau, long_tau, charge_up, max_amp=100):
     output_waveforms = []
+    waves_data = outputs[wf_in]
     times = np.arange(0, 2*waves_data.shape[1], 2)
     for i, wave in enumerate(waves_data):
         peak_info = find_peaks(wave, height=250, distance=50, width=4)
@@ -64,7 +66,6 @@ def fit_waveforms(waves_data, short_tau, long_tau, charge_up, max_amp=100):
         base_wave = wave
         pulses = []
         for j, peak in enumerate(peak_info[0]):
-            wave_value = base_wave[peak]
             idx = peak - charge_up[0]*2
             if idx < 0:
                 idx = 0
@@ -84,7 +85,7 @@ def fit_waveforms(waves_data, short_tau, long_tau, charge_up, max_amp=100):
                 pulses.append(fit_waveform)
                 base_wave = base_wave - fit_waveform
         output_waveforms.append(np.sum(pulses, axis=0))
-    return np.array(output_waveforms)
+        outputs[wf_out] = np.array(output_waveforms)
 
 
 
