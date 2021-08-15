@@ -9,9 +9,10 @@ from SiPMStudio.processing.process_data import _output_time
 
 def process_metadata(settings, digitizer, output_dir=None, verbose=False):
 
-    print("Processing Metadata! ...")
-    print("Number of Files to Process: "+str(len(settings["init_info"])))
-    print("Output Path: ", settings["output_path_t1"])
+    if verbose:
+        print("Processing Metadata! ...")
+        print("Number of Files to Process: "+str(len(settings["init_info"])))
+        print("Output Path: ", settings["output_path_t1"])
 
     start = time.time()
 

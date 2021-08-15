@@ -10,28 +10,32 @@ def process_data(settings, processor, bias=None, overwrite=False, verbose=False,
     path_t2 = settings["output_path_t2"]
     data_files = []
     output_files = []
+
+    base_name = settings["file_base_name"]
     for entry in settings["init_info"]:
+        bias_label = entry["bias"]
         if bias is None:
-            data_files.append("t1_" + settings["file_base_name"] + "_" + str(entry["bias"]) + ".h5")
-            output_files.append("t2_" + settings["file_base_name"] + "_" + str(entry["bias"]) + ".h5")
+            data_files.append(f"t1_{base_name}_{bias_label}.h5")
+            output_files.append(f"t2_{base_name}_{bias_label}")
         elif entry["bias"] in bias:
-            data_files.append("t1_" + settings["file_base_name"] + "_" + str(entry["bias"]) + ".h5")
-            output_files.append("t2_" + settings["file_base_name"] + "_" + str(entry["bias"]) + ".h5")
+            data_files.append(f"t1_{base_name}_{bias_label}.h5")
+            output_files.append(f"t2_{base_name}_{bias_label}.h5")
         else:
             pass
 
-    print(" ")
-    print("Starting SiPMStudio processing ... ")
-    print("Input Path: ", path)
-    print("Output Path: ", path_t2)
-    print("Input Files: ", data_files)
+    if verbose:
+        print(" ")
+        print("Starting SiPMStudio processing ... ")
+        print("Input Path: ", path)
+        print("Output Path: ", path_t2)
+        print("Input Files: ", data_files)
 
-    file_sizes = []
-    for file_name in data_files:
-        memory_size = os.path.getsize(path+"/"+file_name)
-        memory_size = round(memory_size/1e6)
-        file_sizes.append(str(memory_size)+" MB")
-    print("File Sizes: ", file_sizes)
+        file_sizes = []
+        for file_name in data_files:
+            memory_size = os.path.getsize(path+"/"+file_name)
+            memory_size = round(memory_size/1e6)
+            file_sizes.append(str(memory_size)+" MB")
+        print("File Sizes: ", file_sizes)
 
     if overwrite is True:
         for file_name in output_files:
@@ -45,7 +49,8 @@ def process_data(settings, processor, bias=None, overwrite=False, verbose=False,
     for file in data_files:
         destination = os.path.join(path, file)
         output_destination = os.path.join(path_t2, output_files[i])
-        print("Processing: "+file)
+        if verbose:
+            print("Processing: "+file)
         h5_file = h5py.File(destination, "r")
         num_rows = h5_file["/raw/waveforms"][:].shape[0]
         df_storage = {}
@@ -57,9 +62,10 @@ def process_data(settings, processor, bias=None, overwrite=False, verbose=False,
         _copy_to_t2(["bias", "/raw/timetag"], ["bias", "/processed/timetag"], h5_file, output_destination)
         h5_file.close()
 
-    print("Processing Finished! ...")
-    print("Output Files: ", [file.replace("t1", "t2") for file in data_files])
-    _output_time(time.time() - start)
+    if verbose:
+        print("Processing Finished! ...")
+        print("Output Files: ", [file.replace("t1", "t2") for file in data_files])
+        _output_time(time.time() - start)
 
 
 def _chunk_range(index, chunk, num_rows):

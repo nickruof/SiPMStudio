@@ -1,11 +1,8 @@
-from abc import ABC
-import pandas as pd
-
 import SiPMStudio.processing.calculators as pc
 import SiPMStudio.processing.transforms as pt
 
 
-class Processor(ABC):
+class Processor(object):
 
     # TODO: Look into using in place transformations for the ProcessorBase class
 
@@ -52,14 +49,17 @@ class Processor(ABC):
             self.proc_list.append(
                 Transformer(getattr(pt, fun_name), self.settings[fun_name]), output_name)
         else:
-            raise LookupError("ERROR! unknown function: ", fun_name)
+            raise LookupError(f"ERROR! unknown function: {fun_name}")
+
+    def reset_outputs(self):
+        self.outputs.clear()
 
     def clear(self):
         self.proc_list.clear()
         self.settings.clear()
 
 
-class ProcessorBase(ABC):
+class ProcessorBase(object):
     def __init__(self, function, fun_args={}, output_name=None):
         self.function = function
         self.fun_args = fun_args
