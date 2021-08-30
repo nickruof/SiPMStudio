@@ -1,6 +1,6 @@
 import sys
-import glob
 import json
+import argparse
 
 from SiPMStudio.core.digitizers import CAENDT5730
 from SiPMStudio.processing.process_metadata import process_metadata
@@ -8,17 +8,15 @@ from SiPMStudio.processing.process_metadata import process_metadata
 
 def main():
 
-    settings_file = ""
-    if len(sys.argv) == 2:
-        settings_file = sys.argv[1]
-    else:
-        raise SystemError("Provide a settings file!")
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--input", help="settings file name")
+    args = parser.parse_args()
+    settings_file = args.input
 
     settings_dict = None
     with open(settings_file, "r") as json_file:
         settings_dict = json.load(json_file)
 
-    file_list = glob.glob(settings_dict["input_path"]+"/*.bin")
     digitizer = CAENDT5730()
     process_metadata(settings_dict, digitizer)
 
