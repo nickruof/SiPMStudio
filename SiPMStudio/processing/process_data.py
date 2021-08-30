@@ -59,7 +59,7 @@ def process_data(settings, processor, bias=None, overwrite=False, verbose=False,
             wf_chunk = h5_file["/raw/waveforms"][begin:end]
             time_chunk = h5_file["/raw/timetag"][begin:end]
             output_data = _process_chunk(wf_chunk, time_chunk, processor=processor)
-            _output_chunk(h5_file, output_destination, output_data, df_storage, write_size, i, num_rows, chunk, end)
+            _output_chunk(h5_file, output_destination, output_data, df_storage, write_size, num_rows, chunk, end)
             processor.reset_output()
         _copy_to_t2(["bias", "/raw/timetag"], ["bias", "/processed/timetag"], h5_file, output_destination)
         h5_file.close()
@@ -84,21 +84,21 @@ def _process_chunk(wf_chunk, time_chunk, processor, rows=None):
     return processor.process()
 
 
-def _output_chunk(data_file, output_file, chunk_data, storage, write_size, iterator, num_rows, chunk, stop):
+def _output_chunk(data_file, output_file, chunk_data, storage, write_size, num_rows, chunk, stop):
     for output in chunk_data.keys():
         if output not in storage:
             storage[output] = []
         if (write_size == 1) | (num_rows < chunk):
-            _output_to_file(data_file, output_file, chunk_data, output, write_size, iterator)
+            _output_to_file(data_file, output_file, chunk_data, output)
         else:
             if stop >= num_rows-1:
                 storage[output].append(chunk_data[output])
-                _output_to_file(data_file, output_file, storage, output, write_size, iterator)
+                _output_to_file(data_file, output_file, storage, output)
                 storage.clear()
             else:
                 storage[output].append(chunk_data[output])
                 if len(storage) == write_size:
-                    _output_to_file(data_file, output_file, storage, output, write_size, iterator)
+                    _output_to_file(data_file, output_file, storage, output)
                     storage.clear()
 
 
@@ -110,7 +110,7 @@ def _copy_to_t2(raw_names, process_names, h5_file, output_destination):
             output_file.create_dataset(process_names[i], data=h5_file[name])
 
 
-def _output_to_file(data_file, output_filename, storage, output_name, write_size, iterator):
+def _output_to_file(data_file, output_filename, storage, output_name):
     output_data = None
     if isinstance(storage[output_name], list):
         output_data = np.concatenate(storage[output_name])

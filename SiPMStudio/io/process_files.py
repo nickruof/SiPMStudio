@@ -1,4 +1,3 @@
-import sys
 import json
 import argparse
 
@@ -14,6 +13,7 @@ def main():
     parser.add_argument("procs", help="processor settings file name")
     parser.add_argument("--bias", help="list of biases to process, comma separated", default=None)
     args = parser.parse_args()
+    
     settings_file = args.settings
     proc_file = args.procs
     bias = None
@@ -29,7 +29,6 @@ def main():
     with open(proc_file, "r") as json_file:
         proc_dict = json.load(json_file)
 
-    digitizer = CAENDT5730()
     processor = Processor()
     load_functions(proc_dict, processor)
     process_data(settings_dict, processor, bias=bias, overwrite=True, chunk=4000, write_size=2)
