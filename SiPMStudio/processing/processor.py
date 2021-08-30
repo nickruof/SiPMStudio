@@ -1,3 +1,5 @@
+import json
+
 import SiPMStudio.processing.calculators as pc
 import SiPMStudio.processing.transforms as pt
 
@@ -59,3 +61,10 @@ class ProcessorBase(object):
 
     def process_block(self):
         self.function(self.outputs, **self.fun_kwargs)
+
+
+def load_functions(proc_settings, processor):
+    with open(proc_settings, "r") as json_file:
+        json_data = json.load(json_file)
+        for key, params in json_data.items():
+            processor.add(key, settings=params)
