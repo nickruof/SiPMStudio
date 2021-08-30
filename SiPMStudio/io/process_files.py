@@ -3,16 +3,16 @@ import json
 import argparse
 
 from SiPMStudio.core.digitizers import CAENDT5730
-from SiPMStudio.processing.processor import Processor
+from SiPMStudio.processing.processor import Processor, load_functions
 from SiPMStudio.processing.process_data import process_data
 
 
 def main():
 
     parser = argparse.ArgumentParser()
-    parser.add_argument("--settings", help="settings file name")
-    parser.add_argument("--procs", help="processor settings file name")
-    parser.add_argument("--bias", help="list of biases to process, comma separated")
+    parser.add_argument("settings", help="settings file name")
+    parser.add_argument("procs", help="processor settings file name")
+    parser.add_argument("--bias", help="list of biases to process, comma separated", default=None)
     args = parser.parse_args()
     settings_file = args.settings
     proc_file = args.procs
@@ -31,6 +31,7 @@ def main():
 
     digitizer = CAENDT5730()
     processor = Processor()
+    load_functions(proc_dict, processor)
     process_data(settings_dict, processor, bias=bias, overwrite=True, chunk=4000, write_size=2)
 
 
