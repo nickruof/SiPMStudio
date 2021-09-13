@@ -50,7 +50,7 @@ def process_data(settings, processor, bias=None, overwrite=False, verbose=False,
         destination = os.path.join(path, file)
         output_destination = os.path.join(path_t2, output_files[i])
         if verbose:
-            print("Processing: "+file)
+            print(f"Processing: {file}")
         h5_file = h5py.File(destination, "r")
         num_rows = h5_file["/raw/waveforms"][:].shape[0]
         df_storage = {}
@@ -139,5 +139,5 @@ def _output_time(delta_seconds):
         minutes = minutes + 1
     seconds = round(temp_seconds, 1)
     print(" ")
-    print("Time elapsed: "+str(hours)+"h "+str(minutes)+"m "+str(seconds)+"s ")
+    print(f"Time elapsed {hours}h {minutes}m {seconds}s")
     print(" ")
