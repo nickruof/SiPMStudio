@@ -46,9 +46,9 @@ def process_data(settings, processor, bias=None, overwrite=False, verbose=False,
     start = time.time()
     # -----Processing Begins Here!---------------------------------
 
-    for file in data_files:
+    for idx, file in enumerate(data_files):
         destination = os.path.join(path, file)
-        output_destination = os.path.join(path_t2, output_files[i])
+        output_destination = os.path.join(path_t2, output_files[idx])
         if verbose:
             print(f"Processing: {file}")
         h5_file = h5py.File(destination, "r")
@@ -60,8 +60,8 @@ def process_data(settings, processor, bias=None, overwrite=False, verbose=False,
             time_chunk = h5_file["/raw/timetag"][begin:end]
             output_data = _process_chunk(wf_chunk, time_chunk, processor=processor)
             _output_chunk(h5_file, output_destination, output_data, df_storage, write_size, num_rows, chunk, end)
-            processor.reset_output()
-        _copy_to_t2(["bias", "/raw/timetag"], ["bias", "/processed/timetag"], h5_file, output_destination)
+            processor.reset_outputs()
+        _copy_to_t2(["bias"], ["bias"], h5_file, output_destination)
         h5_file.close()
 
     if verbose:
@@ -79,8 +79,7 @@ def _chunk_range(index, chunk, num_rows):
 
 
 def _process_chunk(wf_chunk, time_chunk, processor, rows=None):
-    processor.init_outputs({"/processed/waveforms": wf_chunk, "/raw/timetag": time_chunk})
-    processor.set_processor(wf_chunk, rows=rows)
+    processor.init_outputs({"/raw/waveforms": wf_chunk, "/raw/timetag": time_chunk})
     return processor.process()
 
 
@@ -116,13 +115,17 @@ def _output_to_file(data_file, output_filename, storage, output_name):
         output_data = np.concatenate(storage[output_name])
     else:
         output_data = storage[output_name]
-    if output_name in data_file:
-        with h5py.File(output_filename, "a") as output_file:
+    with h5py.File(output_filename, "a") as output_file:
+        if output_name in output_file:
             output_file[output_name].resize(output_file[output_name].shape[0]+output_data.shape[0], axis=0)
             output_file[output_name][-output_data.shape[0]:] = output_data
-    else:
-        with h5py.File(output_filename, "w") as output_file:
-            output_file.create_dataset(output_name, data=output_data, maxshape=(None, None))
+        else:
+            if len(output_data.shape) == 2:
+                output_file.create_dataset(output_name, data=output_data, maxshape=(None, None))
+            elif len(output_data.shape) == 1:
+                output_file.create_dataset(output_name, data=output_data, maxshape=(None,))
+            else:
+                raise ValueError(f"Dimension of output data {output_data.shape} must be 1 or 2")
 
 
 def _output_time(delta_seconds):

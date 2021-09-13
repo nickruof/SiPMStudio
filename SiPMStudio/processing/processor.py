@@ -21,8 +21,7 @@ class Processor(object):
     def process(self):
         for processor in self.proc_list:
             if isinstance(processor, ProcessorBase):
-                self.calcs = processor.process_block(self.waves, self.calcs)
-                self.processor.process_block()
+                processor.process_block(self.outputs)
             else:
                 raise TypeError("Couldn't identify processor type!")
         return self.outputs
@@ -36,12 +35,12 @@ class Processor(object):
             self.settings[fun_name] = settings
         if fun_name in dir(pc):
             self.proc_list.append(
-                ProcessorBase(getattr(pc, fun_name), self.outputs, self.settings[fun_name]))
+                ProcessorBase(getattr(pc, fun_name), **self.settings[fun_name]))
         elif fun_name in dir(pt):
             self.proc_list.append(
-                ProcessorBase(getattr(pt, fun_name), self.outputs, self.settings[fun_name]))
+                ProcessorBase(getattr(pt, fun_name), **self.settings[fun_name]))
         else:
-            raise LookupError(f"ERROR! unknown function: {fun_name}")
+            raise LookupError(f"Unknown function: {fun_name}")
     
     def init_outputs(self, outputs):
         self.outputs = outputs
@@ -59,12 +58,10 @@ class ProcessorBase(object):
         self.function = function
         self.fun_kwargs = kwargs
 
-    def process_block(self):
-        self.function(self.outputs, **self.fun_kwargs)
+    def process_block(self, outputs):
+        self.function(outputs, **self.fun_kwargs)
 
 
 def load_functions(proc_settings, processor):
-    with open(proc_settings, "r") as json_file:
-        json_data = json.load(json_file)
-        for key, params in json_data.items():
-            processor.add(key, settings=params)
+    for key, params in proc_settings.items():
+        processor.add(key, settings=params)

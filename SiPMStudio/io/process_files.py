@@ -9,9 +9,10 @@ from SiPMStudio.processing.process_data import process_data
 def main():
 
     parser = argparse.ArgumentParser()
-    parser.add_argument("settings", help="settings file name")
-    parser.add_argument("procs", help="processor settings file name")
+    parser.add_argument("--settings", help="settings file name")
+    parser.add_argument("--procs", help="processor settings file name")
     parser.add_argument("--bias", help="list of biases to process, comma separated", default=None)
+    parser.add_argument("--verbose", help="print extra output at runtime", type=bool)
     args = parser.parse_args()
     
     settings_file = args.settings
