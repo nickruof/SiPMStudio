@@ -32,7 +32,7 @@ def main():
 
     processor = Processor()
     load_functions(proc_dict, processor)
-    process_data(settings_dict, processor, bias=bias, overwrite=True, chunk=4000, write_size=2)
+    process_data(settings_dict, processor, bias=bias, overwrite=True, chunk=4000, write_size=2, verbose=True)
 
 
 if __name__ == "__main__":
