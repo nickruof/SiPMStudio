@@ -1,19 +1,17 @@
-from abc import ABC
-import pandas as pd
+import json
 
 import SiPMStudio.processing.calculators as pc
 import SiPMStudio.processing.transforms as pt
 
 
-class Processor(ABC):
+class Processor(object):
 
     # TODO: Look into using in place transformations for the ProcessorBase class
 
     def __init__(self, settings=None):
         self.proc_list = []
-        self.calcs = []
-        self.waves = []
         self.outputs = {}
+        self.save_to_file = []
         self.settings = {}
 
         if settings is not None:
@@ -21,24 +19,15 @@ class Processor(ABC):
             for key in settings:
                 self.add(key, settings[key])
 
-    def set_processor(self, waves_data, rows=None):
-        self.waves = waves_data
-
     def process(self):
         for processor in self.proc_list:
-            if isinstance(processor, Calculator):
-                self.calcs = processor.process_block(self.waves, self.calcs)
-                if processor.output_name:
-                    output_name = self.calcs
-            elif isinstance(processor, Transformer):
-                self.waves = processor.process_block(self.waves)
-                if processor.output_name:
-                    output_name = self.waves
+            if isinstance(processor, ProcessorBase):
+                processor.process_block(self.outputs)
             else:
                 raise TypeError("Couldn't identify processor type!")
-        return self.outputs
+        return {key: self.outputs[key] for key in self.save_to_file}
 
-    def add(self, fun_name, settings, output_name=None):
+    def add(self, fun_name, settings):
         if settings is None:
             settings = {}
         if fun_name in self.settings:
@@ -47,40 +36,43 @@ class Processor(ABC):
             self.settings[fun_name] = settings
         if fun_name in dir(pc):
             self.proc_list.append(
-                Calculator(getattr(pc, fun_name), self.settings[fun_name]), output_name)
+                ProcessorBase(getattr(pc, fun_name), **self.settings[fun_name]))
         elif fun_name in dir(pt):
             self.proc_list.append(
-                Transformer(getattr(pt, fun_name), self.settings[fun_name]), output_name)
+                ProcessorBase(getattr(pt, fun_name), **self.settings[fun_name]))
         else:
-            raise LookupError("ERROR! unknown function: ", fun_name)
+            raise LookupError(f"Unknown function: {fun_name}")
+    
+    def init_outputs(self, outputs):
+        self.outputs = outputs
+
+    def reset_outputs(self):
+        self.outputs.clear()
+
+    def add_to_file(self, var_name):
+        if isinstance(var_name, str):
+            self.save_to_file.append(var_name)
+        elif isinstance(var_name, list):
+            self.save_to_file += var_name
+        else:
+            raise TypeError(f"var_name of type {type(var_name)} must be str or list of strings")
 
     def clear(self):
         self.proc_list.clear()
         self.settings.clear()
 
 
-class ProcessorBase(ABC):
-    def __init__(self, function, fun_args={}, output_name=None):
+class ProcessorBase(object):
+    def __init__(self, function, **kwargs):
         self.function = function
-        self.fun_args = fun_args
-        self.output_name = output_name
+        self.fun_kwargs = kwargs
 
-    def process_block(self, waves, calcs):
-        return self.function(waves, calcs, **self.fun_args)
-
-
-class Calculator(ProcessorBase):
-    def __init__(self, function, fun_args={}, output_name=None):
-        super().__init__(function, fun_args, output_name)
-
-    def process_block(self, waves, calcs):
-        return self.function(waves_data=waves, params_data=calcs, **self.fun_args)
+    def process_block(self, outputs):
+        self.function(outputs, **self.fun_kwargs)
 
 
-class Transformer(ProcessorBase):
-    def __init__(self, function, fun_args={}, output_name=None):
-        super().__init__(function, fun_args, output_name)
-
-    def process_block(self, waves, calcs=None):
-        return self.function(waves_data=waves, **self.fun_args)
-
+def load_functions(proc_settings, processor):
+    for key, params in proc_settings["processes"].items():
+        processor.add(key, settings=params)
+    for output in proc_settings["save_output"]:
+        processor.save_to_file.append(output)

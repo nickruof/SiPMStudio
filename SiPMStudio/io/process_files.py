@@ -1,36 +1,38 @@
-import sys
 import json
+import argparse
 
 from SiPMStudio.core.digitizers import CAENDT5730
-from SiPMStudio.processing.processor import Processor
+from SiPMStudio.processing.processor import Processor, load_functions
 from SiPMStudio.processing.process_data import process_data
 
 
 def main():
 
-    settings_file = ""
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--settings", help="settings file name")
+    parser.add_argument("--procs", help="processor settings file name")
+    parser.add_argument("--bias", help="list of biases to process, comma separated", default=None)
+    parser.add_argument("--verbose", help="print extra output at runtime", type=bool)
+    args = parser.parse_args()
+    
+    settings_file = args.settings
+    proc_file = args.procs
     bias = None
-    if len(sys.argv) == 2:
-        settings_file = sys.argv[1]
-    elif len(sys.argv) > 2:
-        settings_file = sys.argv[1]
-        bias = []
-        for i in range(2, len(sys.argv)):
-            bias.append(int(sys.argv[i]))
-    else:
-        print("Provide a settings file!")
-        exit(1)
+
+    if args.bias:
+        bias = [int(i) for i in args.bias.split(",")]
 
     settings_dict = None
     with open(settings_file, "r") as json_file:
         settings_dict = json.load(json_file)
 
-    digitizer = CAENDT5730()
+    proc_dict = None
+    with open(proc_file, "r") as json_file:
+        proc_dict = json.load(json_file)
+
     processor = Processor()
-    short_tau = settings_dict["deconv_params"]["short_tau"][0]
-    long_tau = settings_dict["deconv_params"]["long_tau"][0]
-    #processor.add("deconvolve_waves", settings={"short_tau": 0, "long_tau": long_tau, "wiener_filter": True})
-    process_data(settings_dict, processor, bias=bias, overwrite=True, chunk=4000, write_size=2)
+    load_functions(proc_dict, processor)
+    process_data(settings_dict, processor, bias=bias, overwrite=True, chunk=4000, write_size=2, verbose=True)
 
 
 if __name__ == "__main__":
