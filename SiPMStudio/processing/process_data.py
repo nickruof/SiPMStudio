@@ -6,7 +6,7 @@ import numpy as np
 
 def process_data(settings, processor, bias=None, overwrite=False, verbose=False, chunk=2000, write_size=1):
 
-    path = settings["output_path_t1"]
+    path = settings["output_path_raw"]
     path_t2 = settings["output_path_t2"]
     data_files = []
     output_files = []
@@ -15,10 +15,10 @@ def process_data(settings, processor, bias=None, overwrite=False, verbose=False,
     for entry in settings["init_info"]:
         bias_label = entry["bias"]
         if bias is None:
-            data_files.append(f"t1_{base_name}_{bias_label}.h5")
+            data_files.append(f"raw_{base_name}_{bias_label}.h5")
             output_files.append(f"t2_{base_name}_{bias_label}")
         elif entry["bias"] in bias:
-            data_files.append(f"t1_{base_name}_{bias_label}.h5")
+            data_files.append(f"raw_{base_name}_{bias_label}.h5")
             output_files.append(f"t2_{base_name}_{bias_label}.h5")
         else:
             pass
@@ -66,7 +66,7 @@ def process_data(settings, processor, bias=None, overwrite=False, verbose=False,
 
     if verbose:
         print("Processing Finished! ...")
-        print("Output Files: ", [file.replace("t1", "t2") for file in data_files])
+        print("Output Files: ", [file.replace("raw", "t2") for file in data_files])
         _output_time(time.time() - start)
 
 

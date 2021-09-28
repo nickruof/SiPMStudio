@@ -1,5 +1,6 @@
 import os
 import time
+from scipy.sparse import data
 import tqdm
 import h5py
 import numpy as np
@@ -34,7 +35,8 @@ def process_metadata(settings, digitizer, output_dir=None, verbose=False):
 
 
 def _output_to_h5file(data_file, output_name, output_path, events, waveforms, baselines, digitizer):
-    destination = os.path.join(output_path, "t1_"+output_name+"_"+str(data_file["bias"])+".h5")
+    bias = data_file["bias"]
+    destination = os.path.join(output_path, f"raw_{output_name}_{bias}.h5")
     with h5py.File(destination, "w") as output_file:
         output_file.create_dataset("/raw/timetag", data=events.T[0])
         output_file.create_dataset("/raw/energy", data=events.T[1])

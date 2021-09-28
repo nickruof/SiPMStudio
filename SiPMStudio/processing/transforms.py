@@ -9,8 +9,6 @@ from functools import partial
 
 from SiPMStudio.processing.functions import butter_bandpass, exp_charge, double_exp_release
 
-# TODO: come up with way to store waveform timing information
-
 
 def adc_to_volts(waves_data, digitizer):
     v_pp = digitizer.v_range
