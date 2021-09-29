@@ -4,11 +4,9 @@ import tqdm
 import warnings
 import math
 
-from scipy.sparse import diags
 from scipy.optimize import curve_fit
 from scipy.signal import find_peaks
 from scipy.stats import linregress
-from uncertainties import ufloat, unumpy
 
 from SiPMStudio.processing.functions import gaussian, rise_func
 import SiPMStudio.plots.plots_base as plots_base
