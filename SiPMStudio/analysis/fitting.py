@@ -36,9 +36,9 @@ def spectrum_peaks(n, bin_centers, guess, sigma):
         min_dist = bin_centers - center
         idx = np.where(min_dist == min(min_dist))[0][0]
         coeffs, covs = curve_fit(
-                                    gaussian, 
-                                    bin_centers[idx-bin_range:idx+bin_range], 
-                                    n[idx-bin_range:idx+bin_range]
+                                    gaussian,
+                                    bin_centers[idx-bin_range:idx+bin_range],
+                                    n[idx-bin_range:idx+bin_range],
                                     p0=[max(n[idx-bin_range:idx+bin_range]), center, sigma]
                                 )
         peak_locs.append(coeffs[1])
