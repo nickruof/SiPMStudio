@@ -16,7 +16,7 @@ def process_data(settings, processor, bias=None, overwrite=False, verbose=False,
         bias_label = entry["bias"]
         if bias is None:
             data_files.append(f"raw_{base_name}_{bias_label}.h5")
-            output_files.append(f"t2_{base_name}_{bias_label}")
+            output_files.append(f"t2_{base_name}_{bias_label}.h5")
         elif entry["bias"] in bias:
             data_files.append(f"raw_{base_name}_{bias_label}.h5")
             output_files.append(f"t2_{base_name}_{bias_label}.h5")
