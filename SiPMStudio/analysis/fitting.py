@@ -5,15 +5,15 @@ from scipy.signal import find_peaks
 from SiPMStudio.processing.functions import double_exp_release, exp_charge
 
 
-def time_constants(times, one_waves):
+def time_constants(times, one_waves, lback=10, lfor=500):
     short_taus = []
     long_taus = []
     charge_taus = []
     for i, wave in tqdm.tqdm(enumerate(one_waves), total=len(one_waves)):
         peak_info = find_peaks(wave, height=250, distance=75, width=4)
         if (len(peak_info[0]) > 1) | (len(peak_info[0]) == 0): continue
-        charge_time, release_time = times[peak_info[0][0]-10:peak_info[0][0]], times[peak_info[0][0]:500]
-        charge_form, release_form = wave[peak_info[0][0]-10:peak_info[0][0]], wave[peak_info[0][0]:500]
+        charge_time, release_time = times[peak_info[0][0]-lback:peak_info[0][0]], times[peak_info[0][0]:lfor]
+        charge_form, release_form = wave[peak_info[0][0]-lback:peak_info[0][0]], wave[peak_info[0][0]:lfor]
         if (len(charge_form) == 0) | (len(release_form) == 0): continue
         try:
             release_coeffs, release_cov = curve_fit(double_exp_release, release_time, release_form, p0=[50, 200, 5e6, 500, 7])
