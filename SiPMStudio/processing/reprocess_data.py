@@ -34,8 +34,12 @@ def reprocess_data(settings, processor, verbose=False, chunk=2000, write_size=1)
         num_rows = h5_file["/raw/waveforms"][:].shape[0]
         for i in tqdm.tqdm(range(num_rows//chunk + 1)):
             begin, end = _chunk_range(i, chunk, num_rows)
+            if (end - num_rows) < chunk:
+                end = num_rows - 1
             storage = data_chunk(h5_file, begin, end)
             output_storage = _process_chunk(storage, processor)
+            output_chunk(output_storage, h5_file, begin, end)
+            processor.reset_outputs()
         h5_file.close()
 
 
