@@ -1,7 +1,6 @@
 import json
 import argparse
 
-from SiPMStudio.core.digitizers import CAENDT5730
 from SiPMStudio.processing.processor import Processor, load_functions
 from SiPMStudio.processing.process_data import process_data
 
