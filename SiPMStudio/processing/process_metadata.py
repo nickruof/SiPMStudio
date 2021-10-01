@@ -13,7 +13,7 @@ def process_metadata(settings, digitizer, output_dir=None, verbose=False):
     if verbose:
         print("Processing Metadata! ...")
         print("Number of Files to Process: "+str(len(settings["init_info"])))
-        print("Output Path: ", settings["output_path_t1"])
+        print("Output Path: ", settings["output_path_raw"])
 
     start = time.time()
 
@@ -29,7 +29,7 @@ def process_metadata(settings, digitizer, output_dir=None, verbose=False):
                 event_rows.append(event)
                 waveform_rows.append(waveform)
                 event_data_bytes = metadata_file.read(event_size)
-        _output_to_h5file(file_name, settings["file_base_name"], settings["output_path_t1"],
+        _output_to_h5file(file_name, settings["file_base_name"], settings["output_path_raw"],
                           np.array(event_rows), np.array(waveform_rows), np.array(baseline_rows), digitizer)
     _output_time(time.time() - start)
 

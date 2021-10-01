@@ -9,9 +9,9 @@ from SiPMStudio.processing.process_metadata import process_metadata
 def main():
 
     parser = argparse.ArgumentParser()
-    parser.add_argument("--input", help="settings file name")
+    parser.add_argument("--settings", help="settings file name")
     args = parser.parse_args()
-    settings_file = args.input
+    settings_file = args.settings
 
     settings_dict = None
     with open(settings_file, "r") as json_file:
