@@ -1,8 +1,8 @@
 import os, time
-import tqdm
 import h5py
 import numpy as np
 
+from SiPMStudio.utils.gen_utils import tqdm_range
 
 def process_data(settings, processor, bias=None, overwrite=False, verbose=False, chunk=2000, write_size=1):
 
@@ -54,7 +54,7 @@ def process_data(settings, processor, bias=None, overwrite=False, verbose=False,
         h5_file = h5py.File(destination, "r")
         num_rows = h5_file["/raw/timetag"][:].shape[0]
         df_storage = {}
-        for i in tqdm.tqdm(range(num_rows//chunk + 1)):
+        for i in tqdm_range(0, num_rows//chunk + 1):
             begin, end = _chunk_range(i, chunk, num_rows)
             wf_chunk = h5_file["/raw/waveforms"][begin:end]
             time_chunk = h5_file["/raw/timetag"][begin:end]
