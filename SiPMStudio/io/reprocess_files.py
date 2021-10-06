@@ -38,3 +38,5 @@ if __name__ == "__main__":
     parser.add_argument("--procs", help="processor settings file name")
     parser.add_argument("--verbose", help="print extra output at runtime", type=bool)
     args = parser.parse_args()
+
+    reprocess_files(args.settings, args.procs)
