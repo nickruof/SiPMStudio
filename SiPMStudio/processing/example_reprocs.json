@@ -1,0 +1,12 @@
+{
+    "processes": {
+        "baseline_subtract": {
+            "t2_ketek_room2_25.h5": {"wf_in": "/processed/blr_wf", "wf_out": "/processed/blr_wf", "degree": 2},
+            "t2_ketek_room2_26.h5": {"wf_in": "/processed/blr_wf", "wf_out": "/processed/blr_wf", "degree": 2},
+            "t2_ketek_room2_27.h5": {"wf_in": "/processed/blr_wf", "wf_out": "/processed/blr_wf", "degree": 2},
+            "t2_ketek_room2_28.h5": {"wf_in": "/processed/blr_wf", "wf_out": "/processed/blr_wf", "degree": 2},
+            "t2_ketek_room2_29.h5": {"wf_in": "/processed/blr_wf", "wf_out": "/processed/blr_wf", "degree": 2},
+            "t2_ketek_room2_30.h5": {"wf_in": "/processed/blr_wf", "wf_out": "/processed/blr_wf", "degree": 2}
+        }
+    }
+}

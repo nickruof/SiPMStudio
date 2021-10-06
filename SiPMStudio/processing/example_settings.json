@@ -1,0 +1,20 @@
+{
+    "input_path": "/Volumes/TOSHIBA_EXT/sipm_data_2/ketek_box/ketek_room2",
+    "output_path_raw": "/Volumes/TOSHIBA_EXT/sipm_data_2/ketek_box/ketek_room2/raw",
+    "output_path_t2": "/Volumes/TOSHIBA_EXT/sipm_data_2/ketek_box/ketek_room2/t2_v2", 
+    "init_info": [
+     {"file_name": "Data_CH0@DT5730_1463_ketek2_25.bin", "bias": 25, "cal_constants": []},
+     {"file_name": "Data_CH0@DT5730_1463_ketek2_26.bin", "bias": 26, "cal_constants": []},
+     {"file_name": "Data_CH0@DT5730_1463_ketek2_27.bin", "bias": 27, "cal_constants": []},
+     {"file_name": "Data_CH0@DT5730_1463_ketek2_28.bin", "bias": 28, "cal_constants": []},
+     {"file_name": "Data_CH0@DT5730_1463_ketek2_29.bin", "bias": 29, "cal_constants": []},
+     {"file_name": "Data_CH0@DT5730_1463_ketek2_30.bin", "bias": 30, "cal_constants": []}        
+    ],
+    "file_base_name": "ketek_room2",
+    "output_data": [],
+    "iv_file": "/Volumes/TOSHIBA_EXT/sipm_data_2/ketek_box/ketekboxiv.csv", 
+    "short_tau": [7, 5 ,9],
+    "long_tau": [60, 30, 120],
+    "model": "ketek room",
+    "area": 9   
+}
