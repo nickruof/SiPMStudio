@@ -6,12 +6,7 @@ from SiPMStudio.core.digitizers import CAENDT5730
 from SiPMStudio.processing.process_metadata import process_metadata
 
 
-def main():
-
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--settings", help="settings file name")
-    args = parser.parse_args()
-    settings_file = args.settings
+def process_raw_files(settings_file):
 
     settings_dict = None
     with open(settings_file, "r") as json_file:
@@ -22,4 +17,10 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--settings", help="settings file name")
+    args = parser.parse_args()
+
+    process_raw_files(args.settings)
+
+    
