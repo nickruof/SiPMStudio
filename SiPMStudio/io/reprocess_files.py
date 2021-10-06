@@ -16,7 +16,8 @@ def reprocess(settings_dict, proc_dict, processor):
     file_list = glob.glob(f"{file_path}/*.h5")
     for file_name in file_list:
         load_functions(file_name, proc_dict, processor)
-        reprocess_data(settings_dict, processor, file_name)
+        if len(processor.proc_list) > 0:
+            reprocess_data(settings_dict, processor, file_name, verbose=True)
 
 def reprocess_files(settings_file, proc_file):
 
@@ -36,7 +37,6 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--settings", help="settings file name")
     parser.add_argument("--procs", help="processor settings file name")
-    parser.add_argument("--verbose", help="print extra output at runtime", type=bool)
     args = parser.parse_args()
 
     reprocess_files(args.settings, args.procs)
