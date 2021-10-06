@@ -52,7 +52,7 @@ def process_data(settings, processor, bias=None, overwrite=False, verbose=False,
         if verbose:
             print(f"Processing: {file}")
         h5_file = h5py.File(destination, "r")
-        num_rows = h5_file["/raw/waveforms"][:].shape[0]
+        num_rows = h5_file["/raw/timetag"][:].shape[0]
         df_storage = {}
         for i in tqdm.tqdm(range(num_rows//chunk + 1)):
             begin, end = _chunk_range(i, chunk, num_rows)
@@ -61,7 +61,7 @@ def process_data(settings, processor, bias=None, overwrite=False, verbose=False,
             output_data = _process_chunk(wf_chunk, time_chunk, processor=processor)
             _output_chunk(h5_file, output_destination, output_data, df_storage, write_size, num_rows, chunk, end)
             processor.reset_outputs()
-        _copy_to_t2(["bias"], ["bias"], h5_file, output_destination)
+        _copy_to_t2(["/raw/timetag", "bias"], ["/raw/timetag", "bias"], h5_file, output_destination)
         h5_file.close()
 
     if verbose:
