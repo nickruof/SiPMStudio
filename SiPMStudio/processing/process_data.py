@@ -6,7 +6,7 @@ import numpy as np
 
 def process_data(settings, processor, bias=None, overwrite=False, verbose=False, chunk=2000, write_size=1):
 
-    path = settings["output_path_t1"]
+    path = settings["output_path_raw"]
     path_t2 = settings["output_path_t2"]
     data_files = []
     output_files = []
@@ -15,10 +15,10 @@ def process_data(settings, processor, bias=None, overwrite=False, verbose=False,
     for entry in settings["init_info"]:
         bias_label = entry["bias"]
         if bias is None:
-            data_files.append(f"t1_{base_name}_{bias_label}.h5")
-            output_files.append(f"t2_{base_name}_{bias_label}")
+            data_files.append(f"raw_{base_name}_{bias_label}.h5")
+            output_files.append(f"t2_{base_name}_{bias_label}.h5")
         elif entry["bias"] in bias:
-            data_files.append(f"t1_{base_name}_{bias_label}.h5")
+            data_files.append(f"raw_{base_name}_{bias_label}.h5")
             output_files.append(f"t2_{base_name}_{bias_label}.h5")
         else:
             pass
@@ -52,7 +52,7 @@ def process_data(settings, processor, bias=None, overwrite=False, verbose=False,
         if verbose:
             print(f"Processing: {file}")
         h5_file = h5py.File(destination, "r")
-        num_rows = h5_file["/raw/waveforms"][:].shape[0]
+        num_rows = h5_file["/raw/timetag"][:].shape[0]
         df_storage = {}
         for i in tqdm.tqdm(range(num_rows//chunk + 1)):
             begin, end = _chunk_range(i, chunk, num_rows)
@@ -61,12 +61,12 @@ def process_data(settings, processor, bias=None, overwrite=False, verbose=False,
             output_data = _process_chunk(wf_chunk, time_chunk, processor=processor)
             _output_chunk(h5_file, output_destination, output_data, df_storage, write_size, num_rows, chunk, end)
             processor.reset_outputs()
-        _copy_to_t2(["bias"], ["bias"], h5_file, output_destination)
+        _copy_to_t2(["/raw/timetag", "bias"], ["/raw/timetag", "bias"], h5_file, output_destination)
         h5_file.close()
 
     if verbose:
         print("Processing Finished! ...")
-        print("Output Files: ", [file.replace("t1", "t2") for file in data_files])
+        print("Output Files: ", [file.replace("raw", "t2") for file in data_files])
         _output_time(time.time() - start)
 
 

@@ -1,0 +1,6 @@
+{
+    "processes": {
+        "baseline_subtract": {"wf_in": "/raw/waveforms", "wf_out": "/processed/blr_wf", "degree": 2}
+    },
+    "save_output": ["/raw/waveforms", "/processed/blr_wf"]
+}
