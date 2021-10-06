@@ -37,6 +37,9 @@ def main():
     with open(proc_file, "r") as json_file:
         proc_dict = json.load(json_file)
 
+    processor = Processor()
+    reprocess(settings_dict, proc_dict, processor)
+
 
 if __name__ == "__main__":
     main()
