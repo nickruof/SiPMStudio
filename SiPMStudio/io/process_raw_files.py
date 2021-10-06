@@ -22,5 +22,3 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     process_raw_files(args.settings)
-
-    
