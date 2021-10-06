@@ -18,16 +18,7 @@ def reprocess(settings_dict, proc_dict, processor):
         load_functions(file_name, proc_dict, processor)
         reprocess_data(settings_dict, processor, file_name)
 
-def main():
-
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--settings", help="settings file name")
-    parser.add_argument("--procs", help="processor settings file name")
-    parser.add_argument("--verbose", help="print extra output at runtime", type=bool)
-    args = parser.parse_args()
-
-    settings_file = args.settings
-    proc_file = args.procs
+def reprocess_files(settings_file, proc_file):
 
     settings_dict = None
     with open(settings_file, "r") as json_file:
@@ -42,4 +33,8 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--settings", help="settings file name")
+    parser.add_argument("--procs", help="processor settings file name")
+    parser.add_argument("--verbose", help="print extra output at runtime", type=bool)
+    args = parser.parse_args()
