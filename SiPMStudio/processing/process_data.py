@@ -2,7 +2,6 @@ import os, time
 import h5py
 import numpy as np
 
-from datetime import date
 from SiPMStudio.utils.gen_utils import tqdm_range
 
 def process_data(settings, processor, bias=None, overwrite=False, verbose=False, chunk=2000, write_size=1):
@@ -134,9 +133,9 @@ def _output_date(output_file, label=None):
     if label is None:
         label = "date"
     if label not in output_file.keys():
-        output_file.create_dataset("date", data=date.today())
+        output_file.create_dataset(label, data=int(time.time()))
     else:
-        output_file["date"] = date.today()
+        output_file[label] = int(time.time())
 
 
 def _output_time(delta_seconds):
