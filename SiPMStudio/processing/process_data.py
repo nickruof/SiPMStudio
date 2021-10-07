@@ -1,8 +1,8 @@
 import os, time
-import tqdm
 import h5py
 import numpy as np
 
+from SiPMStudio.utils.gen_utils import tqdm_range
 
 def process_data(settings, processor, bias=None, overwrite=False, verbose=False, chunk=2000, write_size=1):
 
@@ -52,9 +52,10 @@ def process_data(settings, processor, bias=None, overwrite=False, verbose=False,
         if verbose:
             print(f"Processing: {file}")
         h5_file = h5py.File(destination, "r")
+        _output_date(h5_file, "process_date")
         num_rows = h5_file["/raw/timetag"][:].shape[0]
         df_storage = {}
-        for i in tqdm.tqdm(range(num_rows//chunk + 1)):
+        for i in tqdm_range(0, num_rows//chunk + 1):
             begin, end = _chunk_range(i, chunk, num_rows)
             wf_chunk = h5_file["/raw/waveforms"][begin:end]
             time_chunk = h5_file["/raw/timetag"][begin:end]
@@ -126,6 +127,15 @@ def _output_to_file(data_file, output_filename, storage, output_name):
                 output_file.create_dataset(output_name, data=output_data, maxshape=(None,))
             else:
                 raise ValueError(f"Dimension of output data {output_data.shape} must be 1 or 2")
+
+
+def _output_date(output_file, label=None):
+    if label is None:
+        label = "date"
+    if label not in output_file.keys():
+        output_file.create_dataset(label, data=int(time.time()))
+    else:
+        output_file[label] = int(time.time())
 
 
 def _output_time(delta_seconds):
