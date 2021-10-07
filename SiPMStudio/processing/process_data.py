@@ -52,7 +52,6 @@ def process_data(settings, processor, bias=None, overwrite=False, verbose=False,
         if verbose:
             print(f"Processing: {file}")
         h5_file = h5py.File(destination, "r")
-        _output_date(h5_file, "process_date")
         num_rows = h5_file["/raw/timetag"][:].shape[0]
         df_storage = {}
         for i in tqdm_range(0, num_rows//chunk + 1):
@@ -67,6 +66,7 @@ def process_data(settings, processor, bias=None, overwrite=False, verbose=False,
                 ["/raw/timetag", "/raw/dt", "bias"], 
                 h5_file, output_destination
         )
+        _output_date(output_destination, "process_date")
         h5_file.close()
 
     if verbose:
@@ -133,13 +133,14 @@ def _output_to_file(data_file, output_filename, storage, output_name):
                 raise ValueError(f"Dimension of output data {output_data.shape} must be 1 or 2")
 
 
-def _output_date(output_file, label=None):
-    if label is None:
-        label = "date"
-    if label not in output_file.keys():
-        output_file.create_dataset(label, data=int(time.time()))
-    else:
-        output_file[label] = int(time.time())
+def _output_date(output_destination, label=None):
+    with h5py.File(output_destination, "a") as output_file:
+        if label is None:
+            label = "date"
+        if label not in output_file.keys():
+            output_file.create_dataset(label, data=int(time.time()))
+        else:
+            output_file[label] = int(time.time())
 
 
 def _output_time(delta_seconds):

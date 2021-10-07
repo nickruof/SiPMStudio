@@ -1,6 +1,5 @@
 import os
 import time
-from scipy.sparse import data
 import tqdm
 import h5py
 import numpy as np
@@ -44,3 +43,4 @@ def _output_to_h5file(data_file, output_name, output_path, events, waveforms, ba
         output_file.create_dataset("/raw/waveforms", data=waveforms)
         output_file.create_dataset("bias", data=float(data_file["bias"]))
         output_file.create_dataset("adc_to_v", data=digitizer.v_range/2**digitizer.adc_bitcount)
+        output_file.create_dataset("date", data=time.time())
