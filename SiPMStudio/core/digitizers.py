@@ -17,6 +17,9 @@ class Digitizer(DataLoader):
     def get_event(self, event_data_bytes):
         pass
 
+    def get_dt(self):
+        pass
+
 
 class CAENDT5730(Digitizer):
 
@@ -67,6 +70,10 @@ class CAENDT5730(Digitizer):
         self.decoded_values["num_samples"] = np.frombuffer(event_data_bytes[20:24], dtype=np.uint32)[0]
         self.decoded_values["waveform"] = np.frombuffer(event_data_bytes[24:], dtype=np.uint16)
         return self._assemble_data_row()
+
+    def get_dt(self):
+        dt = (1 / self.sample_rate) * 1e9 # in ns
+        return dt
 
     def _assemble_data_row(self):
         timestamp = self.decoded_values["timestamp"]

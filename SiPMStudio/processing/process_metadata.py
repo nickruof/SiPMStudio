@@ -39,6 +39,7 @@ def _output_to_h5file(data_file, output_name, output_path, events, waveforms, ba
     destination = os.path.join(output_path, f"raw_{output_name}_{bias}.h5")
     with h5py.File(destination, "w") as output_file:
         output_file.create_dataset("/raw/timetag", data=events.T[0])
+        output_file.create_dataset("/raw/dt", data=digitizer.get_dt())
         output_file.create_dataset("/raw/energy", data=events.T[1])
         output_file.create_dataset("/raw/waveforms", data=waveforms)
         output_file.create_dataset("bias", data=float(data_file["bias"]))
