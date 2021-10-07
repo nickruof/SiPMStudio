@@ -1,3 +1,4 @@
+import os
 import glob
 import json
 import argparse
@@ -15,7 +16,8 @@ def reprocess(settings_dict, proc_dict, processor):
     file_path = settings_dict["output_path_t2"]
     file_list = glob.glob(f"{file_path}/*.h5")
     for file_name in file_list:
-        load_functions(file_name, proc_dict, processor)
+        head_dir, tail_name = os.path.split(file_name)
+        load_functions(tail_name, proc_dict, processor)
         if len(processor.proc_list) > 0:
             reprocess_data(settings_dict, processor, file_name, verbose=True)
 

@@ -42,8 +42,6 @@ def reprocess_data(settings, processor, file_name=None, verbose=False, chunk=200
         num_rows = h5_file["/raw/timetag"][:].shape[0]
         for i in tqdm_range(0, num_rows//chunk + 1, verbose=verbose):
             begin, end = _chunk_range(i, chunk, num_rows)
-            if (end - num_rows) < chunk:
-                end = num_rows - 1
             storage = data_chunk(h5_file, begin, end)
             output_storage = _process_chunk(storage, processor)
             output_chunk(output_storage, h5_file, begin, end)
