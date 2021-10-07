@@ -2,7 +2,7 @@ import os, time
 import h5py
 import numpy as np
 
-from SiPMStudio.processing.process_data import _chunk_range
+from SiPMStudio.processing.process_data import _chunk_range, _output_date
 from SiPMStudio.utils.gen_utils import tqdm_range
 
 def data_chunk(h5_file, begin, end):
@@ -39,6 +39,7 @@ def reprocess_data(settings, processor, file_name=None, verbose=False, chunk=200
         if verbose:
             print(f"Reprocessing: {file}")
         h5_file = h5py.File(destination, "r+")
+        _output_date(h5_file, "reprocess_date")
         num_rows = h5_file["/raw/timetag"][:].shape[0]
         for i in tqdm_range(0, num_rows//chunk + 1, verbose=verbose):
             begin, end = _chunk_range(i, chunk, num_rows)
