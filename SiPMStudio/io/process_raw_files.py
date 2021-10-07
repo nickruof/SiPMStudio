@@ -13,7 +13,7 @@ def process_raw_files(settings_file):
         settings_dict = json.load(json_file)
 
     digitizer = CAENDT5730()
-    process_metadata(settings_dict, digitizer)
+    process_metadata(settings_dict, digitizer, verbose=True)
 
 
 if __name__ == "__main__":
@@ -21,4 +21,4 @@ if __name__ == "__main__":
     parser.add_argument("--settings", help="settings file name")
     args = parser.parse_args()
 
-    process_raw_files(args.settings, verbose=True)
+    process_raw_files(args.settings)
