@@ -21,4 +21,4 @@ if __name__ == "__main__":
     parser.add_argument("--settings", help="settings file name")
     args = parser.parse_args()
 
-    process_raw_files(args.settings)
+    process_raw_files(args.settings, verbose=True)
