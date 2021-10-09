@@ -82,38 +82,6 @@ def cross_talk_frac_v2(peaks, peak_errors, charges):
     return len(one_charges) / (len(one_charges) + len(other_charges))
 
 
-def afterpulsing_frac(waves, peaks, heights, display=False, fit_range=None):
-    if fit_range is None:
-        fit_range = [[25, 200], [0.25, 0.75]]
-    ap_waves, ap_peaks, ap_heights = waveform_find(waves, peaks, heights, len(waves), fit_range[0], fit_range[1])
-    ap_fraction = len(ap_waves)/len(waves)
-    times = []
-    all_heights = []
-    for i, peak in enumerate(ap_peaks):
-        if peak[1] < 125:
-            times.append(2*(peak[1] - peak[0]))
-            all_heights.append(ap_heights[i][1])
-    times = np.array(times)
-    all_heights = np.array(all_heights)
-    fit_mask = (times > fit_range[0][0]) & (times < fit_range[0][1]) & (all_heights > fit_range[1][0]) \
-               & (all_heights < fit_range[1][1])
-    time_fit = times[fit_mask]
-    height_fit = all_heights[fit_mask]
-    if (len(time_fit) < 4) & (len(height_fit) < 4):
-        return 0, 0
-    coeffs_ap, covs_ap = curve_fit(rise_func, time_fit, height_fit, p0=[1, 0, 80, 0])
-    t_rec = coeffs_ap[2]
-    if display:
-        t_plot = np.linspace(10, 200, 500)
-        plt.figure()
-        plt.scatter(times, all_heights, s=1, label="Data")
-        plt.plot(t_plot, rise_func(t_plot, *coeffs_ap), color="magenta", alpha=0.75, label=r"$t_{rec}=$ "+str(round(t_rec))+" ns")
-        plt.xlabel("Inter-times (ns)")
-        plt.ylabel("Amplitude (P.E.)")
-        plt.legend()
-    return ap_fraction, t_rec
-
-
 def excess_charge_factor(norm_charges, min_charge=0.5, max_charge=1.5):
     primary_charge = norm_charges[(norm_charges > min_charge) & (norm_charges < max_charge)]
     ecf = np.mean(norm_charges) / np.mean(primary_charge)
