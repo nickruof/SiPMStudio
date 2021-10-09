@@ -3,6 +3,6 @@ scipy
 matplotlib
 seaborn
 pandas
-uncertainties
+h5py
 tqdm
 statsmodels
