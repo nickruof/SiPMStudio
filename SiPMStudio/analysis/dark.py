@@ -15,60 +15,6 @@ from SiPMStudio.processing.transforms import savgol
 warnings.filterwarnings("ignore", "PeakPropertyWarning: some peaks have a width of 0")
 
 
-def time_interval(params_data, waves_data=None):
-    interval = params_data["TIMETAG"].iloc[-1] - params_data["TIMETAG"].iloc[0]
-    interval = interval * 1.0e-12
-    return interval
-
-
-def spectrum_peaks(params_data, waves_data=None, n_bins=500, hist_range=None, min_dist=0.0, min_height=0.0, width=0.0,
-                   display=False, fit_peaks=False):
-
-    peaks = []
-    peak_locations = []
-    bin_edges = []
-    if display:
-        fig, ax = plt.subplots()
-        [bin_vals, bin_edges, _patches] = plots_base.plot_hist(ax, [params_data], bins=n_bins, x_range=hist_range, density=False)
-        bin_width = bin_edges[0][1] - bin_edges[0][0]
-        peaks, _properties = find_peaks(bin_vals[0], height=min_height, distance=min_dist, width=width)
-        print(str(len(peaks)) + " peaks found!")
-        bin_centers = (bin_edges[0][:-1]+bin_edges[0][1:])/2
-        if fit_peaks:
-            gauss_mus = []
-            mu_stderr = []
-            gauss_amps = []
-            for peak in peaks:
-                start = peak - int(min_dist/2)
-                stop = peak + int(min_dist/2)
-                if start < 0:
-                    start = 0
-                if stop > len(bin_centers) - 1:
-                    stop = len(bin_centers) - 1
-                x_region = bin_centers[start:stop]
-                y_region = bin_vals[0][start:stop]
-                coeffs, covs = curve_fit(gaussian, x_region, y_region, [bin_centers[peak], 10, bin_vals[0][peak]])
-                stderrs = np.sqrt(np.diag(covs))
-                gauss_mus.append(coeffs[0])
-                mu_stderr.append(stderrs[0])
-                gauss_amps.append(coeffs[2])
-
-            peak_locations = unumpy.uarray(gauss_mus, mu_stderr)
-            ax.plot(gauss_mus, gauss_amps, "+r")
-            ax.set_yscale("log")
-            fig.show()
-        else:
-            ax.plot(bin_centers[peaks], bin_vals[0][peaks], "r+")
-            ax.set_yscale("log")
-            fig.show()
-    else:
-        [bin_vals, bin_edges, _patches] = plots_base.plot_hist(ax, [params_data], bins=n_bins, x_range=hist_range, density=False)
-        bin_width = bin_edges[0][1] - bin_edges[0][0]
-        peaks, _properties = find_peaks(bin_vals[0], height=min_height, distance=min_dist, width=width)
-
-    return peak_locations
-
-
 def current_waveforms(waveforms, vpp=2, n_bits=14):
     return waveforms * (vpp / 2 ** n_bits) * (1000 / 31.05) * 1.0e-6
 
