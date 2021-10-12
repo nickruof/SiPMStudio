@@ -12,14 +12,19 @@ def load_functions(file_name, proc_dict, processor):
             if name == file_name:
                 processor.add(key, file_dict[name])
 
+
 def reprocess(settings_dict, proc_dict, processor):
     file_path = settings_dict["output_path_t2"]
     file_list = glob.glob(f"{file_path}/*.h5")
+    for output in proc_dict["save_output"]:
+        processor.add_to_file(output)
     for file_name in file_list:
         head_dir, tail_name = os.path.split(file_name)
         load_functions(tail_name, proc_dict, processor)
         if len(processor.proc_list) > 0:
             reprocess_data(settings_dict, processor, file_name, verbose=True)
+        processor.clear()
+
 
 def reprocess_files(settings_file, proc_file):
 

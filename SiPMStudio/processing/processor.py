@@ -6,8 +6,6 @@ import SiPMStudio.processing.transforms as pt
 
 class Processor(object):
 
-    # TODO: Look into using in place transformations for the ProcessorBase class
-
     def __init__(self, settings=None):
         self.proc_list = []
         self.outputs = {}
@@ -75,4 +73,4 @@ def load_functions(proc_settings, processor):
     for key, params in proc_settings["processes"].items():
         processor.add(key, settings=params)
     for output in proc_settings["save_output"]:
-        processor.save_to_file.append(output)
+        processor.add_to_file(output)
