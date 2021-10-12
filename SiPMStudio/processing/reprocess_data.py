@@ -2,7 +2,7 @@ import os, time
 import h5py
 import numpy as np
 
-from SiPMStudio.processing.process_data import _chunk_range, _output_date
+from SiPMStudio.processing.process_data import _chunk_range
 from SiPMStudio.utils.gen_utils import tqdm_range
 
 def data_chunk(h5_file, begin, end):
@@ -53,3 +53,12 @@ def reprocess_data(settings, processor, file_name=None, verbose=False, chunk=200
 def _process_chunk(storage, processor):
     processor.init_outputs(storage)
     return processor.process()
+
+
+def _output_date(output_file, label=None):
+    if label is None:
+            label = "date"
+    if label not in output_file.keys():
+        output_file.create_dataset(label, data=int(time.time()))
+    else:
+        output_file[label] = int(time.time())

@@ -8,7 +8,7 @@ from scipy.optimize import curve_fit
 from scipy.signal import find_peaks
 from scipy.stats import linregress
 
-from SiPMStudio.processing.functions import gaussian, rise_func
+from SiPMStudio.processing.functions import gaussian
 import SiPMStudio.plots.plots_base as plots_base
 from SiPMStudio.processing.transforms import savgol
 
