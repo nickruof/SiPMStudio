@@ -17,8 +17,20 @@ def data_chunk(h5_file, begin, end):
     return storage
 
 def output_chunk(output, h5_file, begin, end):
+    data_len = h5_file["/raw/timetag"].shape[0]
     for key, value in output.items():
-        h5_file[key][begin:end] = value
+        if key in h5_file:
+            if value.shape[0] == data_len:
+                h5_file[key][begin:end] = value
+            else:
+                h5_file[key].resize(h5_file[key].shape[0]+value.shape[0], axis=0)
+                h5_file[key][-value.shape[0]:] = value
+        elif len(value.shape) == 2:
+            h5_file.create_dataset(key, data=value, maxshape=(None, None))
+        elif len(value.shape) == 1:
+            h5_file.create_dataset(key, data=value, maxshape=(None,))
+        else:
+            raise ProcessLookupError(f"Unable to create or add to dataset {key}")
 
 
 def reprocess_data(settings, processor, file_name=None, verbose=False, chunk=2000, write_size=1):
@@ -47,7 +59,6 @@ def reprocess_data(settings, processor, file_name=None, verbose=False, chunk=200
             begin, end = _chunk_range(i, chunk, num_rows)
             storage = data_chunk(h5_file, begin, end)
             output_storage = _process_chunk(storage, processor)
-            print(storage.keys())
             output_chunk(output_storage, h5_file, begin, end)
             processor.reset_outputs()
         h5_file.close()

@@ -73,4 +73,4 @@ def load_functions(proc_settings, processor):
     for key, params in proc_settings["processes"].items():
         processor.add(key, settings=params)
     for output in proc_settings["save_output"]:
-        processor.save_to_file.append(output)
+        processor.add_to_file(output)
