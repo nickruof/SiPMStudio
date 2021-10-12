@@ -8,10 +8,12 @@ from SiPMStudio.utils.gen_utils import tqdm_range
 def data_chunk(h5_file, begin, end):
     storage = {}
     for name in h5_file["/raw"].keys():
-        storage[f"/raw/{name}"] = h5_file[f"/raw/{name}"][begin:end]
+        if len(h5_file[f"/raw/{name}"].shape) > 0:
+            storage[f"/raw/{name}"] = h5_file[f"/raw/{name}"][begin:end]
 
     for name in h5_file["/processed"].keys():
-        storage[f"/processed/{name}"] = h5_file[f"/processed/{name}"][begin:end]
+        if len(h5_file[f"/processed/{name}"].shape) > 0:
+            storage[f"/processed/{name}"] = h5_file[f"/processed/{name}"][begin:end]
     return storage
 
 def output_chunk(output, h5_file, begin, end):
@@ -45,6 +47,7 @@ def reprocess_data(settings, processor, file_name=None, verbose=False, chunk=200
             begin, end = _chunk_range(i, chunk, num_rows)
             storage = data_chunk(h5_file, begin, end)
             output_storage = _process_chunk(storage, processor)
+            print(storage.keys())
             output_chunk(output_storage, h5_file, begin, end)
             processor.reset_outputs()
         h5_file.close()
@@ -61,4 +64,5 @@ def _output_date(output_file, label=None):
     if label not in output_file.keys():
         output_file.create_dataset(label, data=int(time.time()))
     else:
-        output_file[label] = int(time.time())
+        del output_file[label]
+        output_file.create_dataset(label, data=int(time.time()))

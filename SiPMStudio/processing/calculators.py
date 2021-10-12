@@ -11,6 +11,8 @@ def charge(outputs, wf_in, out, window):
 
 
 def normalize_charge(outputs, in_name, out_name, peak_locs, peak_errors):
+    peak_locs = np.array(peak_locs)
+    peak_errors = np.array(peak_errors)
     gain = np.sum(peak_locs * peak_errors) / np.sum(peak_errors)
     x0 = peak_locs[0]
     charges = outputs[in_name]
