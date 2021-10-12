@@ -52,16 +52,15 @@ def reprocess_data(settings, processor, file_name=None, verbose=False, chunk=200
         destination = os.path.join(path_t2, file)
         if verbose:
             print(f"Reprocessing: {file}")
-        h5_file = h5py.File(destination, "r+")
-        _output_date(h5_file, "reprocess_date")
-        num_rows = h5_file["/raw/timetag"][:].shape[0]
-        for i in tqdm_range(0, num_rows//chunk + 1, verbose=verbose):
-            begin, end = _chunk_range(i, chunk, num_rows)
-            storage = data_chunk(h5_file, begin, end)
-            output_storage = _process_chunk(storage, processor)
-            output_chunk(output_storage, h5_file, begin, end)
-            processor.reset_outputs()
-        h5_file.close()
+        with h5py.File(destination, "r+") as h5_file:
+            #_output_date(h5_file, "reprocess_date")
+            num_rows = h5_file["/raw/timetag"][:].shape[0]
+            for i in tqdm_range(0, num_rows//chunk + 1, verbose=verbose):
+                begin, end = _chunk_range(i, chunk, num_rows)
+                storage = data_chunk(h5_file, begin, end)
+                output_storage = _process_chunk(storage, processor)
+                output_chunk(output_storage, h5_file, begin, end)
+                processor.reset_outputs()
 
 
 def _process_chunk(storage, processor):
@@ -72,8 +71,7 @@ def _process_chunk(storage, processor):
 def _output_date(output_file, label=None):
     if label is None:
             label = "date"
-    if label not in output_file.keys():
+    if label not in output_file:
         output_file.create_dataset(label, data=int(time.time()))
     else:
-        del output_file[label]
-        output_file.create_dataset(label, data=int(time.time()))
+        output_file[label] = int(time.time())
