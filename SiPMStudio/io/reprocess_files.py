@@ -13,20 +13,27 @@ def load_functions(file_name, proc_dict, processor):
                 processor.add(key, file_dict[name])
 
 
-def reprocess(settings_dict, proc_dict, processor):
+def reprocess(settings_dict, proc_dict, processor, verbose=False, pattern=None):
     file_path = settings_dict["output_path_t2"]
     file_list = glob.glob(f"{file_path}/*.h5")
+
     for output in proc_dict["save_output"]:
         processor.add_to_file(output)
-    for file_name in file_list:
+    
+    for i, file_name in enumerate(file_list):
         head_dir, tail_name = os.path.split(file_name)
-        load_functions(tail_name, proc_dict, processor)
+        if pattern is None:
+            load_functions(tail_name, proc_dict, processor)
+        elif pattern[i] in tail_name:
+            load_functions(tail_name, proc_dict, processor)
+        else:
+            continue
         if len(processor.proc_list) > 0:
-            reprocess_data(settings_dict, processor, file_name, verbose=True)
+            reprocess_data(settings_dict, processor, file_name, verbose=verbose)
         processor.clear()
 
 
-def reprocess_files(settings_file, proc_file):
+def reprocess_files(settings_file, proc_file, verbose=False, pattern=None):
 
     settings_dict = None
     with open(settings_file, "r") as json_file:
@@ -37,13 +44,19 @@ def reprocess_files(settings_file, proc_file):
         proc_dict = json.load(json_file)
 
     processor = Processor()
-    reprocess(settings_dict, proc_dict, processor)
+    reprocess(settings_dict, proc_dict, processor, verbose=verbose, pattern=pattern)
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--settings", help="settings file name")
     parser.add_argument("--procs", help="processor settings file name")
+    parser.add_argument("--verbose", help="set verbosity to True or False", type=bool)
+    parser.add_argument("--bias", help="bias name in file pattern")
     args = parser.parse_args()
 
-    reprocess_files(args.settings, args.procs)
+    bias_list = None
+    if args.bias is not None:
+        bias_list = [str(i) for i in args.bias]
+
+    reprocess_files(args.settings, args.procs, verbose=args.verbose, pattern=bias_list)
