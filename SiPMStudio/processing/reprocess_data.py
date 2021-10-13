@@ -20,7 +20,7 @@ def output_chunk(output, h5_file, begin, end):
     data_len = h5_file["/raw/timetag"].shape[0]
     for key, value in output.items():
         if key in h5_file:
-            if value.shape[0] == data_len:
+            if h5_file[key].shape[0] >= data_len:
                 h5_file[key][begin:end] = value
             else:
                 h5_file[key].resize(h5_file[key].shape[0]+value.shape[0], axis=0)
@@ -53,7 +53,7 @@ def reprocess_data(settings, processor, file_name=None, verbose=False, chunk=200
         if verbose:
             print(f"Reprocessing: {file}")
         with h5py.File(destination, "r+") as h5_file:
-            #_output_date(h5_file, "reprocess_date")
+            _output_date(h5_file, "reprocess_date")
             num_rows = h5_file["/raw/timetag"][:].shape[0]
             for i in tqdm_range(0, num_rows//chunk + 1, verbose=verbose):
                 begin, end = _chunk_range(i, chunk, num_rows)
@@ -74,4 +74,5 @@ def _output_date(output_file, label=None):
     if label not in output_file:
         output_file.create_dataset(label, data=int(time.time()))
     else:
-        output_file[label] = int(time.time())
+        del output_file[label]
+        output_file.create_dataset(label, data=int(time.time()))

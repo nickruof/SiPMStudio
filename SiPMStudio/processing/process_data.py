@@ -54,7 +54,7 @@ def process_data(settings, processor, bias=None, overwrite=False, verbose=False,
         h5_file = h5py.File(destination, "r")
         num_rows = h5_file["/raw/timetag"][:].shape[0]
         data_storage = {"size": 0}
-        for i in tqdm_range(0, num_rows//chunk + 1):
+        for i in tqdm_range(0, num_rows//chunk + 1, verbose=verbose):
             begin, end = _chunk_range(i, chunk, num_rows)
             wf_chunk = h5_file["/raw/waveforms"][begin:end]
             time_chunk = h5_file["/raw/timetag"][begin:end]
@@ -78,8 +78,8 @@ def process_data(settings, processor, bias=None, overwrite=False, verbose=False,
 def _chunk_range(index, chunk, num_rows):
     start = index * chunk
     stop = (index+1) * chunk
-    if stop >= num_rows - 1:
-        stop = num_rows - 1
+    if stop >= num_rows:
+        stop = num_rows
     return start, stop
 
 
