@@ -84,6 +84,3 @@ def fit_waveforms(outputs, wf_in, wf_out, short_tau, long_tau, charge_up, lback=
                 base_wave = base_wave - fit_waveform
         output_waveforms.append(np.sum(pulses, axis=0))
         outputs[wf_out] = np.array(output_waveforms)
-
-
-
