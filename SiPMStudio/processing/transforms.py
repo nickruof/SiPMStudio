@@ -1,6 +1,10 @@
 import numpy as np
 import pywt
 import peakutils
+import warnings
+
+warnings.filterwarnings("ignore", "RuntimeWarning")
+warnings.filterwarnings("ignore", "OptimizeWarning")
 
 from scipy.signal import savgol_filter, filtfilt, find_peaks
 from scipy.optimize import curve_fit
