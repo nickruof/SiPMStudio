@@ -33,4 +33,8 @@ if __name__ == "__main__":
     parser.add_argument("--verbose", help="print extra output at runtime", type=bool)
     args = parser.parse_args()
 
-    process_files(args.settings, args.procs, args.bias, verbose=args.verbose)
+    bias_list = None
+    if args.bias is not None:
+        bias_list = [int(i) for i in args.bias.split(",")]
+
+    process_files(args.settings, args.procs, verbose=args.verbose, bias=bias_list)
