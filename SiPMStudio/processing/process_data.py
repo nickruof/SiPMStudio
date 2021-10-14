@@ -52,6 +52,7 @@ def process_data(settings, processor, bias=None, overwrite=False, verbose=False,
         if verbose:
             print(f"Processing: {file}")
         h5_file = h5py.File(destination, "r")
+        h5_output_file = h5py.File(output_destination, "a")
         num_rows = h5_file["/raw/timetag"][:].shape[0]
         data_storage = {"size": 0}
         for i in tqdm_range(0, num_rows//chunk + 1, verbose=verbose):
@@ -59,15 +60,16 @@ def process_data(settings, processor, bias=None, overwrite=False, verbose=False,
             wf_chunk = h5_file["/raw/waveforms"][begin:end]
             time_chunk = h5_file["/raw/timetag"][begin:end]
             output_data = _process_chunk(wf_chunk, time_chunk, processor=processor)
-            _output_chunk(output_destination, output_data, data_storage, write_size, num_rows, chunk, end)
+            _output_chunk(h5_output_file, output_data, data_storage, write_size, num_rows, chunk, end)
             processor.reset_outputs()
         _copy_to_t2(
                 ["/raw/timetag", "/raw/dt", "bias"], 
                 ["/raw/timetag", "/raw/dt", "bias"], 
-                h5_file, output_destination
+                h5_file, h5_output_file
         )
         _output_date(output_destination, "process_date")
         h5_file.close()
+        h5_output_file.close()
 
     if verbose:
         print("Processing Finished! ...")
@@ -111,28 +113,26 @@ def _output_chunk(output_file, chunk_data, storage, write_size, num_rows, chunk,
         storage["size"] = 0
 
 
-def _copy_to_t2(raw_names, process_names, h5_file, output_destination):
+def _copy_to_t2(raw_names, process_names, h5_file, output_file):
     if len(raw_names) != len(process_names):
         raise AttributeError("raw names and process names not the same length")
-    with h5py.File(output_destination, "a") as output_file:
-        for i, name in enumerate(raw_names):
-            output_file.create_dataset(process_names[i], data=h5_file[name])
+    for i, name in enumerate(raw_names):
+        output_file.create_dataset(process_names[i], data=h5_file[name])
 
 
-def _output_to_file(output_filename, storage):
-    with h5py.File(output_filename, "a") as output_file:
-        for key, data in storage.items():
-            if key == "size": continue
-            if key in output_file:
-                output_file[key].resize(output_file[key].shape[0]+data.shape[0], axis=0)
-                output_file[key][-data.shape[0]:] = data
+def _output_to_file(output_file, storage):
+    for key, data in storage.items():
+        if key == "size": continue
+        if key in output_file:
+            output_file[key].resize(output_file[key].shape[0]+data.shape[0], axis=0)
+            output_file[key][-data.shape[0]:] = data
+        else:
+            if len(data.shape) == 2:
+                output_file.create_dataset(key, data=data, maxshape=(None, None))
+            elif len(data.shape) == 1:
+                output_file.create_dataset(key, data=data, maxshape = (None,))
             else:
-                if len(data.shape) == 2:
-                    output_file.create_dataset(key, data=data, maxshape=(None, None))
-                elif len(data.shape) == 1:
-                    output_file.create_dataset(key, data=data, maxshape = (None,))
-                else:
-                    raise ValueError(f"Dimension of output data {data.shape} must be 1 or 2")
+                raise ValueError(f"Dimension of output data {data.shape} must be 1 or 2")
 
 
 def _output_date(output_destination, label=None):
