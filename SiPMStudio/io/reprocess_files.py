@@ -13,9 +13,13 @@ def load_functions(file_name, proc_dict, processor):
                 processor.add(key, file_dict[name])
 
 
-def reprocess(settings_dict, proc_dict, processor, verbose=False, pattern=None):
+def reprocess(settings_dict, proc_dict, processor, verbose=False, pattern=None, file_name=None):
     file_path = settings_dict["output_path_t2"]
-    file_list = glob.glob(f"{file_path}/*.h5")
+    file_list = None
+    if file_name is None:
+        file_list = glob.glob(f"{file_path}/*.h5")
+    else:
+        file_list = os.path.join(file_path, file_name)
 
     for output in proc_dict["save_output"]:
         processor.add_to_file(output)
@@ -24,7 +28,7 @@ def reprocess(settings_dict, proc_dict, processor, verbose=False, pattern=None):
         head_dir, tail_name = os.path.split(file_name)
         if pattern is None:
             load_functions(tail_name, proc_dict, processor)
-        elif pattern[i] in tail_name:
+        elif any(bias in tail_name for bias in pattern):
             load_functions(tail_name, proc_dict, processor)
         else:
             continue
@@ -57,6 +61,6 @@ if __name__ == "__main__":
 
     bias_list = None
     if args.bias is not None:
-        bias_list = [str(i) for i in args.bias]
+        bias_list = [str(i) for i in args.bias.split(",")]
 
     reprocess_files(args.settings, args.procs, verbose=args.verbose, pattern=bias_list)
