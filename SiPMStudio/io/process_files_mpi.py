@@ -2,6 +2,7 @@ import os, time
 import json
 import argparse
 import h5py
+import numpy as np
 
 from mpi4py import MPI
 
@@ -21,7 +22,18 @@ def _chunk_indices(rank, size, chunk, num_rows):
     return chunk_dict[rank][0], chunk_dict[rank][1]
 
 
-def process_files_mpi(settings, proc_file, bias=None, overwrite=True, chunk=4000, write_size=2, verbose=True):
+def _init_output(h5_input, h5_output, proc_dict):
+    wf_shape = h5_input["/raw/waveforms"].shape
+    for i, output in enumerate(proc_dict["save_output"]):
+        if proc_dict["output_shape"][i] == 2:
+            h5_output.create_dataset(output, (wf_shape[0], wf_shape[1]))
+        elif proc_dict["output_shape"][i] == 1:
+            h5_output.create_dataset(output, (wf_shape[0],))
+        else:
+            raise ValueError("Output shape must be 1 or 2")
+
+
+def process_files_mpi(settings, proc_file, bias=None, overwrite=True, chunk=4000, write_size=1, verbose=True):
     
     settings_dict = None
     with open(settings, "r") as json_file:
@@ -76,11 +88,14 @@ def process_files_mpi(settings, proc_file, bias=None, overwrite=True, chunk=4000
         output_destination = os.path.join(path_t2, output_files[idx])
         h5_file = h5py.File(destination, "r", driver="mpio", comm=comm)
         h5_output_file = h5py.File(output_destination, "a", driver="mpio", comm=comm)
+        _init_output(h5_file, h5_output_file, proc_dict)
         num_rows = h5_file["/raw/timetag"][:].shape[0]
         [begin, end] = _chunk_indices(rank, size, chunk, num_rows)
         process_data(rank, [begin, end], processor, 
                     h5_file, h5_output_file, bias,
                     overwrite, verbose, chunk, write_size)
+        h5_file.close()
+        h5_output_file.close()
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()

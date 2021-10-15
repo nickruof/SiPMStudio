@@ -50,12 +50,12 @@ def _output_chunk(output_file, chunk_data, storage, write_size, num_rows, chunk,
         if output_to_file:
             storage[output] = np.concatenate(storage[output])
     if output_to_file:
-        _output_to_file(output_file, storage, start, stop)
+        _output_to_file(output_file, storage, start, stop, write_size)
         storage.clear()
         storage["size"] = 0
 
 
-def _output_to_file(output_file, storage, start, stop):
+def _output_to_file(output_file, storage, start, stop, write_size):
     for key, data in storage.items():
         if key == "size": continue
         if key in output_file:
