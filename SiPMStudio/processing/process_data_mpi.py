@@ -4,13 +4,13 @@ import numpy as np
 
 from SiPMStudio.utils.gen_utils import tqdm_range
 
-def process_data(rank, processor, h5_input, h5_output, bias=None, overwrite=False, verbose=False, chunk=2000, write_size=1):
+def process_data(rank, chunk_idx, processor, h5_input, h5_output, bias=None, overwrite=False, verbose=False, chunk=2000, write_size=1):
 
     start = time.time()
     # -----Processing Begins Here!---------------------------------
     num_rows = h5_input["/raw/timetag"][:].shape[0]
     data_storage = {"size": 0}
-    for i in tqdm_range(0, num_rows//chunk + 1, position=rank, verbose=verbose):
+    for i in tqdm_range(chunk_idx[0], chunk_idx[1], position=rank, verbose=verbose):
         begin, end = _chunk_range(i, chunk, num_rows)
         wf_chunk = h5_input["/raw/waveforms"][begin:end]
         time_chunk = h5_input["/raw/timetag"][begin:end]

@@ -6,21 +6,34 @@ import h5py
 from mpi4py import MPI
 
 from SiPMStudio.processing.processor import Processor, load_functions
-from SiPMStudio.processing.process_data import process_data
+from SiPMStudio.processing.process_data_mpi import process_data
 
 comm = MPI.COMM_WORLD
 size = comm.Get_size()
 rank = comm.Get_rank()
 
-def process_files_mpi(settings, proc_file, bias=None, overwrite=True, chunk=4000, write_size=2, verbose=True):
+def _chunk_indices(rank, size, chunk, num_rows):
+    total_indices = num_rows // chunk + 1
+    idx_per_rank = total_indices // size
+    chunk_dict = {}
+    for idx in range(0, size):
+        chunk_dict[idx] = [idx * idx_per_rank, idx * idx_per_rank + idx_per_rank - 1]
+    return chunk_dict[rank][0], chunk_dict[rank][1]
 
-    path = settings["output_path_raw"]
-    path_t2 = settings["output_path_t2"]
+
+def process_files_mpi(settings, proc_file, bias=None, overwrite=True, chunk=4000, write_size=2, verbose=True):
+    
+    settings_dict = None
+    with open(settings, "r") as json_file:
+        settings_dict = json.load(json_file)
+
+    path = settings_dict["output_path_raw"]
+    path_t2 = settings_dict["output_path_t2"]
     data_files = []
     output_files = []
 
-    base_name = settings["file_base_name"]
-    for entry in settings["init_info"]:
+    base_name = settings_dict["file_base_name"]
+    for entry in settings_dict["init_info"]:
         bias_label = entry["bias"]
         if bias is None:
             data_files.append(f"raw_{base_name}_{bias_label}.h5")
@@ -50,3 +63,35 @@ def process_files_mpi(settings, proc_file, bias=None, overwrite=True, chunk=4000
             destination = os.path.join(path_t2, file_name)
             if os.path.isfile(destination):
                 os.remove(destination)
+
+    processor = Processor()
+    
+    proc_dict = None
+    with open(proc_file, "r") as json_file:
+        proc_dict = json.load(json_file)
+    
+    load_functions(proc_dict, processor)
+    for idx, file in enumerate(data_files):
+        destination = os.path.join(path, file)
+        output_destination = os.path.join(path_t2, output_files[idx])
+        h5_file = h5py.File(destination, "r", driver="mpio", comm=comm)
+        h5_output_file = h5py.File(output_destination, "a", driver="mpio", comm=comm)
+        num_rows = h5_file["/raw/timetag"][:].shape[0]
+        [begin, end] = _chunk_indices(rank, size, chunk, num_rows)
+        process_data(rank, [begin, end], processor, 
+                    h5_file, h5_output_file, bias,
+                    overwrite, verbose, chunk, write_size)
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--settings", help="settings file name")
+    parser.add_argument("--procs", help="processor settings file name")
+    parser.add_argument("--bias", help="list of biases to process, comma separated", default=None)
+    parser.add_argument("--verbose", help="print extra output at runtime", type=bool)
+    args = parser.parse_args()
+
+    bias_list = None
+    if args.bias is not None:
+        bias_list = [int(i) for i in args.bias.split(",")]
+
+    process_files_mpi(args.settings, args.procs, verbose=args.verbose, bias=bias_list)
