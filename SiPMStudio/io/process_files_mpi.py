@@ -33,7 +33,7 @@ def _init_output(h5_input, h5_output, proc_dict):
             raise ValueError("Output shape must be 1 or 2")
 
 
-def process_files_mpi(settings, proc_file, bias=None, overwrite=True, chunk=4000, write_size=1, verbose=True):
+def process_files_mpi(settings, proc_file, bias=None, overwrite=True, chunk=4000, write_size=2, verbose=True):
     
     settings_dict = None
     with open(settings, "r") as json_file:

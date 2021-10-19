@@ -10,12 +10,27 @@ def process_data(rank, chunk_idx, processor, h5_input, h5_output, bias=None, ove
     # -----Processing Begins Here!---------------------------------
     num_rows = h5_input["/raw/timetag"][:].shape[0]
     data_storage = {"size": 0}
+    write_count = 0
+    write_begin = 0
+    write_end = 0
     for i in tqdm_range(chunk_idx[0], chunk_idx[1], position=rank, verbose=verbose):
         begin, end = _chunk_range(i, chunk, num_rows)
+        if write_count == 0:
+            write_count += 1
+            write_begin = begin
+            write_end = end
+        
+        if (write_count == write_size) & (write_size > 1):
+            write_count = 0
+        elif write_size == 1:
+            write_count = 0
+        else:
+            write_count += 1
+            write_end += chunk
         wf_chunk = h5_input["/raw/waveforms"][begin:end]
         time_chunk = h5_input["/raw/timetag"][begin:end]
         output_data = _process_chunk(wf_chunk, time_chunk, processor=processor)
-        _output_chunk(h5_output, output_data, data_storage, write_size, num_rows, chunk, begin, end)
+        _output_chunk(h5_output, output_data, data_storage, write_size, num_rows, chunk, write_begin, write_end)
         processor.reset_outputs()
 
 
@@ -50,12 +65,12 @@ def _output_chunk(output_file, chunk_data, storage, write_size, num_rows, chunk,
         if output_to_file:
             storage[output] = np.concatenate(storage[output])
     if output_to_file:
-        _output_to_file(output_file, storage, start, stop, write_size)
+        _output_to_file(output_file, storage, start, stop)
         storage.clear()
         storage["size"] = 0
 
 
-def _output_to_file(output_file, storage, start, stop, write_size):
+def _output_to_file(output_file, storage, start, stop):
     for key, data in storage.items():
         if key == "size": continue
         if key in output_file:
