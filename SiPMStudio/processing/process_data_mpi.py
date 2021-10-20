@@ -14,24 +14,20 @@ def process_data(rank, chunk_idx, processor, h5_input, h5_output, bias=None, ove
     write_begin = 0
     write_end = 0
     for i in tqdm_range(chunk_idx[0], chunk_idx[1], position=rank, verbose=verbose):
+        write_count += 1
         begin, end = _chunk_range(i, chunk, num_rows)
-        if write_count == 0:
-            write_count += 1
+        if write_count == 1:
             write_begin = begin
             write_end = end
-        
-        if (write_count == write_size) & (write_size > 1):
-            write_count = 0
-        elif write_size == 1:
-            write_count = 0
         else:
-            write_count += 1
             write_end += chunk
         wf_chunk = h5_input["/raw/waveforms"][begin:end]
         time_chunk = h5_input["/raw/timetag"][begin:end]
         output_data = _process_chunk(wf_chunk, time_chunk, processor=processor)
         _output_chunk(h5_output, output_data, data_storage, write_size, num_rows, chunk, write_begin, write_end)
         processor.reset_outputs()
+        if write_count == write_size:
+            write_count = 0
 
 
 def _chunk_range(index, chunk, num_rows):
@@ -51,7 +47,7 @@ def _output_chunk(output_file, chunk_data, storage, write_size, num_rows, chunk,
     output_to_file = False
     if (write_size == 1) | (num_rows < chunk):
         output_to_file = True
-    elif stop >= num_rows-1:
+    elif stop >= num_rows:
         output_to_file = True
     elif storage["size"] == (write_size - 1):
         output_to_file = True

@@ -19,6 +19,17 @@ def _chunk_indices(rank, size, chunk, num_rows):
     chunk_dict = {}
     for idx in range(0, size):
         chunk_dict[idx] = [idx * idx_per_rank, idx * idx_per_rank + idx_per_rank - 1]
+        if idx == (size - 1):
+            chunk_dict[idx][1] += 1
+
+    while chunk_dict[size-1][1] < total_indices:
+        for idx in range(0, size):
+            if idx == 0:
+                chunk_dict[idx][1] += 1
+            else:
+                chunk_dict[idx][0] += 1
+                chunk_dict[idx][1] += 1
+    
     return chunk_dict[rank][0], chunk_dict[rank][1]
 
 
@@ -33,7 +44,7 @@ def _init_output(h5_input, h5_output, proc_dict):
             raise ValueError("Output shape must be 1 or 2")
 
 
-def process_files_mpi(settings, proc_file, bias=None, overwrite=True, chunk=4000, write_size=2, verbose=True):
+def process_files_mpi(settings, proc_file, bias=None, overwrite=True, chunk=4000, write_size=3, verbose=True):
     
     settings_dict = None
     with open(settings, "r") as json_file:
