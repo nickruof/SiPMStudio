@@ -49,7 +49,8 @@ class Processor(object):
 
     def add_to_file(self, var_name):
         if isinstance(var_name, str):
-            self.save_to_file.append(var_name)
+            if var_name not in self.save_to_file:
+                self.save_to_file.append(var_name)
         elif isinstance(var_name, list):
             self.save_to_file += var_name
         else:
