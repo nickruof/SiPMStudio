@@ -3,7 +3,6 @@ import glob
 import json
 import argparse
 import h5py
-import numpy as np
 
 from mpi4py import MPI
 
@@ -45,7 +44,7 @@ def _init_new_output(h5_file, proc_dict, num_rows, waveform_size):
             raise ValueError("Output shape must be 1 or 2")
 
 
-def reprocess_mpi(settings_dict, proc_dict, verbose=False, pattern=None, file_name=None, chunk=4000):
+def reprocess_mpi(settings_dict, proc_dict, pattern=None, file_name=None, chunk=4000, write_size=2, verbose=True):
     file_path = settings_dict["output_path_t2"]
     file_list = None
     processor = Processor()
@@ -66,12 +65,40 @@ def reprocess_mpi(settings_dict, proc_dict, verbose=False, pattern=None, file_na
         else:
             continue
     
-        h5_file = h5py.File(file_name, "a", driver="mpio", comm=comm)
+        h5_file = h5py.File(file_name, "r+", driver="mpio", comm=comm)
         num_rows = h5_file["/raw/timetag"][:].shape[0]
         waveform_size = h5_file["/processed/blr_wf"].shape[1]
         _init_new_output(h5_file, proc_dict, num_rows, waveform_size)
         [begin, end] = _chunk_indices(rank, size, chunk, num_rows)
 
-        reprocess_data(settings_dict, processor, [begin, end], h5_file, verbose=verbose)
+        reprocess_data(rank, [begin, end], processor, h5_file, verbose, chunk, write_size)
         processor.clear()
         h5_file.close()
+
+
+def reprocess_files(settings_file, proc_file, verbose=False, pattern=None):
+
+    settings_dict = None
+    with open(settings_file, "r") as json_file:
+        settings_dict = json.load(json_file)
+
+    proc_dict = None
+    with open(proc_file, "r") as json_file:
+        proc_dict = json.load(json_file)
+
+    reprocess_mpi(settings_dict, proc_dict, verbose=verbose, pattern=pattern)
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--settings", help="settings file name")
+    parser.add_argument("--procs", help="processor settings file name")
+    parser.add_argument("--verbose", help="set verbosity to True or False", type=bool)
+    parser.add_argument("--bias", help="bias name in file pattern")
+    args = parser.parse_args()
+
+    bias_list = None
+    if args.bias is not None:
+        bias_list = [str(i) for i in args.bias.split(",")]
+
+    reprocess_files(args.settings, args.procs, verbose=args.verbose, pattern=bias_list)
