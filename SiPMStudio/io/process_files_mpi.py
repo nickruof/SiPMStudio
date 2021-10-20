@@ -102,7 +102,7 @@ def process_files_mpi(settings, proc_file, bias=None, overwrite=True, chunk=4000
         _init_output(h5_file, h5_output_file, proc_dict)
         num_rows = h5_file["/raw/timetag"][:].shape[0]
         [begin, end] = _chunk_indices(rank, size, chunk, num_rows)
-        process_data(rank, [begin, end], processor, 
+        process_data(comm, rank, [begin, end], processor, 
                     h5_file, h5_output_file, bias,
                     overwrite, verbose, chunk, write_size)
         h5_file.close()

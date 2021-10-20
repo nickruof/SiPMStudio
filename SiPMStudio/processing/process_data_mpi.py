@@ -3,8 +3,9 @@ import h5py
 import numpy as np
 
 from SiPMStudio.utils.gen_utils import tqdm_range
+from SiPMStudio.processing.process_data import _copy_to_t2
 
-def process_data(rank, chunk_idx, processor, h5_input, h5_output, bias=None, overwrite=False, verbose=False, chunk=2000, write_size=1):
+def process_data(comm, rank, chunk_idx, processor, h5_input, h5_output, bias=None, overwrite=False, verbose=False, chunk=2000, write_size=1):
 
     start = time.time()
     # -----Processing Begins Here!---------------------------------
@@ -13,7 +14,8 @@ def process_data(rank, chunk_idx, processor, h5_input, h5_output, bias=None, ove
     write_count = 0
     write_begin = 0
     write_end = 0
-    for i in tqdm_range(chunk_idx[0], chunk_idx[1], position=rank, verbose=verbose):
+
+    for i in tqdm_range(chunk_idx[0], chunk_idx[1], text=f"Proc: {rank}", position=rank, verbose=verbose):
         write_count += 1
         begin, end = _chunk_range(i, chunk, num_rows)
         if write_count == 1:

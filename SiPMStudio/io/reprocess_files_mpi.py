@@ -7,7 +7,7 @@ import h5py
 from mpi4py import MPI
 
 from SiPMStudio.processing.processor import Processor
-from SiPMStudio.io.reprocess_files_mpi import load_functions
+from SiPMStudio.io.reprocess_files import load_functions
 from SiPMStudio.processing.reprocess_data_mpi import reprocess_data
 
 comm = MPI.COMM_WORLD
@@ -36,12 +36,13 @@ def _chunk_indices(rank, size, chunk, num_rows):
 
 def _init_new_output(h5_file, proc_dict, num_rows, waveform_size):
     for i, output in enumerate(proc_dict["save_output"]):
-        if proc_dict["output_shape"][i] == 2:
-            h5_file.create_dataset(output, (num_rows, waveform_size))
-        elif proc_dict["output_shape"][i] == 1:
-            h5_file.create_dataset(output, (num_rows,))
-        else:
-            raise ValueError("Output shape must be 1 or 2")
+        if output not in h5_file.keys():
+            if proc_dict["output_shape"][i] == 2:
+                h5_file.create_dataset(output, (num_rows, waveform_size))
+            elif proc_dict["output_shape"][i] == 1:
+                h5_file.create_dataset(output, (num_rows,))
+            else:
+                raise ValueError("Output shape must be 1 or 2")
 
 
 def reprocess_mpi(settings_dict, proc_dict, pattern=None, file_name=None, chunk=4000, write_size=2, verbose=True):
@@ -66,7 +67,7 @@ def reprocess_mpi(settings_dict, proc_dict, pattern=None, file_name=None, chunk=
             continue
     
         h5_file = h5py.File(file_name, "r+", driver="mpio", comm=comm)
-        num_rows = h5_file["/raw/timetag"][:].shape[0]
+        num_rows = h5_file["/raw/timetag"].shape[0]
         waveform_size = h5_file["/processed/blr_wf"].shape[1]
         _init_new_output(h5_file, proc_dict, num_rows, waveform_size)
         [begin, end] = _chunk_indices(rank, size, chunk, num_rows)
