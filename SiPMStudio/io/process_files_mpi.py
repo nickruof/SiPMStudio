@@ -7,6 +7,7 @@ import numpy as np
 from mpi4py import MPI
 
 from SiPMStudio.processing.processor import Processor, load_functions
+from SiPMStudio.processing.process_data import _copy_to_t2
 from SiPMStudio.processing.process_data_mpi import process_data
 
 comm = MPI.COMM_WORLD
@@ -105,8 +106,22 @@ def process_files_mpi(settings, proc_file, bias=None, overwrite=True, chunk=4000
         process_data(comm, rank, [begin, end], processor, 
                     h5_file, h5_output_file, bias,
                     overwrite, verbose, chunk, write_size)
+
         h5_file.close()
         h5_output_file.close()
+
+        comm.Barrier()
+        if rank == 0:
+            h5_file = h5py.File(destination, "r")
+            h5_output_file = h5py.File(output_destination, "a")
+            _copy_to_t2(
+                ["/raw/dt", "bias"], 
+                ["/raw/dt", "bias"],
+                h5_file, h5_output_file
+            )
+            h5_file.close()
+            h5_output_file.close()
+        comm.Barrier()
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
