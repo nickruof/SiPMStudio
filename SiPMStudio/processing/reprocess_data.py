@@ -16,6 +16,7 @@ def data_chunk(h5_file, begin, end):
             storage[f"/processed/{name}"] = h5_file[f"/processed/{name}"][begin:end]
     return storage
 
+
 def output_chunk(output, h5_file, begin, end):
     data_len = h5_file["/raw/timetag"].shape[0]
     for key, value in output.items():
