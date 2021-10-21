@@ -2,9 +2,10 @@ import numpy as np
 import pywt
 import peakutils
 import warnings
+from scipy.optimize.optimize import OptimizeWarning
 
-warnings.filterwarnings("ignore", "RuntimeWarning")
-warnings.filterwarnings("ignore", "OptimizeWarning")
+warnings.filterwarnings("ignore", category=RuntimeWarning)
+warnings.filterwarnings("ignore", category=OptimizeWarning)
 
 from scipy.signal import savgol_filter, filtfilt, find_peaks
 from scipy.optimize import curve_fit
@@ -64,6 +65,8 @@ def fit_waveforms(outputs, wf_in, wf_out, short_tau, long_tau, charge_up, lback=
         peak_info = find_peaks(wave, height=250, distance=50, width=4)
         if len(peak_info[0]) == 0:
             output_waveforms.append(np.array([np.mean(wave)]*len(times)))
+            if i == waves_data.shape[0] - 1:
+                outputs[wf_out] = np.array(output_waveforms)
             continue
         base_wave = wave
         pulses = []

@@ -17,7 +17,7 @@ def reprocess_data(rank, chunk_idx, processor, h5_input, bias=None, overwrite=Fa
     start = time.time()
     num_rows = h5_input["/raw/timetag"].shape[0]
     
-    for i in tqdm_range(chunk_idx[0], chunk_idx[1], position=rank, verbose=verbose):
+    for i in tqdm_range(chunk_idx[0], chunk_idx[1], text=f"Proc: {rank}", position=rank, verbose=verbose):
         begin, end = _chunk_range(i, chunk, num_rows)
         storage = data_chunk(h5_input, begin, end)
         output_storage = _process_chunk(storage, processor)
