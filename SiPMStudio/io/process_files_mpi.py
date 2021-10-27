@@ -7,7 +7,7 @@ import numpy as np
 from mpi4py import MPI
 
 from SiPMStudio.processing.processor import Processor, load_functions
-from SiPMStudio.processing.process_data import _copy_to_t2
+from SiPMStudio.processing.process_data import _copy_to_t2, _initialize_outputs
 from SiPMStudio.processing.process_data_mpi import process_data
 
 comm = MPI.COMM_WORLD
@@ -30,23 +30,22 @@ def _chunk_indices(rank, size, chunk, num_rows):
             else:
                 chunk_dict[idx][0] += 1
                 chunk_dict[idx][1] += 1
-    
+
     return chunk_dict[rank][0], chunk_dict[rank][1]
 
 
 def _init_output(h5_input, h5_output, proc_dict):
-    wf_shape = h5_input["/raw/waveforms"].shape
-    for i, output in enumerate(proc_dict["save_output"]):
-        if proc_dict["output_shape"][i] == 2:
-            h5_output.create_dataset(output, (wf_shape[0], wf_shape[1]))
-        elif proc_dict["output_shape"][i] == 1:
-            h5_output.create_dataset(output, (wf_shape[0],))
-        else:
-            raise ValueError("Output shape must be 1 or 2")
+    n_entries = h5_input["/raw/n_events"][()]
+    for channel in h5_input["/raw"].keys():
+        wf_length = h5_input[f"/raw/{channel}/wf_len"][()]
+        for output in proc_dict["save_output"]:
+            h5_output.create_dataset(output, (n_entries,))
+        for output in proc_dict["save_waveforms"]:
+            h5_output.create_dataset(output, (n_entries, wf_length))
 
 
 def process_files_mpi(settings, proc_file, bias=None, overwrite=True, chunk=4000, write_size=2, verbose=True):
-    
+
     settings_dict = None
     with open(settings, "r") as json_file:
         settings_dict = json.load(json_file)
@@ -89,11 +88,11 @@ def process_files_mpi(settings, proc_file, bias=None, overwrite=True, chunk=4000
                 os.remove(destination)
 
     processor = Processor()
-    
+
     proc_dict = None
     with open(proc_file, "r") as json_file:
         proc_dict = json.load(json_file)
-    
+
     load_functions(proc_dict, processor)
     for idx, file in enumerate(data_files):
         destination = os.path.join(path, file)
@@ -103,7 +102,8 @@ def process_files_mpi(settings, proc_file, bias=None, overwrite=True, chunk=4000
         _init_output(h5_file, h5_output_file, proc_dict)
         num_rows = h5_file["/raw/timetag"][:].shape[0]
         [begin, end] = _chunk_indices(rank, size, chunk, num_rows)
-        process_data(comm, rank, [begin, end], processor, 
+        _initialize_outputs(idx, settings, h5_file, processor, begin, end)
+        process_data(comm, rank, [begin, end], processor,
                     h5_file, h5_output_file, bias,
                     overwrite, verbose, chunk, write_size)
 
@@ -115,7 +115,7 @@ def process_files_mpi(settings, proc_file, bias=None, overwrite=True, chunk=4000
             h5_file = h5py.File(destination, "r")
             h5_output_file = h5py.File(output_destination, "a")
             _copy_to_t2(
-                ["/raw/dt", "bias"], 
+                ["/raw/dt", "bias"],
                 ["/raw/dt", "bias"],
                 h5_file, h5_output_file
             )

@@ -3,7 +3,7 @@ import h5py
 import numpy as np
 
 from SiPMStudio.utils.gen_utils import tqdm_range
-from SiPMStudio.processing.process_data import _copy_to_t2
+from SiPMStudio.processing.process_data import _copy_to_t2, _initialize_outputs
 
 def process_data(comm, rank, chunk_idx, processor, h5_input, h5_output, bias=None, overwrite=False, verbose=False, chunk=2000, write_size=1):
 
@@ -23,9 +23,7 @@ def process_data(comm, rank, chunk_idx, processor, h5_input, h5_output, bias=Non
             write_end = end
         else:
             write_end += chunk
-        wf_chunk = h5_input["/raw/waveforms"][begin:end]
-        time_chunk = h5_input["/raw/timetag"][begin:end]
-        output_data = _process_chunk(wf_chunk, time_chunk, processor=processor)
+        output_data = processor.process()
         _output_chunk(h5_output, output_data, data_storage, write_size, num_rows, chunk, write_begin, write_end)
         processor.reset_outputs()
         if write_count == write_size:
