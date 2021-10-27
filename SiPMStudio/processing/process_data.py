@@ -57,14 +57,13 @@ def process_data(settings, processor, bias=None, overwrite=False, verbose=False,
         data_storage = {"size": 0}
         for i in tqdm_range(0, num_rows//chunk + 1, verbose=verbose):
             begin, end = _chunk_range(i, chunk, num_rows)
-            wf_chunk = h5_file["/raw/waveforms"][begin:end]
-            time_chunk = h5_file["/raw/timetag"][begin:end]
-            output_data = _process_chunk(wf_chunk, time_chunk, processor=processor)
+            _initialize_outputs(idx, settings, h5_file, processor, begin, end)
+            output_data = processor.process()
             _output_chunk(h5_output_file, output_data, data_storage, write_size, num_rows, chunk, end)
             processor.reset_outputs()
         _copy_to_t2(
-                ["/raw/timetag", "/raw/dt", "bias"], 
-                ["/raw/timetag", "/raw/dt", "bias"], 
+                ["/raw/timetag", "/raw/dt", "bias"],
+                ["/raw/timetag", "/raw/dt", "bias"],
                 h5_file, h5_output_file
         )
         _output_date(output_destination, "process_date")
@@ -85,9 +84,12 @@ def _chunk_range(index, chunk, num_rows):
     return start, stop
 
 
-def _process_chunk(wf_chunk, time_chunk, processor, rows=None):
-    processor.init_outputs({"/raw/waveforms": wf_chunk, "/raw/timetag": time_chunk})
-    return processor.process()
+def _initialize_outputs(idx, settings, h5_file, processor, begin, end):
+    data_dict = {}
+    for channel in settings["init_info"][idx]["channels"]:
+        data_dict[f"/raw/{channel}/timetag"] = h5_file[f"/raw/{channel}/timetag"][begin: end]
+        data_dict[f"/raw/{channel}/waveforms"] = h5_file[f"/raw/{channel}/waveforms"][begin: end]
+    processor.init_outputs(data_dict)
 
 
 def _output_chunk(output_file, chunk_data, storage, write_size, num_rows, chunk, stop):
