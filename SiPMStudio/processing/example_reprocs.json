@@ -1,12 +1,126 @@
 {
     "processes": {
-        "baseline_subtract": {
-            "t2_ketek_room2_25.h5": {"wf_in": "/processed/blr_wf", "wf_out": "/processed/blr_wf", "degree": 2},
-            "t2_ketek_room2_26.h5": {"wf_in": "/processed/blr_wf", "wf_out": "/processed/blr_wf", "degree": 2},
-            "t2_ketek_room2_27.h5": {"wf_in": "/processed/blr_wf", "wf_out": "/processed/blr_wf", "degree": 2},
-            "t2_ketek_room2_28.h5": {"wf_in": "/processed/blr_wf", "wf_out": "/processed/blr_wf", "degree": 2},
-            "t2_ketek_room2_29.h5": {"wf_in": "/processed/blr_wf", "wf_out": "/processed/blr_wf", "degree": 2},
-            "t2_ketek_room2_30.h5": {"wf_in": "/processed/blr_wf", "wf_out": "/processed/blr_wf", "degree": 2}
+        "normalize_charge": {
+            "t2_ketek_room2_25.h5": {
+                "in_name": "/processed/sipm/charge",
+                "out_name": "/processed/sipm/norm_charge",
+                "peak_locs": [
+                    3.550844422242967e-14,
+                    8.789153373542604e-14,
+                    1.4292091592963734e-13
+                ],
+                "peak_errors": [
+                    6.105050888058287e-17,
+                    1.0836244259798305e-16,
+                    2.4756565632980092e-15
+                ]
+            },
+            "t2_ketek_room2_26.h5": {
+                "in_name": "/processed/sipm/charge",
+                "out_name": "/processed/sipm/norm_charge",
+                "peak_locs": [
+                    3.5559947999994956e-14,
+                    1.528508374017572e-13,
+                    2.7412937787119183e-13,
+                    3.9194345748098073e-13
+                ],
+                "peak_errors": [
+                    5.143466445560573e-17,
+                    4.2759046548747704e-17,
+                    2.8876505601147396e-16,
+                    1.6060363861754174e-15
+                ]
+            },
+            "t2_ketek_room2_27.h5": {
+                "in_name": "/processed/sipm/charge",
+                "out_name": "/processed/sipm/norm_charge",
+                "peak_locs": [
+                    3.4939700620759535e-14,
+                    2.162428449156158e-13,
+                    4.006629434820625e-13,
+                    5.863740195969134e-13,
+                    7.771536555872438e-13
+                ],
+                "peak_errors": [
+                    5.4790832299649215e-17,
+                    4.2076610872441906e-17,
+                    2.944186572499204e-16,
+                    6.068586887663183e-16,
+                    1.5327226004440805e-15
+                ]
+            },
+            "t2_ketek_room2_28.h5": {
+                "in_name": "/processed/sipm/charge",
+                "out_name": "/processed/sipm/norm_charge",
+                "peak_locs": [
+                    3.477095243595418e-14,
+                    2.793002810535904e-13,
+                    5.272986130900537e-13,
+                    7.75519216226973e-13,
+                    1.0240501605480882e-12,
+                    1.2740446332845789e-12
+                ],
+                "peak_errors": [
+                    1.1636759066591486e-16,
+                    7.346883184693388e-17,
+                    4.450092574239352e-16,
+                    8.851633915768425e-16,
+                    1.5843133095425896e-15,
+                    2.4324029807347937e-15
+                ]
+            },
+            "t2_ketek_room2_29.h5": {
+                "in_name": "/processed/sipm/charge",
+                "out_name": "/processed/sipm/norm_charge",
+                "peak_locs": [
+                    3.4934575925222965e-14,
+                    3.4296470405555156e-13,
+                    6.533020526533745e-13,
+                    9.657718099281188e-13,
+                    1.280547106873369e-12,
+                    1.592168580653679e-12,
+                    1.898745749933306e-12
+                ],
+                "peak_errors": [
+                    2.2841392706152235e-16,
+                    1.3954837161332576e-16,
+                    5.111155133531132e-16,
+                    1.5051596282739874e-15,
+                    2.283568119289221e-15,
+                    3.6814729184346685e-15,
+                    1.2567325480573638e-14
+                ]
+            },
+            "t2_ketek_room2_30.h5": {
+                "in_name": "/processed/sipm/charge",
+                "out_name": "/processed/sipm/norm_charge",
+                "peak_locs": [
+                    3.5463557035729137e-14,
+                    4.065641640503728e-13,
+                    7.806318282319386e-13,
+                    1.1588007776439345e-12,
+                    1.5395515417990575e-12,
+                    1.9208250899625797e-12,
+                    2.2980559552660875e-12,
+                    2.6989406901155675e-12,
+                    3.049248532243067e-12
+                ],
+                "peak_errors": [
+                    3.6496245118006903e-16,
+                    3.0760044038959047e-16,
+                    7.168527115381228e-16,
+                    1.7902355023864913e-15,
+                    3.621261781803704e-15,
+                    4.470220019812873e-15,
+                    7.77334503137092e-15,
+                    6.495451295054101e-15,
+                    2.0245410858423652e-14
+                ]
+            }
         }
-    }
+    },
+    "save_output": [
+        "/processed/sipm/norm_charge"
+    ],
+    "save_waveforms": []
 }

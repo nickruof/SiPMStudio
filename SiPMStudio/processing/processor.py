@@ -40,9 +40,12 @@ class Processor(object):
                 ProcessorBase(getattr(pt, fun_name), **self.settings[fun_name]))
         else:
             raise LookupError(f"Unknown function: {fun_name}")
-    
+
     def init_outputs(self, outputs):
         self.outputs = outputs
+
+    def add_output(self, key, value):
+        self.outputs[key] = value
 
     def reset_outputs(self):
         self.outputs.clear()
@@ -74,4 +77,6 @@ def load_functions(proc_settings, processor):
     for key, params in proc_settings["processes"].items():
         processor.add(key, settings=params)
     for output in proc_settings["save_output"]:
+        processor.add_to_file(output)
+    for output in proc_settings["save_waveforms"]:
         processor.add_to_file(output)

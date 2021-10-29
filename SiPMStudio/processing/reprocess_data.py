@@ -7,18 +7,15 @@ from SiPMStudio.utils.gen_utils import tqdm_range
 
 def data_chunk(h5_file, begin, end):
     storage = {}
-    for name in h5_file["/raw"].keys():
-        if len(h5_file[f"/raw/{name}"].shape) > 0:
-            storage[f"/raw/{name}"] = h5_file[f"/raw/{name}"][begin:end]
-
-    for name in h5_file["/processed"].keys():
-        if len(h5_file[f"/processed/{name}"].shape) > 0:
-            storage[f"/processed/{name}"] = h5_file[f"/processed/{name}"][begin:end]
+    for channel in h5_file["/processed"].keys():
+        for key in h5_file[f"/processed/{channel}"].keys():
+            if len(h5_file[f"/processed/{channel}/{key}"].shape) > 0:
+                storage[f"/processed/{channel}/{key}"] = h5_file[f"/processed/{channel}/{key}"][begin:end]
     return storage
 
 
 def output_chunk(output, h5_file, begin, end):
-    data_len = h5_file["/raw/timetag"].shape[0]
+    data_len = h5_file["n_events"][()]
     for key, value in output.items():
         if key in h5_file:
             if h5_file[key].shape[0] >= data_len:
@@ -55,7 +52,7 @@ def reprocess_data(settings, processor, file_name=None, verbose=False, chunk=200
             print(f"Reprocessing: {file}")
         with h5py.File(destination, "r+") as h5_file:
             _output_date(h5_file, "reprocess_date")
-            num_rows = h5_file["/raw/timetag"][:].shape[0]
+            num_rows = h5_file["n_events"][()]
             for i in tqdm_range(0, num_rows//chunk + 1, verbose=verbose):
                 begin, end = _chunk_range(i, chunk, num_rows)
                 storage = data_chunk(h5_file, begin, end)
