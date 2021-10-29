@@ -70,7 +70,8 @@ def reprocess_mpi(settings_dict, proc_dict, pattern=None, file_name=None, chunk=
             load_functions(tail_name, proc_dict, processor)
         else:
             continue
-
+        if (rank == 0) & verbose:
+            print(f"Reprocessing: {file_name}")
         h5_file = h5py.File(file_name, "r+", driver="mpio", comm=comm)
         num_rows = h5_file["n_events"][()]
         _init_new_output(h5_file, proc_dict, num_rows)
