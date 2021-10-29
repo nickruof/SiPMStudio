@@ -7,7 +7,7 @@ import numpy as np
 from mpi4py import MPI
 
 from SiPMStudio.processing.processor import Processor, load_functions
-from SiPMStudio.processing.process_data import _copy_to_t2, _initialize_outputs
+from SiPMStudio.processing.process_data import _copy_to_t2
 from SiPMStudio.processing.process_data_mpi import process_data
 
 comm = MPI.COMM_WORLD
@@ -35,7 +35,7 @@ def _chunk_indices(rank, size, chunk, num_rows):
 
 
 def _init_output(h5_input, h5_output, proc_dict):
-    n_entries = h5_input["/raw/n_events"][()]
+    n_entries = h5_input["n_events"][()]
     for channel in h5_input["/raw"].keys():
         wf_length = h5_input[f"/raw/{channel}/wf_len"][()]
         for output in proc_dict["save_output"]:
@@ -100,9 +100,8 @@ def process_files_mpi(settings, proc_file, bias=None, overwrite=True, chunk=4000
         h5_file = h5py.File(destination, "r", driver="mpio", comm=comm)
         h5_output_file = h5py.File(output_destination, "a", driver="mpio", comm=comm)
         _init_output(h5_file, h5_output_file, proc_dict)
-        num_rows = h5_file["/raw/timetag"][:].shape[0]
+        num_rows = h5_file["n_events"][()]
         [begin, end] = _chunk_indices(rank, size, chunk, num_rows)
-        _initialize_outputs(idx, settings, h5_file, processor, begin, end)
         process_data(comm, rank, [begin, end], processor,
                     h5_file, h5_output_file, bias,
                     overwrite, verbose, chunk, write_size)
@@ -114,11 +113,7 @@ def process_files_mpi(settings, proc_file, bias=None, overwrite=True, chunk=4000
         if rank == 0:
             h5_file = h5py.File(destination, "r")
             h5_output_file = h5py.File(output_destination, "a")
-            _copy_to_t2(
-                ["/raw/dt", "bias"],
-                ["/raw/dt", "bias"],
-                h5_file, h5_output_file
-            )
+            _copy_to_t2(h5_file, h5_output_file)
             h5_file.close()
             h5_output_file.close()
         comm.Barrier()

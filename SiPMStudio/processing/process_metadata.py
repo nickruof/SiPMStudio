@@ -1,4 +1,5 @@
 import os
+import glob
 import time
 import h5py
 import numpy as np
@@ -7,12 +8,18 @@ from SiPMStudio.processing.process_data import _output_time
 from SiPMStudio.utils.gen_utils import tqdm_it
 
 
-def process_metadata(settings, digitizer, output_dir=None, verbose=False):
+def process_metadata(settings, digitizer, output_dir=None, overwrite=True, verbose=False):
 
     if verbose:
         print("Processing Metadata! ...")
         print("Number of Files to Process: "+str(len(settings["init_info"])))
         print("Output Path: ", settings["output_path_raw"])
+
+    if overwrite is True:
+        output_path = settings["output_path_raw"]
+        file_list = glob.glob(f"{output_path}/*.h5")
+        for file in file_list:
+            os.remove(file)
 
     start = time.time()
     for file_names in tqdm_it(settings["init_info"], verbose=verbose):
@@ -43,7 +50,7 @@ def _output_per_waveforms(data_file, output_name, output_path, events, waveforms
     with h5py.File(destination, "a") as output_file:
         output_file.create_dataset(f"/raw/{channel}/energy", data=events.T[1])
         output_file.create_dataset(f"/raw/{channel}/waveforms", data=waveforms)
-        if f"/raw/{channel}/wf_len" in output_file[f"/raw/{channel}"].keys():
+        if "wf_len" not in output_file[f"/raw/{channel}"].keys():
             output_file.create_dataset(f"/raw/{channel}/wf_len", data=waveforms.shape[1])
 
 

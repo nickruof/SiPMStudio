@@ -53,7 +53,7 @@ def process_data(settings, processor, bias=None, overwrite=False, verbose=False,
             print(f"Processing: {file}")
         h5_file = h5py.File(destination, "r")
         h5_output_file = h5py.File(output_destination, "a")
-        num_rows = h5_file["/raw/timetag"][:].shape[0]
+        num_rows = h5_file["n_events"][()]
         data_storage = {"size": 0}
         for i in tqdm_range(0, num_rows//chunk + 1, verbose=verbose):
             begin, end = _chunk_range(i, chunk, num_rows)
@@ -61,11 +61,7 @@ def process_data(settings, processor, bias=None, overwrite=False, verbose=False,
             output_data = processor.process()
             _output_chunk(h5_output_file, output_data, data_storage, write_size, num_rows, chunk, end)
             processor.reset_outputs()
-        _copy_to_t2(
-                ["/raw/timetag", "/raw/dt", "bias"],
-                ["/raw/timetag", "/raw/dt", "bias"],
-                h5_file, h5_output_file
-        )
+        _copy_to_t2(h5_file, h5_output_file)
         _output_date(output_destination, "process_date")
         h5_file.close()
         h5_output_file.close()
@@ -87,7 +83,7 @@ def _chunk_range(index, chunk, num_rows):
 def _initialize_outputs(idx, settings, h5_file, processor, begin, end):
     data_dict = {}
     for channel in settings["init_info"][idx]["channels"]:
-        data_dict[f"/raw/{channel}/timetag"] = h5_file[f"/raw/{channel}/timetag"][begin: end]
+        data_dict["timetag"] = h5_file["timetag"][begin: end]
         data_dict[f"/raw/{channel}/waveforms"] = h5_file[f"/raw/{channel}/waveforms"][begin: end]
     processor.init_outputs(data_dict)
 
@@ -115,11 +111,10 @@ def _output_chunk(output_file, chunk_data, storage, write_size, num_rows, chunk,
         storage["size"] = 0
 
 
-def _copy_to_t2(raw_names, process_names, h5_file, output_file):
-    if len(raw_names) != len(process_names):
-        raise AttributeError("raw names and process names not the same length")
-    for i, name in enumerate(raw_names):
-        output_file.create_dataset(process_names[i], data=h5_file[name])
+def _copy_to_t2(h5_file, output_file):
+    for key in h5_file.keys():
+        if key != "raw":
+            output_file.create_dataset(key, data=h5_file[key])
 
 
 def _output_to_file(output_file, storage):

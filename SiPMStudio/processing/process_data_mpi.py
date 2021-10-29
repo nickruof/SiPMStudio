@@ -9,7 +9,7 @@ def process_data(comm, rank, chunk_idx, processor, h5_input, h5_output, bias=Non
 
     start = time.time()
     # -----Processing Begins Here!---------------------------------
-    num_rows = h5_input["/raw/timetag"][:].shape[0]
+    num_rows = h5_input["n_events"][()]
     data_storage = {"size": 0}
     write_count = 0
     write_begin = 0
@@ -23,7 +23,7 @@ def process_data(comm, rank, chunk_idx, processor, h5_input, h5_output, bias=Non
             write_end = end
         else:
             write_end += chunk
-        output_data = processor.process()
+        output_data = _process_chunk(h5_input, processor, begin, end)
         _output_chunk(h5_output, output_data, data_storage, write_size, num_rows, chunk, write_begin, write_end)
         processor.reset_outputs()
         if write_count == write_size:
@@ -38,8 +38,10 @@ def _chunk_range(index, chunk, num_rows):
     return start, stop
 
 
-def _process_chunk(wf_chunk, time_chunk, processor, rows=None):
-    processor.init_outputs({"/raw/waveforms": wf_chunk, "/raw/timetag": time_chunk})
+def _process_chunk(h5_input, processor, begin, end):
+    for key in h5_input["/raw"]:
+        processor.add_output(f"/raw/{key}/waveforms", h5_input[f"/raw/{key}/waveforms"][begin: end])
+    processor.add_output("timetag", h5_input["timetag"][begin: end])
     return processor.process()
 
 

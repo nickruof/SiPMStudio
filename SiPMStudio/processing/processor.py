@@ -44,6 +44,9 @@ class Processor(object):
     def init_outputs(self, outputs):
         self.outputs = outputs
 
+    def add_output(self, key, value):
+        self.outputs[key] = value
+
     def reset_outputs(self):
         self.outputs.clear()
 
