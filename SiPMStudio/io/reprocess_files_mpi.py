@@ -30,19 +30,21 @@ def _chunk_indices(rank, size, chunk, num_rows):
             else:
                 chunk_dict[idx][0] += 1
                 chunk_dict[idx][1] += 1
-    
+
     return chunk_dict[rank][0], chunk_dict[rank][1]
 
 
-def _init_new_output(h5_file, proc_dict, num_rows, waveform_size):
+def _init_new_output(h5_file, proc_dict, num_rows):
+
     for i, output in enumerate(proc_dict["save_output"]):
-        if output not in h5_file.keys():
-            if proc_dict["output_shape"][i] == 2:
-                h5_file.create_dataset(output, (num_rows, waveform_size))
-            elif proc_dict["output_shape"][i] == 1:
-                h5_file.create_dataset(output, (num_rows,))
-            else:
-                raise ValueError("Output shape must be 1 or 2")
+        if output not in h5_file:
+            h5_file.create_dataset(output, (num_rows,))
+
+    for i, output in enumerate(proc_dict["save_waveforms"]):
+        if output not in h5_file:
+            head, tail = os.path.split(proc_dict["save_waveforms"])
+            waveform_size = h5_file[f"{head}/wf_len"][()]
+            h5_file.create_dataset(output, (num_rows, waveform_size))
 
 
 def reprocess_mpi(settings_dict, proc_dict, pattern=None, file_name=None, chunk=4000, write_size=2, verbose=True):
@@ -56,7 +58,10 @@ def reprocess_mpi(settings_dict, proc_dict, pattern=None, file_name=None, chunk=
 
     for output in proc_dict["save_output"]:
         processor.add_to_file(output)
-    
+
+    for output in proc_dict["save_waveforms"]:
+        processor.add_to_file(output)
+
     for i, file_name in enumerate(file_list):
         head_dir, tail_name = os.path.split(file_name)
         if pattern is None:
@@ -65,11 +70,10 @@ def reprocess_mpi(settings_dict, proc_dict, pattern=None, file_name=None, chunk=
             load_functions(tail_name, proc_dict, processor)
         else:
             continue
-    
+
         h5_file = h5py.File(file_name, "r+", driver="mpio", comm=comm)
-        num_rows = h5_file["/raw/timetag"].shape[0]
-        waveform_size = h5_file["/processed/blr_wf"].shape[1]
-        _init_new_output(h5_file, proc_dict, num_rows, waveform_size)
+        num_rows = h5_file["n_events"][()]
+        _init_new_output(h5_file, proc_dict, num_rows)
         [begin, end] = _chunk_indices(rank, size, chunk, num_rows)
 
         reprocess_data(rank, [begin, end], processor, h5_file, verbose, chunk, write_size)
