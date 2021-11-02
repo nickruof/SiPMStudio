@@ -15,15 +15,12 @@ from functools import partial
 from SiPMStudio.processing.functions import butter_bandpass, exp_charge, double_exp_release
 
 
-def adc_to_volts(waves_data, digitizer):
-    v_pp = digitizer.v_range
-    n_bits = digitizer.adc_bitcount
-    processed_waveforms = (v_pp/2**n_bits) * waves_data
-    return processed_waveforms
-
-
-def baseline_subtract(outputs, wf_in, wf_out, degree=1):
-    waves_data = outputs[wf_in]
+def baseline_subtract(outputs, wf_in, wf_out, degree=1, flip=False):
+    waves_data = None
+    if flip:
+        waves_data = -outputs[wf_in]
+    else:
+        waves_data = outputs[wf_in]
     axis_function = partial(peakutils.baseline, deg=degree)
     baselines = np.apply_along_axis(axis_function, 1, waves_data)
     processed_waveforms = waves_data - baselines
