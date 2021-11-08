@@ -37,16 +37,17 @@ def process_metadata(settings, digitizer, overwrite=True, verbose=False):
                     waveform_rows.append(waveform)
                     event_data_bytes = metadata_file.read(event_size)
                     num_entries += 1
-            _output_to_h5file(file_name, settings["file_base_name"],
-                              settings["output_path_raw"], np.array(event_rows), file_names["bias"], digitizer)
-            _output_per_waveforms(file_name, settings["file_base_name"], settings["output_path_raw"],
+            _output_to_h5file(settings["file_base_name"],
+                              settings["output_path_raw"], np.array(event_rows),
+                              file_names["bias"], digitizer)
+            _output_per_waveforms(settings["file_base_name"], settings["output_path_raw"],
                                   np.array(event_rows), np.array(waveform_rows), file_names["channels"][i],
-                                  file_names["bias"], settings["amplifier"])
+                                  file_names["bias"], settings["amplifier"], digitizer, settings["v_range"])
             _output_entries(num_entries, file_names["bias"], settings["file_base_name"], settings["output_path_raw"])
     _output_time(time.time() - start)
 
 
-def _output_per_waveforms(data_file, output_name, output_path, events, waveforms, channel, bias, amplifier):
+def _output_per_waveforms(output_name, output_path, events, waveforms, channel, bias, amplifier, digitizer, v_range):
     destination = os.path.join(output_path, f"raw_{output_name}_{bias}.h5")
     with h5py.File(destination, "a") as output_file:
         output_file.create_dataset(f"/raw/channels/{channel}/energy", data=events.T[1])
@@ -56,9 +57,11 @@ def _output_per_waveforms(data_file, output_name, output_path, events, waveforms
         if "amp" not in output_file[f"/raw/channels/{channel}"].keys():
             amplification = _compute_amplification(amplifier, channel)
             output_file.create_dataset(f"/raw/channels/{channel}/amp", data=amplification)
+        if "adc_to_v" not in output_file[f"/raw/channels/{channel}"].keys():
+            output_file.create_dataset(f"/raw/channels/{channel}/adc_to_v", data=v_range[channel]/2**digitizer.adc_bitcount)
 
 
-def _output_to_h5file(data_file, output_name, output_path, events, bias, digitizer):
+def _output_to_h5file(output_name, output_path, events, bias, digitizer):
     destination = os.path.join(output_path, f"raw_{output_name}_{bias}.h5")
     with h5py.File(destination, "a") as output_file:
         if "timetag" not in output_file.keys():
@@ -67,8 +70,6 @@ def _output_to_h5file(data_file, output_name, output_path, events, bias, digitiz
             output_file.create_dataset(f"dt", data=digitizer.get_dt())
         if "bias" not in output_file.keys():
             output_file.create_dataset("bias", data=float(bias))
-        if "adc_to_v" not in output_file.keys():
-            output_file.create_dataset("adc_to_v", data=digitizer.v_range/2**digitizer.adc_bitcount)
         if "date" not in output_file.keys():
             output_file.create_dataset("date", data=time.time())
 

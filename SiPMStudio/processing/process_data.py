@@ -115,6 +115,10 @@ def _copy_to_t2(h5_file, output_file):
     for key in h5_file.keys():
         if key != "raw":
             output_file.create_dataset(key, data=h5_file[key])
+    for channel in h5_file["/raw/channels"].keys():
+        for key in h5_file[f"/raw/channels/{channel}"]:
+            if key != "waveforms":
+                output_file.create_dataset(f"/processed/channels/{channel}/{key}", data=h5_file[f"/raw/channels/{channel}/{key}"])
 
 
 def _output_to_file(output_file, storage):
