@@ -84,7 +84,7 @@ def _initialize_outputs(idx, settings, h5_file, processor, begin, end):
     data_dict = {}
     for channel in settings["init_info"][idx]["channels"]:
         data_dict["timetag"] = h5_file["timetag"][begin: end]
-        data_dict[f"/raw/{channel}/waveforms"] = h5_file[f"/raw/{channel}/waveforms"][begin: end]
+        data_dict[f"/raw/channels/{channel}/waveforms"] = h5_file[f"/raw/channels/{channel}/waveforms"][begin: end]
     processor.init_outputs(data_dict)
 
 
@@ -115,6 +115,10 @@ def _copy_to_t2(h5_file, output_file):
     for key in h5_file.keys():
         if key != "raw":
             output_file.create_dataset(key, data=h5_file[key])
+    for channel in h5_file["/raw/channels"].keys():
+        for key in h5_file[f"/raw/channels/{channel}"]:
+            if key != "waveforms":
+                output_file.create_dataset(f"/processed/channels/{channel}/{key}", data=h5_file[f"/raw/channels/{channel}/{key}"])
 
 
 def _output_to_file(output_file, storage):

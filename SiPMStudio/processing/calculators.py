@@ -19,7 +19,19 @@ def normalize_charge(outputs, in_name, out_name, peak_locs, peak_errors):
     gain = np.sum(peak_diffs * diff_errors) / np.sum(diff_errors)
     charges = outputs[in_name]
     outputs[out_name] = (charges - x0) / gain
-    
 
 
+def voltage_divider(R1, R2):
+    return (R2 / (R1 + R2))
 
+
+def trans_amp(R1):
+    return - R1
+
+
+def non_invert_amp(R1, R2):
+    return (1 + (R1 / R2))
+
+
+def invert_amp(R1, R2):
+    return - R1 / R2
