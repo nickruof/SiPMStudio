@@ -84,7 +84,7 @@ def _initialize_outputs(idx, settings, h5_file, processor, begin, end):
     data_dict = {}
     for channel in settings["init_info"][idx]["channels"]:
         data_dict["timetag"] = h5_file["timetag"][begin: end]
-        data_dict[f"/raw/{channel}/waveforms"] = h5_file[f"/raw/{channel}/waveforms"][begin: end]
+        data_dict[f"/raw/channels/{channel}/waveforms"] = h5_file[f"/raw/channels/{channel}/waveforms"][begin: end]
     processor.init_outputs(data_dict)
 
 
