@@ -36,8 +36,8 @@ def _chunk_indices(rank, size, chunk, num_rows):
 
 def _init_output(h5_input, h5_output, proc_dict):
     n_entries = h5_input["n_events"][()]
-    for channel in h5_input["/raw"].keys():
-        wf_length = h5_input[f"/raw/{channel}/wf_len"][()]
+    for channel in h5_input["/raw/channels"].keys():
+        wf_length = h5_input[f"/raw/channels/{channel}/wf_len"][()]
         for output in proc_dict["save_output"]:
             h5_output.create_dataset(output, (n_entries,))
         for output in proc_dict["save_waveforms"]:
@@ -123,7 +123,7 @@ if __name__ == "__main__":
     parser.add_argument("--settings", help="settings file name")
     parser.add_argument("--procs", help="processor settings file name")
     parser.add_argument("--bias", help="list of biases to process, comma separated", default=None)
-    parser.add_argument("--verbose", help="print extra output at runtime", type=bool)
+    parser.add_argument("--verbose", help="print extra output at runtime", type=bool, default=False)
     args = parser.parse_args()
 
     bias_list = None

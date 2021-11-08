@@ -39,7 +39,7 @@ def _chunk_range(index, chunk, num_rows):
 
 
 def _process_chunk(h5_input, processor, begin, end):
-    for key in h5_input["/raw"]:
+    for key in h5_input["/raw/channels"]:
         processor.add_output(f"/raw/channels/{key}/waveforms",
                              h5_input[f"/raw/channels/{key}/waveforms"][begin: end])
     processor.add_output("timetag", h5_input["timetag"][begin: end])
