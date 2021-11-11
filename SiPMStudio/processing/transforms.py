@@ -11,6 +11,7 @@ from scipy.signal import savgol_filter, filtfilt, find_peaks
 from scipy.optimize import curve_fit
 from statsmodels.robust import mad
 from functools import partial
+from contextlib import suppress
 
 from SiPMStudio.processing.functions import butter_bandpass, exp_charge, double_exp_release
 
@@ -71,20 +72,30 @@ def fit_waveforms(outputs, wf_in, wf_out, short_tau, long_tau, charge_up, lback=
             idx = peak - charge_up[0]*2
             if idx < 0:
                 idx = 0
-            charge_time, release_time = times[idx:peak], times[peak:peak+lfor]
-            charge_form, release_form = base_wave[idx:peak], base_wave[peak:peak+lfor]
-            release_coeffs, release_cov = curve_fit(double_exp_release, release_time, release_form,
-                                                    p0=[samp*peak, 200, 5e6, short_tau[0], long_tau[0]],
-                                                    bounds=([samp*peak-lback, 0, 0, short_tau[1], long_tau[1]], [samp*peak+lback, np.inf, np.inf, short_tau[2], long_tau[2]]))
-            charge_coeffs, charge_cov = curve_fit(exp_charge, charge_time, charge_form, p0=[600, samp*peak, charge_up[0]],
-                                                 bounds=([0, samp*peak-lback, charge_up[1]], [np.inf, samp*peak+10, charge_up[2]]))
-            charge_up_part = exp_charge(times[:peak], *charge_coeffs)
-            release_part = double_exp_release(times[peak:], *release_coeffs)
-            fit_waveform = np.concatenate((charge_up_part, release_part))
-            if max(fit_waveform) < max_amp:
+
+            release_coeffs = None
+            charge_coeffs = None
+            try:
+                charge_time, release_time = times[idx:peak], times[peak:peak+lfor]
+                charge_form, release_form = base_wave[idx:peak], base_wave[peak:peak+lfor]
+                release_coeffs, release_cov = curve_fit(double_exp_release, release_time, release_form,
+                                                        p0=[samp*peak, 200, 5e6, short_tau[0], long_tau[0]],
+                                                        bounds=([samp*peak-lback, 0, 0, short_tau[1], long_tau[1]], 
+                                                        [samp*peak+lback, np.inf, np.inf, short_tau[2], long_tau[2]]))
+                charge_coeffs, charge_cov = curve_fit(exp_charge, charge_time, charge_form, p0=[600, samp*peak, charge_up[0]],
+                                                    bounds=([0, samp*peak-lback, charge_up[1]], [np.inf, samp*peak+10, charge_up[2]]))
+                charge_up_part = exp_charge(times[:peak], *charge_coeffs)
+                release_part = double_exp_release(times[peak:], *release_coeffs)
+                fit_waveform = np.concatenate((charge_up_part, release_part))
+                if max(fit_waveform) < max_amp:
+                    continue
+                else:
+                    pulses.append(fit_waveform)
+                    base_wave = base_wave - fit_waveform
+            except RuntimeError:
                 continue
-            else:
-                pulses.append(fit_waveform)
-                base_wave = base_wave - fit_waveform
-        output_waveforms.append(np.sum(pulses, axis=0))
+        if len(pulses) == 0:
+            output_waveforms.append(np.sum(pulses, axis=0))
+        else:
+            output_waveforms.append(np.array([np.mean(wave)]*len(times)))
         outputs[wf_out] = np.array(output_waveforms)

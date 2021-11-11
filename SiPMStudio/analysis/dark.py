@@ -31,55 +31,10 @@ def rando_integrate_current(current_forms, width, sample_time=2e-9):
     return np.sum(current_forms.T[start:stop].T, axis=1)*sample_time
 
 
-def integrate_slices(current_forms, width, window_size, sample_time=2e-9):
-    steps = math.floor((current_forms.shape[1] - 2*window_size) / window_size)
-    charges = []
-    for i in range(steps):
-        start = window_size * (i+1)
-        stop = start + width
-        charges += list(np.sum(current_forms.T[start:stop].T, axis=1)*sample_time)
-    return np.array(charges)
-
-
-def wave_peaks(waveforms, height=500, distance=5):
-    all_peaks = []
-    all_heights = []
-    for waveform in tqdm.tqdm(waveforms, total=len(waveforms)):
-        peak_locs = find_peaks(waveform, height=height, distance=distance)[0]
-        heights = waveform[peak_locs]
-        if len(heights) == len(peak_locs):
-            all_peaks.append(peak_locs)
-            all_heights.append(heights)
-    return np.asarray(all_peaks, dtype=object), np.asarray(all_heights, dtype=object)
-
-
-def cross_talk_frac(heights, min_height=0.5, max_height=1.50):
-    one_pulses = 0
-    other_pulses = 0
-    for height_set in tqdm.tqdm(heights, total=len(heights)):
-        if len(height_set) > 0:
-            if (height_set[0] > min_height) & (height_set[0] < max_height):
-                one_pulses += 1
-            else:
-                other_pulses += 1
-        else:
-            continue
-    return other_pulses / (one_pulses + other_pulses)
-
-
-def cross_talk_frac_v2(peaks, peak_errors, charges):
-    charge_diff = 0
-    if any(np.isnan(peak_errors)) | any(np.isinf(peak_errors)):
-        charge_diff = peaks[1] - peaks[0]
-    else:
-        diffs = peaks[1:] - peaks[:-1]
-        errors_squared = peak_errors**2
-        errors = np.sqrt(errors_squared[1:] + errors_squared[:-1])
-        weights = 1 / errors
-        charge_diff = np.average(diffs, weights=weights)
-    one_charges = charges[(charges > (charge_diff/2)) & (charges < (3*charge_diff/2))]
-    other_charges = charges[charges > (3*charge_diff/2)]
-    return len(one_charges) / (len(one_charges) + len(other_charges))
+def cross_talk_frac(norm_charges, min_charge=0.5, max_charge=1.5):
+    cross_events = np.array(norm_charges)[norm_charges > max_charge]
+    total_events = np.array(norm_charges)[norm_charges > min_charge]
+    return cross_events / total_events
 
 
 def excess_charge_factor(norm_charges, min_charge=0.5, max_charge=1.5):
