@@ -2,6 +2,7 @@ import os
 import glob
 import json
 import argparse
+import warnings
 
 from SiPMStudio.processing.processor import Processor, load_functions
 from SiPMStudio.processing.reprocess_data import reprocess_data
@@ -34,6 +35,9 @@ def reprocess(settings_dict, proc_dict, processor, verbose=False, pattern=None, 
             continue
         if len(processor.proc_list) > 0:
             reprocess_data(settings_dict, processor, file_name, verbose=verbose)
+        else:
+            warnings.warn("No reprocessing functions check that file names in "
+                          "--settings and file names in --procs match!", UserWarning)
         processor.clear()
 
 

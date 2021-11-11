@@ -42,7 +42,7 @@ def _init_new_output(h5_file, proc_dict, num_rows):
 
     for i, output in enumerate(proc_dict["save_waveforms"]):
         if output not in h5_file:
-            head, tail = os.path.split(proc_dict["save_waveforms"])
+            head, tail = os.path.split(output)
             waveform_size = h5_file[f"{head}/wf_len"][()]
             h5_file.create_dataset(output, (num_rows, waveform_size))
 
@@ -53,6 +53,7 @@ def reprocess_mpi(settings_dict, proc_dict, pattern=None, file_name=None, chunk=
     processor = Processor()
     if file_name is None:
         file_list = glob.glob(f"{file_path}/*.h5")
+        file_list.sort()
     else:
         file_list = os.path.join(file_path, file_name)
 
@@ -61,7 +62,7 @@ def reprocess_mpi(settings_dict, proc_dict, pattern=None, file_name=None, chunk=
 
     for output in proc_dict["save_waveforms"]:
         processor.add_to_file(output)
-
+    
     for i, file_name in enumerate(file_list):
         head_dir, tail_name = os.path.split(file_name)
         if pattern is None:

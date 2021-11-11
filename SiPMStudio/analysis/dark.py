@@ -15,8 +15,8 @@ from SiPMStudio.processing.transforms import savgol
 warnings.filterwarnings("ignore", "PeakPropertyWarning: some peaks have a width of 0")
 
 
-def current_waveforms(waveforms, vpp=2, n_bits=14):
-    return waveforms * (vpp / 2 ** n_bits) * (1000 / 31.05) * 1.0e-6
+def current_waveforms(waveforms, amp, vpp=2, n_bits=14):
+    return waveforms * (vpp / 2 ** n_bits) / amp
 
 
 def integrate_current(current_forms, lower_bound=0, upper_bound=200, sample_time=2e-9):
