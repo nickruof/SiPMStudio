@@ -31,6 +31,23 @@ def rando_integrate_current(current_forms, width, sample_time=2e-9):
     stop = start + width
     return np.sum(current_forms.T[start:stop].T, axis=1)*sample_time
 
+def amp_dt(timetags, waveforms, dt):
+    wf_times = []
+    wf_amps = []
+    wf_ids = []
+    for i, wave in enumerate(tqdm(waveforms, total=waveforms.shape[0])):
+        peak_locs, heights = find_peaks(wave)
+        times = [timetags[i] + dt*peak for peak in peak_locs]
+        amps = [wave[peak] for peak in peak_locs]
+        if len(times) > 0:
+            wf_times.extend(times)
+            wf_amps.extend(amps)
+            wf_ids.extend([i]*len(times))
+    wf_dts = np.array(wf_times)[1:] - np.array(wf_times)[:-1]
+    wf_amps = np.array(wf_amps)[1:]
+    wf_ids = np.array(wf_ids)[1:]
+    return wf_dts, wf_amps, wf_ids
+
 
 def cross_talk_frac(norm_charges, min_charge=0.5, max_charge=1.5):
     cross_events = np.array(norm_charges)[norm_charges > max_charge]
