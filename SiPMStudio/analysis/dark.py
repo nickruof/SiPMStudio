@@ -1,5 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
+from numpy.core.numeric import cross
 import tqdm
 import warnings
 import math
@@ -34,7 +35,9 @@ def rando_integrate_current(current_forms, width, sample_time=2e-9):
 def cross_talk_frac(norm_charges, min_charge=0.5, max_charge=1.5):
     cross_events = np.array(norm_charges)[norm_charges > max_charge]
     total_events = np.array(norm_charges)[norm_charges > min_charge]
-    return cross_events / total_events
+
+    error = np.sqrt((cross_events/total_events**2) + (cross_events**2/total_events**3))
+    return cross_events / total_events, error
 
 
 def excess_charge_factor(norm_charges, min_charge=0.5, max_charge=1.5):
