@@ -100,7 +100,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--settings", help="settings file name")
     parser.add_argument("--procs", help="processor settings file name")
-    parser.add_argument("--verbose", help="set verbosity to True or False", type=bool)
+    parser.add_argument("--verbose", help="set verbosity to True or False", type=bool, default=False)
     parser.add_argument("--bias", help="bias name in file pattern")
     args = parser.parse_args()
 
