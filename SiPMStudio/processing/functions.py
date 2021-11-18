@@ -42,6 +42,10 @@ def butter_bandpass(lowcut, highcut, sample_rate, order=5):
     return b, a
 
 
+def exp_decay(x, A, x0, tau):
+    return A*np.exp(-(x-x0)/tau)
+
+
 def exp_charge(x, A, x0, tau):
     result = A*(1 - np.exp(-(x-x0)/tau))
     result[result < 0] = 0
