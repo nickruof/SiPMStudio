@@ -81,7 +81,7 @@ def fit_waveforms(outputs, wf_in, wf_out, short_tau, long_tau, charge_up, lback=
                 charge_form, release_form = base_wave[idx:peak], base_wave[peak:peak+lfor]
                 release_coeffs, release_cov = curve_fit(double_exp_release, release_time, release_form,
                                                         p0=[samp*peak, 200, 5e6, short_tau[0], long_tau[0]],
-                                                        bounds=([samp*peak-lback, 0, 0, short_tau[1], long_tau[1]], 
+                                                        bounds=([samp*peak-lback, 0, 0, short_tau[1], long_tau[1]],
                                                         [samp*peak+lback, np.inf, np.inf, short_tau[2], long_tau[2]]))
                 charge_coeffs, charge_cov = curve_fit(exp_charge, charge_time, charge_form, p0=[600, samp*peak, charge_up[0]],
                                                     bounds=([0, samp*peak-lback, charge_up[1]], [np.inf, samp*peak+10, charge_up[2]]))

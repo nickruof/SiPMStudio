@@ -35,7 +35,7 @@ def amp_dt(timetags, waveforms, dt):
     wf_times = []
     wf_amps = []
     wf_ids = []
-    for i, wave in enumerate(tqdm(waveforms, total=waveforms.shape[0])):
+    for i, wave in enumerate(tqdm.tqdm(waveforms, total=waveforms.shape[0])):
         peak_locs, heights = find_peaks(wave)
         times = [timetags[i] + dt*peak for peak in peak_locs]
         amps = [wave[peak] for peak in peak_locs]
@@ -50,8 +50,8 @@ def amp_dt(timetags, waveforms, dt):
 
 
 def cross_talk_frac(norm_charges, min_charge=0.5, max_charge=1.5):
-    cross_events = np.array(norm_charges)[norm_charges > max_charge]
-    total_events = np.array(norm_charges)[norm_charges > min_charge]
+    cross_events = (np.array(norm_charges)[norm_charges > max_charge]).shape[0]
+    total_events = (np.array(norm_charges)[norm_charges > min_charge]).shape[0]
 
     error = np.sqrt((cross_events/total_events**2) + (cross_events**2/total_events**3))
     return cross_events / total_events, error
