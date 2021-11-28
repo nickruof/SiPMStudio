@@ -1,3 +1,4 @@
+import re
 import numpy as np
 import pywt
 import peakutils
@@ -13,7 +14,7 @@ from statsmodels.robust import mad
 from functools import partial
 from contextlib import suppress
 
-from SiPMStudio.processing.functions import butter_bandpass, exp_charge, double_exp_release
+from SiPMStudio.processing.functions import butter_bandpass, exp_charge, exp_release, double_exp_release
 
 
 def baseline_subtract(outputs, wf_in, wf_out, degree=1, flip=False):
@@ -55,7 +56,7 @@ def wavelet_denoise(waves_data, wavelet="db1", levels=3, mode="hard"):
     return denoised_wave_values
 
 
-def fit_waveforms(outputs, wf_in, wf_out, short_tau, long_tau, charge_up, lback=10, lfor=50, samp=2, max_amp=100):
+def fit_waveforms(outputs, wf_in, wf_out, short_tau, long_tau, charge_up, lback=10, lfor=50, samp=2, max_amp=100, double_exp=True):
     output_waveforms = []
     waves_data = outputs[wf_in]
     times = np.arange(0, 2*waves_data.shape[1], 2)
@@ -85,7 +86,15 @@ def fit_waveforms(outputs, wf_in, wf_out, short_tau, long_tau, charge_up, lback=
                 charge_coeffs, charge_cov = curve_fit(exp_charge, charge_time, charge_form, p0=[600, samp*peak, charge_up[0]],
                                                     bounds=([0, samp*peak-lback, charge_up[1]], [np.inf, samp*peak+10, charge_up[2]]))
                 charge_up_part = exp_charge(times[:peak], *charge_coeffs)
-                release_part = double_exp_release(times[peak:], *release_coeffs)
+                release_part = None
+                if double_exp:
+                    release_part = double_exp_release(times[peak:], *release_coeffs)
+                else:
+                    tau = min(release_coeffs[3], release_coeffs[4])
+                    idx = list(release_coeffs).index(tau)
+                    amp = release_coeffs[idx-2]
+                    x0 = release_coeffs[0]
+                    release_part = exp_release(times[peak:], x0, amp, tau)
                 fit_waveform = np.concatenate((charge_up_part, release_part))
                 if max(fit_waveform) < max_amp:
                     continue

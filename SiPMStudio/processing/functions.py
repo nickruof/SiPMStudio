@@ -48,5 +48,9 @@ def exp_charge(x, A, x0, tau):
     return result
 
 
+def exp_release(x, x0, A, tau):
+    return A*np.exp(-(x-x0)/tau)
+
+
 def double_exp_release(x, x0, A1, A2, b1, b2):
     return A1*np.exp(-(x-x0)/b1) + A2*np.exp(-(x-x0)/b2)
