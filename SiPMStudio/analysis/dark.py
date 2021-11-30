@@ -37,8 +37,20 @@ def amp_dt(timetags, waveforms, dt):
     wf_ids = []
     for i, wave in enumerate(tqdm.tqdm(waveforms, total=waveforms.shape[0])):
         peak_locs, heights = find_peaks(wave)
+        valley_locs, depths = find_peaks(-wave)
         times = [timetags[i] + dt*peak for peak in peak_locs]
-        amps = [wave[peak] for peak in peak_locs]
+        peak_amps = [wave[peak] for peak in peak_locs]
+        valley_amps = [wave[valley] for valley in valley_locs]
+        amps = None
+        if len(valley_amps) > 0:
+            first_amp = [peak_amps[0]]
+            diffs = [peak_amps[i+1] - valley_amps[i] for i in range(0, len(valley_amps))]
+            amps = first_amp + diffs
+        else:
+            if len(peak_amps) == 1:
+                amps = [peak_amps[0]]
+            else:
+                continue
         if len(times) > 0:
             wf_times.extend(times)
             wf_amps.extend(amps)
