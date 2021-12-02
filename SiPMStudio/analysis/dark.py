@@ -31,30 +31,39 @@ def rando_integrate_current(current_forms, width, sample_time=2e-9):
     stop = start + width
     return np.sum(current_forms.T[start:stop].T, axis=1)*sample_time
 
-def amp_dt(timetags, waveforms, dt):
+def amp_dt(timetags, waveforms, dt, height=None, distance=None, width=None):
     wf_times = []
     wf_amps = []
     wf_ids = []
+
+    wf_times_temp = []
+    wf_amps_temp = []
+    wf_ids_temp = []
     for i, wave in enumerate(tqdm.tqdm(waveforms, total=waveforms.shape[0])):
-        peak_locs, heights = find_peaks(wave)
-        valley_locs, depths = find_peaks(-wave)
+        peak_locs, heights = find_peaks(wave, height=height, distance=distance, width=width)
         times = [timetags[i] + dt*peak for peak in peak_locs]
-        peak_amps = [wave[peak] for peak in peak_locs]
-        valley_amps = [wave[valley] for valley in valley_locs]
-        amps = None
-        if len(valley_amps) > 0:
-            first_amp = [peak_amps[0]]
-            diffs = [peak_amps[i+1] - valley_amps[i] for i in range(0, len(valley_amps))]
-            amps = first_amp + diffs
-        else:
-            if len(peak_amps) == 1:
-                amps = [peak_amps[0]]
-            else:
-                continue
-        if len(times) > 0:
-            wf_times.extend(times)
-            wf_amps.extend(amps)
-            wf_ids.extend([i]*len(times))
+        amps = [wave[peak] for peak in peak_locs]
+        if (len(times) == 1) & (len(wf_times_temp) == 0):
+            wf_times_temp.extend([times[0]])
+            wf_amps_temp.extend([amps[0]])
+            wf_ids_temp.extend([i])
+        elif (len(times) >= 2) & (len(wf_times_temp) == 0):
+            wf_times_temp.extend([times[0], times[1]])
+            wf_amps_temp.extend([amps[0], amps[1]])
+            wf_ids_temp.extend([i]*2)
+        elif (len(times) > 0) & (len(wf_times_temp) == 1):
+            wf_times_temp.extend([times[0]])
+            wf_amps_temp.extend([amps[0]])
+            wf_ids_temp.extend([i])
+        if len(wf_times_temp) == 2:
+            wf_times.extend(wf_times_temp)
+            wf_amps.extend(wf_amps_temp)
+            wf_ids.extend(wf_ids_temp)
+
+            wf_times_temp.clear()
+            wf_amps_temp.clear()
+            wf_ids_temp.clear()
+
     wf_dts = np.array(wf_times)[1:] - np.array(wf_times)[:-1]
     wf_amps = np.array(wf_amps)[1:]
     wf_ids = np.array(wf_ids)[1:]

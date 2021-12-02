@@ -3,9 +3,9 @@ import pandas as pd
 
 from SiPMStudio.analysis.dark import current_waveforms, integrate_current
 
-def charge(outputs, wf_in, out, window):
+def charge(outputs, wf_in, out, window, amp):
     waveforms = outputs[wf_in]
-    currents = current_waveforms(waveforms)
+    currents = current_waveforms(waveforms, outputs[amp])
     charges = integrate_current(currents, window[0], window[1])
     outputs[out] = charges
 
