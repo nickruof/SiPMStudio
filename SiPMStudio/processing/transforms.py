@@ -92,11 +92,11 @@ def fit_waveforms(outputs, wf_in, wf_out, short_tau, long_tau, charge_up, lback=
                 else:
                     tau = min(release_coeffs[3], release_coeffs[4])
                     idx = list(release_coeffs).index(tau)
-                    amp = release_coeffs[idx-2]
+                    amp = charge_up_part[-1]
                     x0 = release_coeffs[0]
                     release_part = exp_release(times[peak:], x0, amp, tau)
                 fit_waveform = np.concatenate((charge_up_part, release_part))
-                if max(fit_waveform) < max_amp:
+                if (release_coeffs[1]+release_coeffs[2]) < max_amp:
                     continue
                 else:
                     pulses.append(fit_waveform)
