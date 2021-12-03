@@ -41,26 +41,28 @@ def butter_bandpass_filter(waves_data, digitizer, lowcut, highcut, order=5):
     return filtered_data
 
 
-def wavelet_denoise(waves_data, wavelet="db1", levels=3, mode="hard"):
+def denoise_function(wave, wavelet_type, num_levels, thresh_mode):
+    coeff = pywt.wavedec(data=wave, wavelet=wavelet_type, level=num_levels)
+    sigma = mad(coeff[-num_levels])
+    uthresh = sigma * np.sqrt(2 * np.log(len(wave)))
+    coeff[1:] = (pywt.threshold(i, value=uthresh, mode=thresh_mode) for i in coeff[1:])
+    denoised_wave = pywt.waverec(coeff, wavelet_type)
+    return denoised_wave
 
-    def denoise_function(wave, wavelet_type, num_levels, thresh_mode):
-        coeff = pywt.wavedec(data=wave, wavelet=wavelet, level=levels)
-        sigma = mad(coeff[-levels])
-        uthresh = sigma * np.sqrt(2 * np.log(len(wave)))
-        coeff[1:] = (pywt.threshold(i, value=uthresh, mode=mode) for i in coeff[1:])
-        denoised_wave = pywt.waverec(coeff, wavelet)
-        return denoised_wave
 
+def wavelet_denoise(outputs, wf_in, wf_out, wavelet="db1", levels=3, mode="hard"):
+    waves_data = outputs[wf_in]
     axis_function = partial(denoise_function, wavelet_type=wavelet, num_levels=levels, thresh_mode=mode)
     denoised_wave_values = np.apply_along_axis(axis_function, 1, waves_data)
-    return denoised_wave_values
+    outputs[wf_out] = denoised_wave_values
 
 
-def fit_waveforms(outputs, wf_in, wf_out, short_tau, long_tau, charge_up, lback=10, lfor=50, samp=2, max_amp=100, double_exp=True):
+def fit_waveforms(outputs, wf_in, wf_out, short_tau, long_tau, charge_up, lback=10, lfor=50, samp=2, max_amp=100):
     output_waveforms = []
     waves_data = outputs[wf_in]
     times = np.arange(0, 2*waves_data.shape[1], 2)
     for i, wave in enumerate(waves_data):
+        new_wave = denoise_function(wave, "db1", 3, "hard")
         peak_info = find_peaks(wave, height=250, distance=10, width=4)
         if len(peak_info[0]) == 0:
             output_waveforms.append(np.array([0]*len(times)))
@@ -86,15 +88,7 @@ def fit_waveforms(outputs, wf_in, wf_out, short_tau, long_tau, charge_up, lback=
                 charge_coeffs, charge_cov = curve_fit(exp_charge, charge_time, charge_form, p0=[600, samp*peak, charge_up[0]],
                                                     bounds=([0, samp*peak-lback, charge_up[1]], [np.inf, samp*peak+10, charge_up[2]]))
                 charge_up_part = exp_charge(times[:peak], *charge_coeffs)
-                release_part = None
-                if double_exp:
-                    release_part = double_exp_release(times[peak:], *release_coeffs)
-                else:
-                    tau = min(release_coeffs[3], release_coeffs[4])
-                    idx = list(release_coeffs).index(tau)
-                    amp = charge_up_part[-1]
-                    x0 = release_coeffs[0]
-                    release_part = exp_release(times[peak:], x0, amp, tau)
+                release_part = double_exp_release(times[peak:], *release_coeffs)
                 fit_waveform = np.concatenate((charge_up_part, release_part))
                 if (release_coeffs[1]+release_coeffs[2]) < max_amp:
                     continue

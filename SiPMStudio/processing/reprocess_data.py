@@ -11,6 +11,8 @@ def data_chunk(h5_file, begin, end):
         for key in h5_file[f"/processed/channels/{channel}"].keys():
             if len(h5_file[f"/processed/channels/{channel}/{key}"].shape) > 0:
                 storage[f"/processed/channels/{channel}/{key}"] = h5_file[f"/processed/channels/{channel}/{key}"][begin:end]
+            else:
+                storage[f"/processed/channels/{channel}/{key}"] = h5_file[f"/processed/channels/{channel}/{key}"][()]
     return storage
 
 
