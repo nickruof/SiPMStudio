@@ -29,6 +29,13 @@ def baseline_subtract(outputs, wf_in, wf_out, degree=1, flip=False):
     outputs[wf_out] = processed_waveforms
 
 
+def baseline_subtract_simple(outputs, wf_in, wf_out, lead_up=200):
+    waves_data = outputs[wf_in]
+    baseline = np.array([np.mean(waves_data.T[:lead_up], axis=0)])
+    baseline = np.repeat(baseline, repeats=waves_data.shape[1], axis=0).T
+    outputs[wf_out] = waves_data - baseline
+
+
 def savgol(waves_data, window=15, order=2):
     filtered_data = savgol_filter(waves_data, window, order, axis=1)
     return filtered_data
