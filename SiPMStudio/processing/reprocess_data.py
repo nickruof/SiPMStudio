@@ -59,6 +59,7 @@ def reprocess_data(settings, processor, file_name=None, verbose=False, chunk=200
                 begin, end = _chunk_range(i, chunk, num_rows)
                 storage = data_chunk(h5_file, begin, end)
                 output_storage = _process_chunk(storage, processor)
+                print(output_storage["/processed/channels/sipm/dn_wf"])
                 output_chunk(output_storage, h5_file, begin, end)
                 processor.reset_outputs()
 

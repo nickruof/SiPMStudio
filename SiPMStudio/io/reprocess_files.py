@@ -24,7 +24,10 @@ def reprocess(settings_dict, proc_dict, processor, verbose=False, pattern=None, 
 
     for output in proc_dict["save_output"]:
         processor.add_to_file(output)
-    
+
+    for output in proc_dict["save_waveforms"]:
+        processor.add_to_file(output)
+
     for i, file_name in enumerate(file_list):
         head_dir, tail_name = os.path.split(file_name)
         if pattern is None:

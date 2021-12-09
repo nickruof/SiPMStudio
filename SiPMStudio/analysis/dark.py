@@ -9,6 +9,8 @@ from scipy.optimize import curve_fit
 from scipy.signal import find_peaks
 from scipy.stats import linregress
 
+import scipy.constants as const
+
 from SiPMStudio.processing.functions import gaussian
 import SiPMStudio.plots.plots_base as plots_base
 from SiPMStudio.processing.transforms import savgol
@@ -30,6 +32,15 @@ def rando_integrate_current(current_forms, width, sample_time=2e-9):
     start = np.random.randint(start_range, stop_range)
     stop = start + width
     return np.sum(current_forms.T[start:stop].T, axis=1)*sample_time
+
+
+def gain(peak_locs, peak_errors):
+    peak_locs = np.array(peak_locs)[1:]
+    peak_errors = np.array(peak_errors)[1:]
+    peak_diffs = peak_locs[1:] - peak_locs[:-1]
+    diff_errors = np.sqrt((peak_errors[1:] + peak_errors[:-1])**2)
+    return np.sum(peak_diffs * diff_errors) / np.sum(diff_errors) / const.e
+
 
 def amp_dt(timetags, waveforms, dt, height=None, distance=None, width=None):
     wf_times = []

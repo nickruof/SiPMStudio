@@ -12,9 +12,8 @@ from scipy.signal import savgol_filter, filtfilt, find_peaks
 from scipy.optimize import curve_fit
 from statsmodels.robust import mad
 from functools import partial
-from contextlib import suppress
 
-from SiPMStudio.processing.functions import butter_bandpass, exp_charge, exp_release, double_exp_release
+from SiPMStudio.processing.functions import butter_bandpass, exp_charge, exp_release, double_exp_release, gaussian
 
 
 def baseline_subtract(outputs, wf_in, wf_out, degree=1, flip=False):
@@ -25,15 +24,32 @@ def baseline_subtract(outputs, wf_in, wf_out, degree=1, flip=False):
         waves_data = outputs[wf_in]
     axis_function = partial(peakutils.baseline, deg=degree)
     baselines = np.apply_along_axis(axis_function, 1, waves_data)
-    processed_waveforms = waves_data - baselines
-    outputs[wf_out] = processed_waveforms
+    outputs[wf_out] = waves_data - baselines
 
 
-def baseline_subtract_simple(outputs, wf_in, wf_out, lead_up=200):
+def baseline_subtract_simple(outputs, wf_in, wf_out):
     waves_data = outputs[wf_in]
-    baseline = np.array([np.mean(waves_data.T[:lead_up], axis=0)])
-    baseline = np.repeat(baseline, repeats=waves_data.shape[1], axis=0).T
-    outputs[wf_out] = waves_data - baseline
+    def axis_function(waveform):
+        first_average = np.mean(waveform)
+        first_std = np.std(waveform)
+        second_average = np.mean(waveform[waveform < (first_average + first_std)])
+        baseline = np.repeat(second_average, repeats=waves_data.shape[1])
+        return baseline
+    baselines = np.apply_along_axis(axis_function, 1, waves_data)
+    outputs[wf_out] = waves_data - baselines
+
+
+def baseline_subtract_gauss(outputs, wf_in, wf_out):
+    waves_data = outputs[wf_in]
+    def axis_function(waveform):
+        n, bins = np.histogram(waveform, bins=100)
+        bin_centers = (bins[1:] + bins[:-1]) / 2
+        max_loc = np.where(n == max(n))[0][0]
+        coeffs, covs = curve_fit(gaussian, bin_centers, n, p0=[bin_centers[max_loc], 100, 100])
+        base_value = coeffs[0]
+        return np.repeat(base_value, repeats=len(waveform))
+    baselines = np.apply_along_axis(axis_function, 1, waves_data)
+    outputs[wf_out] = waves_data - baselines
 
 
 def savgol(waves_data, window=15, order=2):
