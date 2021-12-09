@@ -64,18 +64,22 @@ def butter_bandpass_filter(waves_data, digitizer, lowcut, highcut, order=5):
     return filtered_data
 
 
-def denoise_function(wave, wavelet_type, num_levels, thresh_mode):
+def denoise_function(wave, wavelet_type, num_levels, thresh_mode, zero=False):
     coeff = pywt.wavedec(data=wave, wavelet=wavelet_type, level=num_levels)
     sigma = mad(coeff[-num_levels])
-    uthresh = sigma * np.sqrt(2 * np.log(len(wave)))
+    uthresh = 0
+    if zero:
+        uthresh = 1e6
+    else:
+        uthresh = sigma * np.sqrt(2 * np.log(len(wave)))
     coeff[1:] = (pywt.threshold(i, value=uthresh, mode=thresh_mode) for i in coeff[1:])
     denoised_wave = pywt.waverec(coeff, wavelet_type)
     return denoised_wave
 
 
-def wavelet_denoise(outputs, wf_in, wf_out, wavelet="db1", levels=3, mode="hard"):
+def wavelet_denoise(outputs, wf_in, wf_out, wavelet="db1", levels=3, mode="hard", zero=False):
     waves_data = outputs[wf_in]
-    axis_function = partial(denoise_function, wavelet_type=wavelet, num_levels=levels, thresh_mode=mode)
+    axis_function = partial(denoise_function, wavelet_type=wavelet, num_levels=levels, thresh_mode=mode, zero=zero)
     denoised_wave_values = np.apply_along_axis(axis_function, 1, waves_data)
     outputs[wf_out] = denoised_wave_values
 
