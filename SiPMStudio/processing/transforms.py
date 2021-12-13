@@ -48,8 +48,11 @@ def baseline_subtract_gauss(outputs, wf_in, wf_out):
         coeffs, covs = curve_fit(gaussian, bin_centers, n, p0=[bin_centers[max_loc], 100, 100])
         base_value = coeffs[0]
         return np.repeat(base_value, repeats=len(waveform))
-    baselines = np.apply_along_axis(axis_function, 1, waves_data)
-    outputs[wf_out] = waves_data - baselines
+    try:
+        baselines = np.apply_along_axis(axis_function, 1, waves_data)
+        outputs[wf_out] = waves_data - baselines
+    except:
+        baseline_subtract(outputs, wf_in, wf_out)
 
 
 def savgol(waves_data, window=15, order=2):

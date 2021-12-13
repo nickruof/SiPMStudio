@@ -42,6 +42,15 @@ def gain(peak_locs, peak_errors):
     return np.sum(peak_diffs * diff_errors) / np.sum(diff_errors) / const.e
 
 
+def all_dts(timetags, waveforms, dt, height=None, distance=None, width=None):
+    all_times = []
+    for i, wave in enumerate(tqdm.tqdm(waveforms, total=waveforms.shape[0])):
+        peak_locs, heights = find_peaks(wave, height=height, distance=distance, width=width)
+        times = [timetags[i] + dt*peak for peak in peak_locs]
+        all_times.extend(times)
+    return np.array(all_times)
+
+
 def amp_dt(timetags, waveforms, dt, height=None, distance=None, width=None):
     wf_times = []
     wf_amps = []
