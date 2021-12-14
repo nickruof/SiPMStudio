@@ -48,7 +48,7 @@ def all_dts(timetags, waveforms, dt, height=None, distance=None, width=None):
         peak_locs, heights = find_peaks(wave, height=height, distance=distance, width=width)
         times = [timetags[i] + dt*peak for peak in peak_locs]
         all_times.extend(times)
-    return np.array(all_times)
+    return np.array(all_times[1:]) - np.array(all_times[:-1])
 
 
 def amp_dt(timetags, waveforms, dt, height=None, distance=None, width=None):

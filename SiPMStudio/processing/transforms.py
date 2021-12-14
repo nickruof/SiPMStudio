@@ -27,13 +27,11 @@ def baseline_subtract(outputs, wf_in, wf_out, degree=1, flip=False):
     outputs[wf_out] = waves_data - baselines
 
 
-def baseline_subtract_simple(outputs, wf_in, wf_out):
+def baseline_subtract_simple(outputs, wf_in, wf_out, t_range=[0, 100]):
     waves_data = outputs[wf_in]
     def axis_function(waveform):
-        first_average = np.mean(waveform)
-        first_std = np.std(waveform)
-        second_average = np.mean(waveform[waveform < (first_average + first_std)])
-        baseline = np.repeat(second_average, repeats=waves_data.shape[1])
+        first_average = np.mean(waveform[t_range[0]: t_range[1]])
+        baseline = np.repeat(first_average, repeats=len(waveform))
         return baseline
     baselines = np.apply_along_axis(axis_function, 1, waves_data)
     outputs[wf_out] = waves_data - baselines

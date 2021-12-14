@@ -18,9 +18,9 @@ def process_files(settings_file, proc_file, bias=None, overwrite=True, chunk=400
     processor = Processor()
     load_functions(proc_dict, processor)
     process_data(
-        settings_dict, 
-        processor, bias=bias, overwrite=overwrite, chunk=chunk, 
-        write_size=write_size, 
+        settings_dict,
+        processor, bias=bias, overwrite=overwrite, chunk=chunk,
+        write_size=write_size,
         verbose=verbose
     )
 
@@ -30,7 +30,7 @@ if __name__ == "__main__":
     parser.add_argument("--settings", help="settings file name")
     parser.add_argument("--procs", help="processor settings file name")
     parser.add_argument("--bias", help="list of biases to process, comma separated", default=None)
-    parser.add_argument("--verbose", help="print extra output at runtime", type=bool)
+    parser.add_argument("--verbose", help="print extra output at runtime", type=bool, default=True)
     args = parser.parse_args()
 
     bias_list = None
