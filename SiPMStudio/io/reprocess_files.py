@@ -2,6 +2,7 @@ import os
 import glob
 import json
 import argparse
+import warnings
 
 from SiPMStudio.processing.processor import Processor, load_functions
 from SiPMStudio.processing.reprocess_data import reprocess_data
@@ -23,7 +24,10 @@ def reprocess(settings_dict, proc_dict, processor, verbose=False, pattern=None, 
 
     for output in proc_dict["save_output"]:
         processor.add_to_file(output)
-    
+
+    for output in proc_dict["save_waveforms"]:
+        processor.add_to_file(output)
+
     for i, file_name in enumerate(file_list):
         head_dir, tail_name = os.path.split(file_name)
         if pattern is None:
@@ -34,6 +38,9 @@ def reprocess(settings_dict, proc_dict, processor, verbose=False, pattern=None, 
             continue
         if len(processor.proc_list) > 0:
             reprocess_data(settings_dict, processor, file_name, verbose=verbose)
+        else:
+            warnings.warn("No reprocessing functions check that file names in "
+                          "--settings and file names in --procs match!", UserWarning)
         processor.clear()
 
 
@@ -55,7 +62,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--settings", help="settings file name")
     parser.add_argument("--procs", help="processor settings file name")
-    parser.add_argument("--verbose", help="set verbosity to True or False", type=bool)
+    parser.add_argument("--verbose", help="set verbosity to True or False", type=bool, default=True)
     parser.add_argument("--bias", help="bias name in file pattern")
     args = parser.parse_args()
 

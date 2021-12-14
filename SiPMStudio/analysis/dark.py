@@ -1,5 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
+from numpy.core.numeric import cross
 import tqdm
 import warnings
 import math
@@ -8,6 +9,8 @@ from scipy.optimize import curve_fit
 from scipy.signal import find_peaks
 from scipy.stats import linregress
 
+import scipy.constants as const
+
 from SiPMStudio.processing.functions import gaussian
 import SiPMStudio.plots.plots_base as plots_base
 from SiPMStudio.processing.transforms import savgol
@@ -15,8 +18,8 @@ from SiPMStudio.processing.transforms import savgol
 warnings.filterwarnings("ignore", "PeakPropertyWarning: some peaks have a width of 0")
 
 
-def current_waveforms(waveforms, vpp=2, n_bits=14):
-    return waveforms * (vpp / 2 ** n_bits) * (1000 / 31.05) * 1.0e-6
+def current_waveforms(waveforms, amp, vpp=2, n_bits=14):
+    return waveforms * (vpp / 2 ** n_bits) / amp
 
 
 def integrate_current(current_forms, lower_bound=0, upper_bound=200, sample_time=2e-9):
@@ -31,55 +34,68 @@ def rando_integrate_current(current_forms, width, sample_time=2e-9):
     return np.sum(current_forms.T[start:stop].T, axis=1)*sample_time
 
 
-def integrate_slices(current_forms, width, window_size, sample_time=2e-9):
-    steps = math.floor((current_forms.shape[1] - 2*window_size) / window_size)
-    charges = []
-    for i in range(steps):
-        start = window_size * (i+1)
-        stop = start + width
-        charges += list(np.sum(current_forms.T[start:stop].T, axis=1)*sample_time)
-    return np.array(charges)
+def gain(peak_locs, peak_errors):
+    peak_locs = np.array(peak_locs)[1:]
+    peak_errors = np.array(peak_errors)[1:]
+    peak_diffs = peak_locs[1:] - peak_locs[:-1]
+    diff_errors = np.sqrt((peak_errors[1:] + peak_errors[:-1])**2)
+    return np.sum(peak_diffs * diff_errors) / np.sum(diff_errors) / const.e
 
 
-def wave_peaks(waveforms, height=500, distance=5):
-    all_peaks = []
-    all_heights = []
-    for waveform in tqdm.tqdm(waveforms, total=len(waveforms)):
-        peak_locs = find_peaks(waveform, height=height, distance=distance)[0]
-        heights = waveform[peak_locs]
-        if len(heights) == len(peak_locs):
-            all_peaks.append(peak_locs)
-            all_heights.append(heights)
-    return np.asarray(all_peaks, dtype=object), np.asarray(all_heights, dtype=object)
+def all_dts(timetags, waveforms, dt, height=None, distance=None, width=None):
+    all_times = []
+    for i, wave in enumerate(tqdm.tqdm(waveforms, total=waveforms.shape[0])):
+        peak_locs, heights = find_peaks(wave, height=height, distance=distance, width=width)
+        times = [timetags[i] + dt*peak for peak in peak_locs]
+        all_times.extend(times)
+    return np.array(all_times[1:]) - np.array(all_times[:-1])
 
 
-def cross_talk_frac(heights, min_height=0.5, max_height=1.50):
-    one_pulses = 0
-    other_pulses = 0
-    for height_set in tqdm.tqdm(heights, total=len(heights)):
-        if len(height_set) > 0:
-            if (height_set[0] > min_height) & (height_set[0] < max_height):
-                one_pulses += 1
-            else:
-                other_pulses += 1
-        else:
-            continue
-    return other_pulses / (one_pulses + other_pulses)
+def amp_dt(timetags, waveforms, dt, height=None, distance=None, width=None):
+    wf_times = []
+    wf_amps = []
+    wf_ids = []
+
+    wf_times_temp = []
+    wf_amps_temp = []
+    wf_ids_temp = []
+    for i, wave in enumerate(tqdm.tqdm(waveforms, total=waveforms.shape[0])):
+        peak_locs, heights = find_peaks(wave, height=height, distance=distance, width=width)
+        times = [timetags[i] + dt*peak for peak in peak_locs]
+        amps = [wave[peak] for peak in peak_locs]
+        if (len(times) == 1) & (len(wf_times_temp) == 0):
+            wf_times_temp.extend([times[0]])
+            wf_amps_temp.extend([amps[0]])
+            wf_ids_temp.extend([i])
+        elif (len(times) >= 2) & (len(wf_times_temp) == 0):
+            wf_times_temp.extend([times[0], times[1]])
+            wf_amps_temp.extend([amps[0], amps[1]])
+            wf_ids_temp.extend([i]*2)
+        elif (len(times) > 0) & (len(wf_times_temp) == 1):
+            wf_times_temp.extend([times[0]])
+            wf_amps_temp.extend([amps[0]])
+            wf_ids_temp.extend([i])
+        if len(wf_times_temp) == 2:
+            wf_times.extend(wf_times_temp)
+            wf_amps.extend(wf_amps_temp)
+            wf_ids.extend(wf_ids_temp)
+
+            wf_times_temp.clear()
+            wf_amps_temp.clear()
+            wf_ids_temp.clear()
+
+    wf_dts = np.array(wf_times)[1:] - np.array(wf_times)[:-1]
+    wf_amps = np.array(wf_amps)[1:]
+    wf_ids = np.array(wf_ids)[1:]
+    return wf_dts, wf_amps, wf_ids
 
 
-def cross_talk_frac_v2(peaks, peak_errors, charges):
-    charge_diff = 0
-    if any(np.isnan(peak_errors)) | any(np.isinf(peak_errors)):
-        charge_diff = peaks[1] - peaks[0]
-    else:
-        diffs = peaks[1:] - peaks[:-1]
-        errors_squared = peak_errors**2
-        errors = np.sqrt(errors_squared[1:] + errors_squared[:-1])
-        weights = 1 / errors
-        charge_diff = np.average(diffs, weights=weights)
-    one_charges = charges[(charges > (charge_diff/2)) & (charges < (3*charge_diff/2))]
-    other_charges = charges[charges > (3*charge_diff/2)]
-    return len(one_charges) / (len(one_charges) + len(other_charges))
+def cross_talk_frac(norm_charges, min_charge=0.5, max_charge=1.5):
+    cross_events = (np.array(norm_charges)[norm_charges > max_charge]).shape[0]
+    total_events = (np.array(norm_charges)[norm_charges > min_charge]).shape[0]
+
+    error = np.sqrt((cross_events/total_events**2) + (cross_events**2/total_events**3))
+    return cross_events / total_events, error
 
 
 def excess_charge_factor(norm_charges, min_charge=0.5, max_charge=1.5):

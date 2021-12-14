@@ -2,6 +2,7 @@ import tqdm
 import numpy as np
 from scipy.optimize import curve_fit
 from scipy.signal import find_peaks
+from scipy.stats import linregress
 
 from SiPMStudio.processing.functions import double_exp_release, exp_charge, gaussian
 
@@ -25,4 +26,12 @@ def time_constants(times, one_waves, lback=10, lfor=500, verbose=False):
         except RuntimeError:
             continue
     return short_taus, long_taus, charge_taus
-        
+
+
+def fit_exp(x, y):
+    x_new = x[y > 0]
+    y_new = y[y > 0]
+    ln_y = np.log(y_new)
+    slope, intercept, r, p, stderr = linregress(x_new, ln_y)
+    scale = (1 / (1e-9*1e3))
+    return abs(slope)*scale, stderr*scale, slope, intercept
