@@ -16,6 +16,9 @@ def process_metadata(settings, digitizer, overwrite=True, verbose=False):
         print("Number of Files to Process: "+str(len(settings["init_info"])))
         print("Output Path: ", settings["output_path_raw"])
 
+    if not os.path.exists(settings["output_path_raw"]):
+        os.makedirs(settings["output_path_raw"])
+
     if overwrite is True:
         output_path = settings["output_path_raw"]
         file_list = glob.glob(f"{output_path}/*.h5")

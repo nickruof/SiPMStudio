@@ -8,6 +8,10 @@ def process_data(settings, processor, bias=None, overwrite=False, verbose=False,
 
     path = settings["output_path_raw"]
     path_t2 = settings["output_path_t2"]
+
+    if not os.path.exists(path_t2):
+        os.makedirs(path_t2)
+
     data_files = []
     output_files = []
 
