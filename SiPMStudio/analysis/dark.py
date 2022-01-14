@@ -51,7 +51,7 @@ def all_dts(timetags, waveforms, dt, height=None, distance=None, width=None):
     return np.array(all_times[1:]) - np.array(all_times[:-1])
 
 
-def amp_dt(timetags, waveforms, dt, height=None, distance=None, width=None):
+def amp_dt(timetags, waveforms, dt, norm_charges, lower=0.5, height=None, distance=None, width=None):
     wf_times = []
     wf_amps = []
     wf_ids = []
@@ -59,7 +59,8 @@ def amp_dt(timetags, waveforms, dt, height=None, distance=None, width=None):
     wf_times_temp = []
     wf_amps_temp = []
     wf_ids_temp = []
-    for i, wave in enumerate(tqdm.tqdm(waveforms, total=waveforms.shape[0])):
+    signals = waveforms[norm_charges > lower]
+    for i, wave in enumerate(tqdm.tqdm(signals, total=signals.shape[0])):
         peak_locs, heights = find_peaks(wave, height=height, distance=distance, width=width)
         times = [timetags[i] + dt*peak for peak in peak_locs]
         amps = [wave[peak] for peak in peak_locs]
