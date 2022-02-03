@@ -23,7 +23,8 @@ class Digitizer(DataLoader):
 
 class CAENDT5730(Digitizer):
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, compass="v1", *args, **kwargs):
+        self.compass = compass
         self.id = None
         self.model_name = "DT5730"
         self.file_header = None
@@ -61,14 +62,24 @@ class CAENDT5730(Digitizer):
         return 24 + 2 * num_samples  # number of bytes / 2
 
     def get_event(self, event_data_bytes):
-        self.decoded_values["board"] = np.frombuffer(event_data_bytes[0:2], dtype=np.uint16)[0]
-        self.decoded_values["channel"] = np.frombuffer(event_data_bytes[2:4], dtype=np.uint16)[0]
-        self.decoded_values["timestamp"] = np.frombuffer(event_data_bytes[4:12], dtype=np.uint64)[0]
-        self.decoded_values["energy"] = np.frombuffer(event_data_bytes[12:14], dtype=np.uint16)[0]
-        self.decoded_values["energy_short"] = np.frombuffer(event_data_bytes[14:16], dtype=np.uint16)[0]
-        self.decoded_values["flags"] = np.frombuffer(event_data_bytes[16:20], np.uint32)[0]
-        self.decoded_values["num_samples"] = np.frombuffer(event_data_bytes[20:24], dtype=np.uint32)[0]
-        self.decoded_values["waveform"] = np.frombuffer(event_data_bytes[24:], dtype=np.uint16)
+        if self.compass == "v1":
+            self.decoded_values["board"] = np.frombuffer(event_data_bytes[0:2], dtype=np.uint16)[0]
+            self.decoded_values["channel"] = np.frombuffer(event_data_bytes[2:4], dtype=np.uint16)[0]
+            self.decoded_values["timestamp"] = np.frombuffer(event_data_bytes[4:12], dtype=np.uint64)[0]
+            self.decoded_values["energy"] = np.frombuffer(event_data_bytes[12:14], dtype=np.uint16)[0]
+            self.decoded_values["energy_short"] = np.frombuffer(event_data_bytes[14:16], dtype=np.uint16)[0]
+            self.decoded_values["flags"] = np.frombuffer(event_data_bytes[16:20], np.uint32)[0]
+            self.decoded_values["num_samples"] = np.frombuffer(event_data_bytes[20:24], dtype=np.uint32)[0]
+            self.decoded_values["waveform"] = np.frombuffer(event_data_bytes[24:], dtype=np.uint16)
+        elif self.compass == "v2":
+            self.decoded_values["board"] = np.frombuffer(event_data_bytes[2:4], dtype=np.uint16)[0]
+            self.decoded_values["channel"] = np.frombuffer(event_data_bytes[4:6], dtype=np.uint16)[0]
+            self.decoded_values["timestamp"] = np.frombuffer(event_data_bytes[6:14], dtype=np.uint64)[0]
+            self.decoded_values["energy"] = np.frombuffer(event_data_bytes[14:16], dtype=np.uint16)[0]
+            self.decoded_values["energy_short"] = np.frombuffer(event_data_bytes[16:18], dtype=np.uint16)[0]
+            self.decoded_values["flags"] = np.frombuffer(event_data_bytes[18:22], np.uint32)[0]
+            self.decoded_values["num_samples"] = np.frombuffer(event_data_bytes[22:26], dtype=np.uint32)[0]
+            self.decoded_values["waveform"] = np.frombuffer(event_data_bytes[26:], dtype=np.uint16)
         return self._assemble_data_row()
 
     def get_dt(self):
