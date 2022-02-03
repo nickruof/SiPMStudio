@@ -1,0 +1,27 @@
+{
+    "input_path": "/Volumes/TOSHIBA_EXT/sipm_data_2/ketek_box/ketek_room_12162021",
+    "output_path_raw": "/Volumes/TOSHIBA_EXT/sipm_data_2/ketek_box/ketek_room_12162021/raw",
+    "output_path_t2": "/Volumes/TOSHIBA_EXT/sipm_data_2/ketek_box/ketek_room_12162021/t2", 
+    "init_info": [
+     {"files": ["Data_CH0@DT5730_1463_ketek_room_25.bin"], "bias": 25, "channels": ["sipm"]},
+     {"files": ["Data_CH0@DT5730_1463_ketek_room_26.bin"], "bias": 26, "channels": ["sipm"]},
+     {"files": ["Data_CH0@DT5730_1463_ketek_room_27.bin"], "bias": 27, "channels": ["sipm"]},
+     {"files": ["Data_CH0@DT5730_1463_ketek_room_28.bin"], "bias": 28, "channels": ["sipm"]},
+     {"files": ["Data_CH0@DT5730_1463_ketek_room_29.bin"], "bias": 29, "channels": ["sipm"]},
+     {"files": ["Data_CH0@DT5730_1463_ketek_room_30.bin"], "bias": 30, "channels": ["sipm"]}
+    ],
+    "file_base_name": "ketek_room",
+    "output_data": [],
+    "iv_file": "/Volumes/TOSHIBA_EXT/sipm_data_2/ketek_box/ketekboxiv.csv", 
+    "model": "ketek room",
+    "area": 9,
+    "amplifier": {
+        "sipm":{
+            "functions": ["trans_amp", "voltage_divider", "non_invert_amp", "invert_amp", "voltage_divider"],
+            "values": [{"R1": 1.5e3}, {"R1": 49.9, "R2": 49.9}, {"R1": 680, "R2": 75}, {"R1": 750, "R2": 90.9}, {"R1": 49.9, "R2": 49.9}]
+        }
+    },
+    "v_range": {
+        "sipm": 2
+    }
+}
