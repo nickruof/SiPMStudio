@@ -1,0 +1,46 @@
+{
+    "processes": {
+        "charge": {
+            "t2_ketek_room_25.h5": {
+                "wf_in": "/processed/channels/sipm/blr_wf",
+                "out": "/processed/channels/sipm/charge",
+                "window": [475, 600],
+                "amp": "/processed/channels/sipm/amp"
+            },
+            "t2_ketek_room_26.h5": {
+                "wf_in": "/processed/channels/sipm/blr_wf",
+                "out": "/processed/channels/sipm/charge",
+                "window": [475, 600],
+                "amp": "/processed/channels/sipm/amp"
+            },
+            "t2_ketek_room_27.h5": {
+                "wf_in": "/processed/channels/sipm/blr_wf",
+                "out": "/processed/channels/sipm/charge",
+                "window": [475, 600],
+                "amp": "/processed/channels/sipm/amp"
+            },
+            "t2_ketek_room_28.h5": {
+                "wf_in": "/processed/channels/sipm/blr_wf",
+                "out": "/processed/channels/sipm/charge",
+                "window": [475, 600],
+                "amp": "/processed/channels/sipm/amp"
+            },
+            "t2_ketek_room_29.h5": {
+                "wf_in": "/processed/channels/sipm/blr_wf",
+                "out": "/processed/channels/sipm/charge",
+                "window": [475, 600],
+                "amp": "/processed/channels/sipm/amp"
+            },
+            "t2_ketek_room_30.h5": {
+                "wf_in": "/processed/channels/sipm/blr_wf",
+                "out": "/processed/channels/sipm/charge",
+                "window": [475, 600],
+                "amp": "/processed/channels/sipm/amp"
+            }
+        }
+    },
+    "save_output": [
+        "/processed/channels/sipm/charge"
+    ],
+    "save_waveforms": []
+}
