@@ -12,7 +12,7 @@ def process_raw_files(settings_file, compass="v1"):
     with open(settings_file, "r") as json_file:
         settings_dict = json.load(json_file)
 
-    digitizer = CAENDT5730()
+    digitizer = CAENDT5730(compass=compass)
     process_metadata(settings_dict, digitizer, verbose=True)
 
 
