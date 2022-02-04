@@ -65,7 +65,7 @@ def _output_per_waveforms(output_name, output_path, events, waveforms, channel, 
 
 
 def _output_to_h5file(output_name, output_path, events, bias, digitizer):
-    destination = os.path.join(output_path, f"raw_{output_name}_{bias}.h5")
+    destination = _name_assign(output_name, output_path, bias)
     with h5py.File(destination, "a") as output_file:
         if "timetag" not in output_file.keys():
             output_file.create_dataset(f"timetag", data=events.T[0] / 1e3)
@@ -92,3 +92,12 @@ def _compute_amplification(settings, channel):
         amp_func = getattr(pc, func)
         full_amp *= amp_func(**settings[channel]["values"][i])
     return full_amp
+
+
+def _name_assign(output_name, output_path, bias):
+    destination = os.path.join(output_path, f"raw_{output_name}_{bias}.h5")
+    count = 0
+    while os.path.exists(destination):
+        count += 1
+        destination = os.path.join(output_path, f"raw_{output_name}_{bias}_{count}.h5")
+    return destination
