@@ -31,7 +31,7 @@ def process_metadata(settings, digitizer, overwrite=True, verbose=False):
             num_entries = 0
             event_rows = []
             waveform_rows = []
-            first_event_size, event_size = digitizer.get_event_size(file_name, num_entries)
+            first_event_size, event_size = digitizer.get_event_size(file_name)
             with open(file_name, "rb") as metadata_file:
                 event_data_bytes = metadata_file.read(first_event_size)
                 while event_data_bytes != b"":

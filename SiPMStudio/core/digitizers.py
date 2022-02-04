@@ -56,7 +56,7 @@ class CAENDT5730(Digitizer):
         self.int_window = settings["int_window"]
         self.file_header = "DataR_CH"+str(settings["channel"])+"@"+self.model_name+"_"+str(settings["id"])+"_"
 
-    def get_event_size(self, t0_file, num_entries):
+    def get_event_size(self, t0_file):
         num_samples = 0
         if self.compass == "v1":
             with open(t0_file, "rb") as file:
@@ -86,14 +86,14 @@ class CAENDT5730(Digitizer):
             if num_entries == 0:
                 self.decoded_values["header"] = np.frombuffer(event_data_bytes[0:2], dtype=np.uint16)
                 offset = 2
-            self.decoded_values["board"] = np.frombuffer(event_data_bytes[offset:2], dtype=np.uint16)[0]
-            self.decoded_values["channel"] = np.frombuffer(event_data_bytes[offset+2:4], dtype=np.uint16)[0]
-            self.decoded_values["timestamp"] = np.frombuffer(event_data_bytes[offset+4:12], dtype=np.uint64)[0]
-            self.decoded_values["energy"] = np.frombuffer(event_data_bytes[offset+12:14], dtype=np.uint16)[0]
-            self.decoded_values["energy_short"] = np.frombuffer(event_data_bytes[offset+14:16], dtype=np.uint16)[0]
-            self.decoded_values["flags"] = np.frombuffer(event_data_bytes[offset+16:20], np.uint32)[0]
-            self.decoded_values["code"] = np.frombuffer(event_data_bytes[offset+20:21], np.uint8)[0]
-            self.decoded_values["num_samples"] = np.frombuffer(event_data_bytes[offset+21:25], dtype=np.uint32)[0]
+            self.decoded_values["board"] = np.frombuffer(event_data_bytes[offset:2+offset], dtype=np.uint16)[0]
+            self.decoded_values["channel"] = np.frombuffer(event_data_bytes[offset+2:4+offset], dtype=np.uint16)[0]
+            self.decoded_values["timestamp"] = np.frombuffer(event_data_bytes[offset+4:12+offset], dtype=np.uint64)[0]
+            self.decoded_values["energy"] = np.frombuffer(event_data_bytes[offset+12:14+offset], dtype=np.uint16)[0]
+            self.decoded_values["energy_short"] = np.frombuffer(event_data_bytes[offset+14:16+offset], dtype=np.uint16)[0]
+            self.decoded_values["flags"] = np.frombuffer(event_data_bytes[offset+16:20+offset], np.uint32)[0]
+            self.decoded_values["code"] = np.frombuffer(event_data_bytes[offset+20:21+offset], np.uint8)[0]
+            self.decoded_values["num_samples"] = np.frombuffer(event_data_bytes[offset+21:25+offset], dtype=np.uint32)[0]
             self.decoded_values["waveform"] = np.frombuffer(event_data_bytes[offset+25:], dtype=np.uint16)
         else:
             raise AttributeError(f"{self.compass}: version not recognized!")
