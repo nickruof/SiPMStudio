@@ -1,3 +1,4 @@
+from multiprocessing.sharedctypes import Value
 from .data_loading import DataLoader
 
 import numpy as np
@@ -80,6 +81,8 @@ class CAENDT5730(Digitizer):
             self.decoded_values["flags"] = np.frombuffer(event_data_bytes[18:22], np.uint32)[0]
             self.decoded_values["num_samples"] = np.frombuffer(event_data_bytes[22:26], dtype=np.uint32)[0]
             self.decoded_values["waveform"] = np.frombuffer(event_data_bytes[26:], dtype=np.uint16)
+        else:
+            raise ValueError(f"{self.compass}: version not recognized!")
         return self._assemble_data_row()
 
     def get_dt(self):
