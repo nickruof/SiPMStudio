@@ -31,15 +31,15 @@ def process_metadata(settings, digitizer, overwrite=True, verbose=False):
             num_entries = 0
             event_rows = []
             waveform_rows = []
-            event_size = digitizer.get_event_size(file_name)
+            event_size = digitizer.get_event_size(file_name, num_entries)
             with open(file_name, "rb") as metadata_file:
                 event_data_bytes = metadata_file.read(event_size)
                 while event_data_bytes != b"":
-                    event, waveform = digitizer.get_event(event_data_bytes)
+                    event, waveform = digitizer.get_event(event_data_bytes, num_entries)
                     event_rows.append(event)
                     waveform_rows.append(waveform)
-                    event_data_bytes = metadata_file.read(event_size)
                     num_entries += 1
+                    event_data_bytes = metadata_file.read(event_size, num_entries)
             _output_to_h5file(settings["file_base_name"],
                               settings["output_path_raw"], np.array(event_rows),
                               file_names["bias"], digitizer)
