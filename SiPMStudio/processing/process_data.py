@@ -31,14 +31,14 @@ def process_data(settings, processor, bias=None, overwrite=False, verbose=False,
 
         file_sizes = []
         for file_name in data_files:
-            memory_size = os.path.getsize(path+"/"+file_name)
+            memory_size = os.path.getsize(file_name)
             memory_size = round(memory_size/1e6)
             file_sizes.append(str(memory_size)+" MB")
         print("File Sizes: ", file_sizes)
 
     if overwrite is True:
         for file_name in output_files:
-            destination = os.path.join(path_t2, file_name)
+            destination = os.path.join(file_name)
             if os.path.isfile(destination):
                 os.remove(destination)
 
