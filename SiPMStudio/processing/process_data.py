@@ -1,4 +1,4 @@
-import os, time
+import os, time, glob
 import h5py
 import numpy as np
 
@@ -12,20 +12,15 @@ def process_data(settings, processor, bias=None, overwrite=False, verbose=False,
     if not os.path.exists(path_t2):
         os.makedirs(path_t2)
 
-    data_files = []
+    data_files = glob.glob(f"{path}/*.h5")
+    data_files.sort()
     output_files = []
-
-    base_name = settings["file_base_name"]
-    for entry in settings["init_info"]:
-        bias_label = entry["bias"]
+    for file in data_files:
         if bias is None:
-            data_files.append(f"raw_{base_name}_{bias_label}.h5")
-            output_files.append(f"t2_{base_name}_{bias_label}.h5")
-        elif entry["bias"] in bias:
-            data_files.append(f"raw_{base_name}_{bias_label}.h5")
-            output_files.append(f"t2_{base_name}_{bias_label}.h5")
+            output_files.append(file.replace("raw", "t2"))
         else:
-            pass
+            if str(bias) in file:
+                output_files.append(file.replace("raw", "t2"))
 
     if verbose:
         print(" ")
