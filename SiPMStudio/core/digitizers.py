@@ -57,10 +57,19 @@ class CAENDT5730(Digitizer):
         self.file_header = "DataR_CH"+str(settings["channel"])+"@"+self.model_name+"_"+str(settings["id"])+"_"
 
     def get_event_size(self, t0_file):
-        with open(t0_file, "rb") as file:
-            first_event = file.read(24)
-            [num_samples] = np.frombuffer(first_event[20:24], dtype=np.uint32)
-        return 24 + 2 * num_samples  # number of bytes / 2
+        num_samples = 0
+        if self.compass == "v1":
+            with open(t0_file, "rb") as file:
+                first_event = file.read(24)
+                [num_samples] = np.frombuffer(first_event[20:24], dtype=np.uint32)
+            return 24 + 2 * num_samples
+        elif self.compass == "v2":
+            with open(t0_file, "rb") as file:
+                first_event = file.read(27)
+                [num_samples] = np.frombuffer(first_event[23:27], dtype=np.uint32)
+            return 27 + 2 * num_samples  # number of bytes / 2
+        else:
+            raise AttributeError(f"{self.compass}: version not recognized!")
 
     def get_event(self, event_data_bytes):
         if self.compass == "v1":
@@ -83,7 +92,7 @@ class CAENDT5730(Digitizer):
             self.decoded_values["num_samples"] = np.frombuffer(event_data_bytes[23:27], dtype=np.uint32)[0]
             self.decoded_values["waveform"] = np.frombuffer(event_data_bytes[27:], dtype=np.uint16)
         else:
-            raise ValueError(f"{self.compass}: version not recognized!")
+            raise AttributeError(f"{self.compass}: version not recognized!")
         return self._assemble_data_row()
 
     def get_dt(self):
