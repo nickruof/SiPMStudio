@@ -79,8 +79,9 @@ class CAENDT5730(Digitizer):
             self.decoded_values["energy"] = np.frombuffer(event_data_bytes[14:16], dtype=np.uint16)[0]
             self.decoded_values["energy_short"] = np.frombuffer(event_data_bytes[16:18], dtype=np.uint16)[0]
             self.decoded_values["flags"] = np.frombuffer(event_data_bytes[18:22], np.uint32)[0]
-            self.decoded_values["num_samples"] = np.frombuffer(event_data_bytes[22:26], dtype=np.uint32)[0]
-            self.decoded_values["waveform"] = np.frombuffer(event_data_bytes[26:], dtype=np.uint16)
+            self.decoded_values["code"] = np.frombuffer(event_data_bytes[22], np.uint8)[0]
+            self.decoded_values["num_samples"] = np.frombuffer(event_data_bytes[23:27], dtype=np.uint32)[0]
+            self.decoded_values["waveform"] = np.frombuffer(event_data_bytes[27:], dtype=np.uint16)
         else:
             raise ValueError(f"{self.compass}: version not recognized!")
         return self._assemble_data_row()
