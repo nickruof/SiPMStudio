@@ -51,7 +51,7 @@ def process_metadata(settings, digitizer, overwrite=True, verbose=False):
 
 
 def _output_per_waveforms(output_name, output_path, events, waveforms, channel, bias, amplifier, digitizer, v_range):
-    destination = os.path.join(output_path, f"raw_{output_name}_{bias}.h5")
+    destination = _name_assign(output_name, output_path, bias)
     with h5py.File(destination, "a") as output_file:
         output_file.create_dataset(f"/raw/channels/{channel}/energy", data=events.T[1])
         output_file.create_dataset(f"/raw/channels/{channel}/waveforms", data=waveforms)
