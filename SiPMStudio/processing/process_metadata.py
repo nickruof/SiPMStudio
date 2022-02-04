@@ -40,18 +40,17 @@ def process_metadata(settings, digitizer, overwrite=True, verbose=False):
                     waveform_rows.append(waveform)
                     event_data_bytes = metadata_file.read(event_size)
                     num_entries += 1
-            _output_to_h5file(settings["file_base_name"],
+            destination = _output_to_h5file(settings["file_base_name"],
                               settings["output_path_raw"], np.array(event_rows),
                               file_names["bias"], digitizer)
-            _output_per_waveforms(settings["file_base_name"], settings["output_path_raw"],
+            _output_per_waveforms(destination,
                                   np.array(event_rows), np.array(waveform_rows), file_names["channels"][i],
                                   file_names["bias"], settings["amplifier"], digitizer, settings["v_range"])
-            _output_entries(num_entries, file_names["bias"], settings["file_base_name"], settings["output_path_raw"])
+            _output_entries(num_entries, file_names["bias"], destination)
     _output_time(time.time() - start)
 
 
-def _output_per_waveforms(output_name, output_path, events, waveforms, channel, bias, amplifier, digitizer, v_range):
-    destination = _name_assign(output_name, output_path, bias)
+def _output_per_waveforms(destination, events, waveforms, channel, bias, amplifier, digitizer, v_range):
     with h5py.File(destination, "a") as output_file:
         output_file.create_dataset(f"/raw/channels/{channel}/energy", data=events.T[1])
         output_file.create_dataset(f"/raw/channels/{channel}/waveforms", data=waveforms)
@@ -75,10 +74,10 @@ def _output_to_h5file(output_name, output_path, events, bias, digitizer):
             output_file.create_dataset("bias", data=float(bias))
         if "date" not in output_file.keys():
             output_file.create_dataset("date", data=time.time())
+    return destination
 
 
-def _output_entries(n_entries, bias, output_name, output_path):
-    destination = os.path.join(output_path, f"raw_{output_name}_{bias}.h5")
+def _output_entries(n_entries, destination):
     with h5py.File(destination, "a") as output_file:
         if "n_events" not in output_file.keys():
             output_file.create_dataset("n_events", data=n_entries)
