@@ -62,18 +62,12 @@ class CAENDT5730(Digitizer):
             with open(t0_file, "rb") as file:
                 first_event = file.read(24)
                 [num_samples] = np.frombuffer(first_event[20:24], dtype=np.uint32)
-            return 24 + 2 * num_samples
+            return 24 + 2*num_samples, 24 + 2*num_samples
         elif self.compass == "v2":
-            offset = 0
             with open(t0_file, "rb") as file:
-                if num_entries > 0:
-                    first_event = file.read(25)
-                    [num_samples] = np.frombuffer(first_event[21:25], dtype=np.uint32)
-                else:
-                    offset = 2
-                    first_event = file.read(27)
-                    [num_samples] = np.frombuffer(first_event[23:27], dtype=np.uint32)
-            return 25 + 2 * num_samples + offset # number of bytes / 2
+                first_event = file.read(27)
+                [num_samples] = np.frombuffer(first_event[23:27], dtype=np.uint32)
+            return 27 + 2*num_samples, 25 + 2 * num_samples # number of bytes / 2
         else:
             raise AttributeError(f"{self.compass}: version not recognized!")
 
