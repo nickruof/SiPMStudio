@@ -43,7 +43,7 @@ def all_dts(timetags, waveforms, dt, height=None, distance=None, width=None):
     return np.array(all_times[1:]) - np.array(all_times[:-1])
 
 
-def amp_dt(timetags, waveforms, dt, norm_charges, lower=0.5, height=None, distance=None, width=None):
+def amp_dt(timetags, waveforms, dt, norm_charges, trig_time=0, lower=0.5, height=None, distance=None, width=None):
     wf_times = []
     wf_amps = []
     wf_ids = []
@@ -56,17 +56,19 @@ def amp_dt(timetags, waveforms, dt, norm_charges, lower=0.5, height=None, distan
         peak_locs, heights = find_peaks(wave, height=height, distance=distance, width=width)
         times = [timetags[i] + dt*peak for peak in peak_locs]
         amps = [wave[peak] for peak in peak_locs]
-        if (len(times) == 1) & (len(wf_times_temp) == 0):
-            wf_times_temp.extend([times[0]])
-            wf_amps_temp.extend([amps[0]])
+        diffs = list(np.array(times) - trig_time)
+        idx = diffs.index(min(diffs))
+        if (len(times) == idx+1) & (len(wf_times_temp) == 0):
+            wf_times_temp.extend([times[idx]])
+            wf_amps_temp.extend([amps[idx]])
             wf_ids_temp.extend([i])
-        elif (len(times) >= 2) & (len(wf_times_temp) == 0):
-            wf_times_temp.extend([times[0], times[1]])
-            wf_amps_temp.extend([amps[0], amps[1]])
+        elif (len(times) >= idx+2) & (len(wf_times_temp) == 0):
+            wf_times_temp.extend([times[idx], times[idx+1]])
+            wf_amps_temp.extend([amps[idx], amps[idx+1]])
             wf_ids_temp.extend([i]*2)
-        elif (len(times) > 0) & (len(wf_times_temp) == 1):
-            wf_times_temp.extend([times[0]])
-            wf_amps_temp.extend([amps[0]])
+        elif (len(times) > idx) & (len(wf_times_temp) == 1):
+            wf_times_temp.extend([times[idx]])
+            wf_amps_temp.extend([amps[idx]])
             wf_ids_temp.extend([i])
         if len(wf_times_temp) == 2:
             wf_times.extend(wf_times_temp)
