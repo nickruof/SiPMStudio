@@ -1,19 +1,11 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from numpy.core.numeric import cross
 import tqdm
 import warnings
-import math
 
-from scipy.optimize import curve_fit
 from scipy.signal import find_peaks
-from scipy.stats import linregress
 
 import scipy.constants as const
-
-from SiPMStudio.processing.functions import gaussian
-import SiPMStudio.plots.plots_base as plots_base
-from SiPMStudio.processing.transforms import savgol
 
 warnings.filterwarnings("ignore", "PeakPropertyWarning: some peaks have a width of 0")
 
