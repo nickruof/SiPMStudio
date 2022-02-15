@@ -40,7 +40,11 @@ def process_metadata(settings, digitizer, overwrite=True, verbose=False):
                     waveform_rows.append(waveform)
                     event_data_bytes = metadata_file.read(event_size)
                     num_entries += 1
-            destination = _output_to_h5file(settings["file_base_name"],
+            output_name = settings["file_base_name"]
+            if "test" in file_names.keys():
+                tag = file_names["test"]
+                output_name += f"_{tag}"
+            destination = _output_to_h5file(output_name,
                               settings["output_path_raw"], np.array(event_rows),
                               file_names["bias"], digitizer)
             _output_per_waveforms(destination,
