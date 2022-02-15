@@ -44,45 +44,65 @@ def all_dts(timetags, waveforms, dt, height=None, distance=None, width=None):
 
 
 def amp_dt(timetags, waveforms, dt, norm_charges, trig_time=0, lower=0.5, height=None, distance=None, width=None):
-    wf_times = []
+    wf_dts = []
     wf_amps = []
     wf_ids = []
 
-    wf_times_temp = []
-    wf_amps_temp = []
-    wf_ids_temp = []
     signals = waveforms[norm_charges > lower]
-    for i, wave in enumerate(tqdm.tqdm(signals, total=signals.shape[0])):
-        peak_locs, heights = find_peaks(wave, height=height, distance=distance, width=width)
-        times = [timetags[i] + dt*peak for peak in peak_locs]
-        amps = [wave[peak] for peak in peak_locs]
-        diffs = list(np.array(times) - trig_time)
+    sig_times = timetags[norm_charges > lower]
+
+    wf_idx = 0
+    pbar = tqdm.tqdm(total=signals.shape[0])
+    while wf_idx < signals.shape[0]:
+        peak_locs, heights = find_peaks(signals[wf_idx], height=height, distance=distance, width=width)
+        times = [sig_times[wf_idx] + dt*peak for peak in peak_locs]
+        if len(times) == 0:
+            wf_idx += 1
+            pbar.update(1)
+            continue
+        amps = [signals[wf_idx][peak] for peak in peak_locs]
+        diffs = list(np.absolute(np.array(times) - sig_times[wf_idx] - trig_time))
         idx = diffs.index(min(diffs))
-        if (len(times) == idx+1) & (len(wf_times_temp) == 0):
-            wf_times_temp.extend([times[idx]])
-            wf_amps_temp.extend([amps[idx]])
-            wf_ids_temp.extend([i])
-        elif (len(times) >= idx+2) & (len(wf_times_temp) == 0):
-            wf_times_temp.extend([times[idx], times[idx+1]])
-            wf_amps_temp.extend([amps[idx], amps[idx+1]])
-            wf_ids_temp.extend([i]*2)
-        elif (len(times) > idx) & (len(wf_times_temp) == 1):
-            wf_times_temp.extend([times[idx]])
-            wf_amps_temp.extend([amps[idx]])
-            wf_ids_temp.extend([i])
-        if len(wf_times_temp) == 2:
-            wf_times.extend(wf_times_temp)
-            wf_amps.extend(wf_amps_temp)
-            wf_ids.extend(wf_ids_temp)
-
-            wf_times_temp.clear()
-            wf_amps_temp.clear()
-            wf_ids_temp.clear()
-
-    wf_dts = np.array(wf_times)[1:] - np.array(wf_times)[:-1]
-    wf_amps = np.array(wf_amps)[1:]
-    wf_ids = np.array(wf_ids)[1:]
-    return wf_dts, wf_amps, wf_ids
+        time_0 = -1
+        time_1 = -1
+        if len(times) == 1:
+            if time_0 < 0:
+                time_0 = times[0]
+                wf_idx += 1
+                pbar.update(1)
+            elif time_0 > 0:
+                time_1 = times[0]
+                wf_dts.append(time_1 - time_0)
+                wf_amps.append(amps[0])
+                wf_ids.append(wf_idx)
+                time_0 = -1
+                time_1 = -1
+                wf_idx += 1
+                pbar.update(1)
+        elif len(times) > idx+1:
+            if time_0 < 0:
+                time_0 = times[idx]
+                time_1 = times[idx+1]
+                wf_dts.append(time_1 - time_0)
+                wf_amps.append(amps[idx+1])
+                wf_ids.append(wf_idx)
+                time_0 = -1
+                time_1 = -1
+                wf_idx += 1
+                pbar.update(1)
+            elif (time_0 > 0) & (time_1 < 0):
+                time_1 = times[0]
+                wf_dts.append(time_1 - time_0)
+                wf_amps.append(amps[0])
+                wf_ids.append(wf_idx)
+                time_0 = -1
+                time_1 = -1
+                wf_idx += 1
+                pbar.update(1)
+        else:
+            wf_idx += 1
+            pbar.update(1)
+    return np.array(wf_dts), np.array(wf_amps), np.array(wf_ids)
 
 
 def cross_talk_frac(norm_charges, min_charge=0.5, max_charge=1.5):
