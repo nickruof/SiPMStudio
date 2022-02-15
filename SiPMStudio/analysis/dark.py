@@ -51,6 +51,9 @@ def amp_dt(timetags, waveforms, dt, norm_charges, trig_time=0, lower=0.5, height
     signals = waveforms[norm_charges > lower]
     sig_times = timetags[norm_charges > lower]
 
+    time_0 = -1
+    time_1 = -1
+
     wf_idx = 0
     pbar = tqdm.tqdm(total=signals.shape[0])
     while wf_idx < signals.shape[0]:
@@ -63,8 +66,6 @@ def amp_dt(timetags, waveforms, dt, norm_charges, trig_time=0, lower=0.5, height
         amps = [signals[wf_idx][peak] for peak in peak_locs]
         diffs = list(np.absolute(np.array(times) - sig_times[wf_idx] - trig_time))
         idx = diffs.index(min(diffs))
-        time_0 = -1
-        time_1 = -1
         if len(times) == 1:
             if time_0 < 0:
                 time_0 = times[0]
@@ -102,6 +103,7 @@ def amp_dt(timetags, waveforms, dt, norm_charges, trig_time=0, lower=0.5, height
         else:
             wf_idx += 1
             pbar.update(1)
+
     return np.array(wf_dts), np.array(wf_amps), np.array(wf_ids)
 
 
