@@ -50,7 +50,7 @@ def process_metadata(settings, digitizer, overwrite=True, verbose=False):
             _output_per_waveforms(destination,
                                   np.array(event_rows), np.array(waveform_rows), file_names["channels"][i],
                                   file_names["bias"], settings["amplifier"], digitizer, settings["v_range"])
-            _output_entries(num_entries, file_names["bias"], destination)
+            _output_entries(num_entries, destination)
     _output_time(time.time() - start)
 
 
