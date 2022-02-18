@@ -53,7 +53,10 @@ def baseline_subtract_gauss(outputs, wf_in, wf_out, sample_range=None):
         baselines = np.apply_along_axis(axis_function, 1, waves_data)
         outputs[wf_out] = waves_data - baselines
     except:
-        baseline_subtract(outputs, wf_in, wf_out)
+        if sample_range is None:
+            baseline_subtract_simple(outputs, wf_in, wf_out)
+        else:
+            baseline_subtract_simple(outputs, wf_in, wf_out, t_range=sample_range)
 
 
 def savgol(waves_data, window=15, order=2):
