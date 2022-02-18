@@ -37,10 +37,13 @@ def baseline_subtract_simple(outputs, wf_in, wf_out, t_range=[0, 100]):
     outputs[wf_out] = waves_data - baselines
 
 
-def baseline_subtract_gauss(outputs, wf_in, wf_out):
+def baseline_subtract_gauss(outputs, wf_in, wf_out, sample_range=None):
     waves_data = outputs[wf_in]
     def axis_function(waveform):
-        n, bins = np.histogram(waveform, bins=100)
+        fit_waveform = waveform
+        if sample_range is not None:
+            fit_waveform = waveform[sample_range[0]: sample_range[1]]
+        n, bins = np.histogram(fit_waveform, bins=100)
         bin_centers = (bins[1:] + bins[:-1]) / 2
         max_loc = np.where(n == max(n))[0][0]
         coeffs, covs = curve_fit(gaussian, bin_centers, n, p0=[bin_centers[max_loc], 100, 100])
