@@ -60,7 +60,7 @@ def baseline_subtract_gauss(outputs, wf_in, wf_out, sample_range=None, flip=Fals
         if sample_range is None:
             baseline_subtract_simple(outputs, wf_in, wf_out)
         else:
-            baseline_subtract_simple(outputs, wf_in, wf_out, t_range=sample_range)
+            baseline_subtract_simple(outputs, wf_in, wf_out, t_range=sample_range, flip=flip)
 
 
 def savgol(waves_data, window=15, order=2):
