@@ -17,7 +17,7 @@ from SiPMStudio.processing.functions import butter_bandpass, exp_charge, exp_rel
 
 
 def baseline_subtract(outputs, wf_in, wf_out, degree=1, flip=False):
-    waves_data = None
+    waves_data = outputs[wf_in]
     if flip:
         waves_data = -outputs[wf_in]
     else:
@@ -27,8 +27,10 @@ def baseline_subtract(outputs, wf_in, wf_out, degree=1, flip=False):
     outputs[wf_out] = waves_data - baselines
 
 
-def baseline_subtract_simple(outputs, wf_in, wf_out, t_range=[0, 100]):
+def baseline_subtract_simple(outputs, wf_in, wf_out, t_range=[0, 100], flip=False):
     waves_data = outputs[wf_in]
+    if flip:
+        waves_data = -outputs[wf_in]
     def axis_function(waveform):
         first_average = np.mean(waveform[t_range[0]: t_range[1]])
         baseline = np.repeat(first_average, repeats=len(waveform))
@@ -37,8 +39,10 @@ def baseline_subtract_simple(outputs, wf_in, wf_out, t_range=[0, 100]):
     outputs[wf_out] = waves_data - baselines
 
 
-def baseline_subtract_gauss(outputs, wf_in, wf_out, sample_range=None):
+def baseline_subtract_gauss(outputs, wf_in, wf_out, sample_range=None, flip=False):
     waves_data = outputs[wf_in]
+    if flip:
+        waves_data = -outputs[wf_in]
     def axis_function(waveform):
         fit_waveform = waveform
         if sample_range is not None:
