@@ -60,10 +60,6 @@ def amp_dt(timetags, waveforms, dt, norm_charges, trig_time=0, lower=0.5, height
         peak_locs, heights = find_peaks(signals[wf_idx], height=height, distance=distance, width=width)
         times = [sig_times[wf_idx] + dt*peak for peak in peak_locs]
         amps = None
-        if len(times) == 0:
-            wf_idx += 1
-            pbar.update(1)
-            continue
         if look_back is not None:
             amps = []
             for peak in peak_locs:
@@ -73,6 +69,10 @@ def amp_dt(timetags, waveforms, dt, norm_charges, trig_time=0, lower=0.5, height
                     amps.append(signals[wf_idx][peak])
         else:
             amps = [signals[wf_idx][peak] for peak in peak_locs]
+        if len(times) == 0:
+            wf_idx += 1
+            pbar.update(1)
+            continue
         diffs = list(np.absolute(np.array(times) - sig_times[wf_idx] - trig_time))
         idx = diffs.index(min(diffs))
         if len(times) == 1:
