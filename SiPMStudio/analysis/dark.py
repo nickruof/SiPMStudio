@@ -65,7 +65,7 @@ def amp_dt(timetags, waveforms, dt, norm_charges, trig_time=0, lower=0.5, height
             pbar.update(1)
             continue
         if look_back is not None:
-            amps = [signals[wf_idx][peak] - signals[wf_idx][peak-look_back] for peak in peak_locs]
+            amps = [signals[wf_idx][peak] - signals[wf_idx][peak-look_back] for peak in peak_locs if peak-look_back > 0]
         else:
             amps = [signals[wf_idx][peak] for peak in peak_locs]
         diffs = list(np.absolute(np.array(times) - sig_times[wf_idx] - trig_time))
