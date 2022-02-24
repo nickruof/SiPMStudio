@@ -43,7 +43,7 @@ def all_dts(timetags, waveforms, dt, height=None, distance=None, width=None):
     return np.array(all_times[1:]) - np.array(all_times[:-1])
 
 
-def amp_dt(timetags, waveforms, dt, norm_charges, trig_time=0, lower=0.5, height=None, distance=None, width=None):
+def amp_dt(timetags, waveforms, dt, norm_charges, trig_time=0, lower=0.5, height=None, distance=None, width=None, look_back=None):
     wf_dts = []
     wf_amps = []
     wf_ids = []
@@ -59,11 +59,15 @@ def amp_dt(timetags, waveforms, dt, norm_charges, trig_time=0, lower=0.5, height
     while wf_idx < signals.shape[0]:
         peak_locs, heights = find_peaks(signals[wf_idx], height=height, distance=distance, width=width)
         times = [sig_times[wf_idx] + dt*peak for peak in peak_locs]
+        amps = None
         if len(times) == 0:
             wf_idx += 1
             pbar.update(1)
             continue
-        amps = [signals[wf_idx][peak] for peak in peak_locs]
+        if look_back is not None:
+            amps = [signals[wf_idx][peak] - signals[wf_idx][peak-look_back] for peak in peak_locs]
+        else:
+            amps = [signals[wf_idx][peak] for peak in peak_locs]
         diffs = list(np.absolute(np.array(times) - sig_times[wf_idx] - trig_time))
         idx = diffs.index(min(diffs))
         if len(times) == 1:
