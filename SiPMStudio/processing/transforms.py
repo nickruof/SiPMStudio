@@ -32,9 +32,7 @@ def baseline_subtract_simple(outputs, wf_in, wf_out, t_range=[0, 100], other_t_r
     if flip:
         waves_data = -outputs[wf_in]
     def axis_function(waveform):
-        first_average = np.mean(waveform[t_range[0]: t_range[1]])
-        second_average = np.mean(waveform[other_t_range[0]: other_t_range[1]])
-        average = min(first_average, second_average)
+        average = np.mean(waveform[t_range[0]: t_range[1]])
         baseline = np.repeat(average, repeats=len(waveform))
         return baseline
     baselines = np.apply_along_axis(axis_function, 1, waves_data)
