@@ -23,7 +23,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--settings", help="settings file name")
     parser.add_argument("--compass", help="compass version (v1 or v2)", default="v1")
-    parser.add_argument("--csv", help="set True if using csv input files", default=False)
+    parser.add_argument("--csv", help="set True if using csv input files", type=bool, default=False)
     args = parser.parse_args()
 
     process_raw_files(args.settings, args.compass, args.csv)
