@@ -71,6 +71,14 @@ class CAENDT5730(Digitizer):
         else:
             raise AttributeError(f"{self.compass}: version not recognized!")
 
+    def get_event_size_csv(self, t0_file):
+        with open(t0_file, "r") as input_file:
+            lines = input_file.readlines()
+            first_event = lines[1].split(";")
+            event_size = 7
+            waveform_size = len(first_event[event_size:])
+            return event_size, waveform_size
+
     def get_event(self, event_data_bytes, num_entries):
         if self.compass == "v1":
             self.decoded_values["board"] = np.frombuffer(event_data_bytes[0:2], dtype=np.uint16)[0]
