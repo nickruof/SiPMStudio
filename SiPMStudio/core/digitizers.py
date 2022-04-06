@@ -71,6 +71,13 @@ class CAENDT5730(Digitizer):
         else:
             raise AttributeError(f"{self.compass}: version not recognized!")
 
+    def get_event_size_csv(self, t0_file):
+        with open(t0_file, "r") as input_file:
+            lines = input_file.readlines()
+            first_event = lines[1].split(";")
+            second_event = lines[2].split(";")
+            return len(first_event), len(second_event)
+
     def get_event(self, event_data_bytes, num_entries):
         if self.compass == "v1":
             self.decoded_values["board"] = np.frombuffer(event_data_bytes[0:2], dtype=np.uint16)[0]
@@ -97,6 +104,17 @@ class CAENDT5730(Digitizer):
             self.decoded_values["waveform"] = np.frombuffer(event_data_bytes[offset+25:], dtype=np.uint16)
         else:
             raise AttributeError(f"{self.compass}: version not recognized!")
+        return self._assemble_data_row()
+
+    def get_event_csv(self, data_elements):
+        self.decoded_values["board"] = data_elements[0]
+        self.decoded_values["channel"] = data_elements[1]
+        self.decoded_values["timestamp"] = data_elements[2]
+        self.decoded_values["energy"] = data_elements[3]
+        self.decoded_values["energy_short"] = data_elements[4]
+        self.decoded_values["flags"] = data_elements[5]
+        self.decoded_values["probe_code"] = data_elements[6]
+        self.decoded_values["waveform"] = data_elements[7:]
         return self._assemble_data_row()
 
     def get_dt(self):

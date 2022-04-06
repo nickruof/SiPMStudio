@@ -54,6 +54,51 @@ def process_metadata(settings, digitizer, overwrite=True, verbose=False):
     _output_time(time.time() - start)
 
 
+def process_metadata_csv(settings, digitizer, overwrite=True, verbose=False):
+
+    if verbose:
+        print("Processing Metadata! ...")
+        print("Number of Files to Process: "+str(len(settings["init_info"])))
+        print("Output Path: ", settings["output_path_raw"])
+
+    if not os.path.exists(settings["output_path_raw"]):
+        os.makedirs(settings["output_path_raw"])
+
+    if overwrite is True:
+        output_path = settings["output_path_raw"]
+        file_list = glob.glob(f"{output_path}/*.h5")
+        for file in file_list:
+            os.remove(file)
+
+    start = time.time()
+    for file_names in tqdm_it(settings["init_info"], verbose=verbose):
+        for i, file_name in enumerate(file_names["files"]):
+            num_entries = 0
+            event_rows = []
+            waveform_rows = []
+            first_event_size, event_size = digitizer.get_event_size_csv(file_name)
+            with open(file_name, "r") as metadata_file:
+                full_data = metadata_file.readlines(event_size)
+                for j, data_line in enumerate(full_data[1:]):
+                    data_elements = [int(k, 0) for k in data_line.split(";")]
+                    event, waveform = digitizer.get_event_csv(data_elements)
+                    event_rows.append(event)
+                    waveform_rows.append(waveform)
+                    num_entries += 1
+            output_name = settings["file_base_name"]
+            if "test" in file_names.keys():
+                tag = file_names["test"]
+                output_name += f"_{tag}"
+            destination = _output_to_h5file(output_name,
+                              settings["output_path_raw"], np.array(event_rows),
+                              file_names["bias"], digitizer)
+            _output_per_waveforms(destination,
+                                  np.array(event_rows), np.array(waveform_rows), file_names["channels"][i],
+                                  file_names["bias"], settings["amplifier"], digitizer, settings["v_range"])
+            _output_entries(num_entries, destination)
+    _output_time(time.time() - start)
+
+
 def _output_per_waveforms(destination, events, waveforms, channel, bias, amplifier, digitizer, v_range):
     with h5py.File(destination, "a") as output_file:
         output_file.create_dataset(f"/raw/channels/{channel}/energy", data=events.T[1])
