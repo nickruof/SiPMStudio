@@ -78,7 +78,7 @@ def process_metadata_csv(settings, digitizer, overwrite=True, verbose=False):
             waveform_rows = []
             first_event_size, event_size = digitizer.get_event_size_csv(file_name)
             with open(file_name, "r") as metadata_file:
-                full_data = metadata_file.readlines(event_size)
+                full_data = metadata_file.readlines()
                 for j, data_line in enumerate(full_data[1:]):
                     data_elements = [int(k, 0) for k in data_line.split(";")]
                     event, waveform = digitizer.get_event_csv(data_elements)
