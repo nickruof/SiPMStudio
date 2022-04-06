@@ -31,14 +31,15 @@ def process_metadata(settings, digitizer, overwrite=True, verbose=False):
             num_entries = 0
             event_rows = []
             waveform_rows = []
-            first_event_size, event_size = digitizer.get_event_size(file_name)
-            with open(file_name, "rb") as metadata_file:
-                event_data_bytes = metadata_file.read(first_event_size)
-                while event_data_bytes != b"":
-                    event, waveform = digitizer.get_event(event_data_bytes, num_entries)
+            first_event_size, event_size = digitizer.get_event_size_csv(file_name)
+            with open(file_name, "r") as metadata_file:
+                full_data = metadata_file.readlines(first_event_size)
+                data_rows = [int(i, 0) for i in full_data.split(";")]
+                for i, data_line in enumerate(full_data[1:]):
+                    data_elements = [int(i, 0) for i in data_line.split(";")]
+                    event, waveform = digitizer.get_event_csv(data_elements)
                     event_rows.append(event)
                     waveform_rows.append(waveform)
-                    event_data_bytes = metadata_file.read(event_size)
                     num_entries += 1
             output_name = settings["file_base_name"]
             if "test" in file_names.keys():
