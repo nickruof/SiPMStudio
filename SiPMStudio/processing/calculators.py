@@ -10,7 +10,7 @@ def charge(outputs, wf_in, out, window, amp, vpp=2):
     outputs[out] = charges
 
 
-def normalize_charge(outputs, in_name, out_name, peak_locs, peak_errors):
+def normalize_charge(outputs, in_name, out_name, peak_locs, peak_errors, sigmas=None, sigma_errors=None):
     x0 = peak_locs[0]
     peak_locs = np.array(peak_locs)[1:]
     peak_errors = np.array(peak_errors)[1:]
