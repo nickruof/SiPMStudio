@@ -84,7 +84,7 @@ def load_functions(proc_settings, processor):
 
 def load_functions_v2(proc_settings, processor):
     for channel, processors in proc_settings["processes"].items():
-        for key, params in processors:
+        for key, params in processors.items():
             processor.add(key, settings=params)
     for output in proc_settings["save_output"]:
         processor.add_to_file(output)
