@@ -12,13 +12,20 @@ def charge(outputs, wf_in, out, window, amp, vpp=2):
 
 def normalize_charge(outputs, in_name, out_name, peak_locs, peak_errors, sigmas=None, sigma_errors=None):
     x0 = peak_locs[0]
-    peak_locs = np.array(peak_locs)[1:]
-    peak_errors = np.array(peak_errors)[1:]
-    peak_diffs = peak_locs[1:] - peak_locs[:-1]
-    diff_errors = np.sqrt((peak_errors[1:] + peak_errors[:-1])**2)
-    gain = np.sum(peak_diffs * diff_errors) / np.sum(diff_errors)
-    charges = outputs[in_name]
-    outputs[out_name] = (charges - x0) / gain
+    if len(peak_locs) == 2:
+        peak_diff = peak_locs[1] - peak_locs[0]
+        diff_error = np.sqrt(peak_errors[0]**2 + peak_errors[1]**2)
+        gain = peak_diff
+        charges = outputs[in_name]
+        outputs[out_name] = (charges - x0) / gain
+    else:
+        peak_locs = np.array(peak_locs)[1:]
+        peak_errors = np.array(peak_errors)[1:]
+        peak_diffs = peak_locs[1:] - peak_locs[:-1]
+        diff_errors = np.sqrt(peak_errors[1:]**2 + peak_errors[:-1]**2)
+        gain = np.sum(peak_diffs * diff_errors) / np.sum(diff_errors)
+        charges = outputs[in_name]
+        outputs[out_name] = (charges - x0) / gain
 
 
 def voltage_divider(R1, R2):
