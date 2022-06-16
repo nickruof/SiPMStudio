@@ -27,8 +27,8 @@ def rando_integrate_current(current_forms, width, sample_time=2e-9):
 
 
 def gain(peak_locs, peak_errors):
-    peak_locs = np.array(peak_locs)[1:]
-    peak_errors = np.array(peak_errors)[1:]
+    peak_locs = np.array(peak_locs)
+    peak_errors = np.array(peak_errors)
     peak_diffs = peak_locs[1:] - peak_locs[:-1]
     diff_errors = np.sqrt((peak_errors[1:] + peak_errors[:-1])**2)
     return np.sum(peak_diffs * diff_errors) / np.sum(diff_errors) / const.e
