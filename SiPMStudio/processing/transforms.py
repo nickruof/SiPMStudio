@@ -63,9 +63,10 @@ def baseline_subtract_gauss(outputs, wf_in, wf_out, sample_range=None, flip=Fals
             baseline_subtract_simple(outputs, wf_in, wf_out, t_range=sample_range, flip=flip)
 
 
-def savgol(waves_data, window=15, order=2):
+def savgol(outputs, wf_in, wf_out, window=15, order=2):
+    waves_data = outputs[wf_in]
     filtered_data = savgol_filter(waves_data, window, order, axis=1)
-    return filtered_data
+    outputs[wf_out] = filtered_data
 
 
 def butter_bandpass_filter(waves_data, digitizer, lowcut, highcut, order=5):
