@@ -1,0 +1,7 @@
+{
+    "processes": {
+        "baseline_subtract_gauss": {"wf_in": "/raw/channels/sipm/waveforms", "wf_out": "/processed/channels/sipm/blr_wf"}
+    },
+    "save_output": [],
+    "save_waveforms": ["/processed/channels/sipm/blr_wf"]
+}

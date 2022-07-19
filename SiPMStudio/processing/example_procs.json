@@ -1,0 +1,9 @@
+{
+    "processes": {
+        "baseline_subtract": {"wf_in": "/raw/sipm/waveforms", "wf_out": "/processed/sipm/blr_wf", "degree": 1},
+        "charge": {"wf_in": "/processed/sipm/blr_wf", "out":"/processed/sipm/charge", "window": [45, 150]}
+    },
+    "save_output": ["/processed/sipm/charge"],
+    "save_waveforms": ["/processed/sipm/blr_wf"]
+}
+

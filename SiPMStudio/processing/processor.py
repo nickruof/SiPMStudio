@@ -6,8 +6,6 @@ import SiPMStudio.processing.transforms as pt
 
 class Processor(object):
 
-    # TODO: Look into using in place transformations for the ProcessorBase class
-
     def __init__(self, settings=None):
         self.proc_list = []
         self.outputs = {}
@@ -42,16 +40,20 @@ class Processor(object):
                 ProcessorBase(getattr(pt, fun_name), **self.settings[fun_name]))
         else:
             raise LookupError(f"Unknown function: {fun_name}")
-    
+
     def init_outputs(self, outputs):
         self.outputs = outputs
+
+    def add_output(self, key, value):
+        self.outputs[key] = value
 
     def reset_outputs(self):
         self.outputs.clear()
 
     def add_to_file(self, var_name):
         if isinstance(var_name, str):
-            self.save_to_file.append(var_name)
+            if var_name not in self.save_to_file:
+                self.save_to_file.append(var_name)
         elif isinstance(var_name, list):
             self.save_to_file += var_name
         else:
@@ -75,4 +77,16 @@ def load_functions(proc_settings, processor):
     for key, params in proc_settings["processes"].items():
         processor.add(key, settings=params)
     for output in proc_settings["save_output"]:
-        processor.save_to_file.append(output)
+        processor.add_to_file(output)
+    for output in proc_settings["save_waveforms"]:
+        processor.add_to_file(output)
+
+
+def load_functions_v2(proc_settings, processor):
+    for channel, processors in proc_settings["processes"].items():
+        for key, params in processors.items():
+            processor.add(key, settings=params)
+    for output in proc_settings["save_output"]:
+        processor.add_to_file(output)
+    for output in proc_settings["save_waveforms"]:
+        processor.add_to_file(output)
