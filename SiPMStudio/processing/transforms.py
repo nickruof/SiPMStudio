@@ -36,7 +36,9 @@ def baseline_subtract_simple(outputs, wf_in, wf_out, t_range=[0, 100], rolling_w
         if rolling_window is not None:
             window_size = t_range[1] - t_range[0]
             average_array = np.convolve(waveform, np.ones(window_size), "valid") / window_size
-            average = min(average_array)
+            std = np.std(average_array)
+            mean = np.mean(average_array)
+            average = np.mean(average_array[(average_array > mean - std) & (average_array < mean + std)])
         else:
             average = np.mean(waveform[t_range[0]: t_range[1]])
         baseline = np.repeat(average, repeats=len(waveform))
