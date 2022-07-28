@@ -27,12 +27,18 @@ def baseline_subtract(outputs, wf_in, wf_out, degree=1, flip=False):
     outputs[wf_out] = waves_data - baselines
 
 
-def baseline_subtract_simple(outputs, wf_in, wf_out, t_range=[0, 100], other_t_range=[4800, 4900], flip=False):
+def baseline_subtract_simple(outputs, wf_in, wf_out, t_range=[0, 100], rolling_window=None, flip=False):
     waves_data = outputs[wf_in]
     if flip:
         waves_data = -outputs[wf_in]
     def axis_function(waveform):
-        average = np.mean(waveform[t_range[0]: t_range[1]])
+        average = 0
+        if rolling_window is not None:
+            window_size = t_range[1] - t_range[0]
+            average_array = np.convolve(waveform, np.ones(window_size), "valid") / window_size
+            average = min(average_array)
+        else:
+            average = np.mean(waveform[t_range[0]: t_range[1]])
         baseline = np.repeat(average, repeats=len(waveform))
         return baseline
     baselines = np.apply_along_axis(axis_function, 1, waves_data)
